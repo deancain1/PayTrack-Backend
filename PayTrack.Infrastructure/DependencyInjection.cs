@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using PayTrack.Application.Interfaces;
+using PayTrack.Infrastructure.Services;
 
 namespace PayTrack.Infrastructure
 {
@@ -7,8 +9,8 @@ namespace PayTrack.Infrastructure
 
         public static IServiceCollection AddInfrastructure(this IServiceCollection services)
         {
-            var assembly = typeof(DependencyInjection).Assembly;
-            services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(assembly));
+            services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<IEmailService, EmailService>();
             return services;
         }
     }

@@ -2,6 +2,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using PayTrack.Application.DTOs;
 using PayTrack.Application.Features.Auth.Commands;
 
 namespace PayTrack.Api.Controllers
@@ -31,6 +32,24 @@ namespace PayTrack.Api.Controllers
             }
 
             var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+
+        [HttpPost("login")]
+        public async Task<ActionResult<AuthResponseDTO>> Login(LoginCommand command)
+        {
+            var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+
+        [HttpGet("verify-email")]
+        public async Task<IActionResult> VerifyEmail(
+           string token)
+        {
+            var result = await _mediator.Send(
+                new VerifyEmailCommand(token)
+            );
+
             return Ok(result);
         }
     }
