@@ -35,6 +35,7 @@ namespace PayTrack.Application.Features.Auth.Commands
             {
                 FullName = request.FullName,
                 Email = request.Email,
+                CompanyName = request.CompanyName,
                 PhoneNumber = request.PhoneNumber,
                 UserName = request.Email,
                 Role = request.Role,

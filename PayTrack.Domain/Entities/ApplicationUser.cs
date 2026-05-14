@@ -10,6 +10,7 @@ namespace PayTrack.Domain.Entities
     public class ApplicationUser : IdentityUser
     {
         public string FullName { get; set; }
+        public string CompanyName { get; set; }
         public bool IsEmailVerified { get; set; }
         public string? EmailVerificationToken { get; set; }
         public string Role { get; set; }

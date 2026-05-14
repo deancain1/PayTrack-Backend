@@ -10,8 +10,9 @@ namespace PayTrack.Application.Features.Auth.Commands
 {
     public record RegisterCommand (
         string FullName,
+        string CompanyName,
         string Email,
-        string PhoneNumber,
+        string? PhoneNumber,
         string Password,
         string Role
     ) : IRequest<AuthResponseDTO>;
