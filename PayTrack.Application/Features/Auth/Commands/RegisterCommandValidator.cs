@@ -25,8 +25,8 @@ namespace PayTrack.Application.Features.Auth.Commands
 
             RuleFor(x => x.Role)
                 .NotEmpty().WithMessage("Role is required.")
-                .Must(role => role == "User" || role == "Admin")
-                .WithMessage("Role must be either 'User' or 'Admin'.");
+                .Must(role => role == "Employee" || role == "CompanyAdmin" || role == "Admin")
+                .WithMessage("Role must be either 'Employee' or 'CompanyAdmin' or 'Admin'.");
         }
     }
 }
