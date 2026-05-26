@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PayTrack.Application.DTOs;
 using PayTrack.Application.Features.Auth.Commands;
+using PayTrack.Application.Features.Employee.Commands;
 
 namespace PayTrack.Api.Controllers
 {
@@ -51,6 +52,26 @@ namespace PayTrack.Api.Controllers
             );
 
             return Ok(result);
+        }
+        [HttpPost("register-employee")]
+        public async Task<ActionResult<AuthResponseDTO>> RegisterEmployee(
+     [FromBody] RegisterEmployeeCommand command)
+        {
+            try
+            {
+                var response = await _mediator.Send(command);
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    Message = ex.Message,
+                    InnerException = ex.InnerException?.Message,
+                    StackTrace = ex.StackTrace
+                });
+            }
         }
     }
 }
