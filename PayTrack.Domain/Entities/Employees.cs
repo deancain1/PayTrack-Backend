@@ -9,15 +9,11 @@ namespace PayTrack.Domain.Entities
     public class Employees
     {
         public Guid Id { get; set; }
-
-        public string EmployeeNumber { get; set; } = string.Empty;
-
-        public string Department { get; set; } = string.Empty;
-
+        public string EmployeeNumber { get; set; }
+        public string Department { get; set; }
+        public string Role { get; set; }
         public DateTime DateHired { get; set; }
-
-        public string ApplicationUserId { get; set; } = string.Empty;
-
+        public string ApplicationUserId { get; set; } 
         public ApplicationUser ApplicationUser { get; set; } = null!;
     }
 }

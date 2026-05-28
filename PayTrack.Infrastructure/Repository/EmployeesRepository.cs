@@ -1,4 +1,5 @@
-﻿using PayTrack.Application.Interfaces;
+﻿using Microsoft.EntityFrameworkCore;
+using PayTrack.Application.Interfaces;
 using PayTrack.Domain.Entities;
 using PayTrack.Infrastructure.Data;
 using System;
@@ -20,6 +21,13 @@ namespace PayTrack.Infrastructure.Repository
         {
            await _context.Employees.AddAsync(employee);
            await _context.SaveChangesAsync();
+        }
+
+        public IQueryable<Employees> GetEmployeesWithApplicationUser()
+        {
+            return _context.Employees
+                .Include(e => e.ApplicationUser)
+                .AsQueryable();
         }
     }
 }

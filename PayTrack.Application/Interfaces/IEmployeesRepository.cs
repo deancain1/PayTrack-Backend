@@ -10,5 +10,6 @@ namespace PayTrack.Application.Interfaces
     public interface IEmployeesRepository
     {
         Task AddEmployeeAsync(Employees employee);
+        IQueryable<Employees> GetEmployeesWithApplicationUser();
     }
 }
