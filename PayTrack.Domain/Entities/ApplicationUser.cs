@@ -11,12 +11,15 @@ namespace PayTrack.Domain.Entities
     {
         public string FullName { get; set; }
         public string? CompanyName { get; set; }
+        public string? BusinessType { get; set; }
         public bool IsEmailVerified { get; set; }
         public string? EmailVerificationToken { get; set; }
         public string Role { get; set; }
         public string? RefreshToken { get; set; }
         public DateTime? RefreshTokenExpiryTime { get; set; }
         public Employees? Employee { get; set; }
+        public ICollection<Departments> Departments { get; set; }
+         = new List<Departments>();
 
 
     }
