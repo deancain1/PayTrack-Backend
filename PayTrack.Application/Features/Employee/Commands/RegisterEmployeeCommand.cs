@@ -16,6 +16,6 @@ namespace PayTrack.Application.Features.Employee.Commands
      string Department,
     
      DateTime DateHired,
-         string Role = "Employee"
+         string Role
  ) : IRequest<AuthResponseDTO>;
 }

@@ -63,6 +63,7 @@ namespace PayTrack.Application.Features.Employee.Commands
                 EmployeeNumber = GenerateEmployeeNumber(),
                 Department = request.Department,
                 DateHired = request.DateHired,
+                Role = request.Role,
                 ApplicationUserId = user.Id
             };
 
@@ -76,7 +77,7 @@ namespace PayTrack.Application.Features.Employee.Commands
                 Email = user.Email!,
                 PhoneNumber = user.PhoneNumber,
                 UserId = user.Id,
-                Role = user.Role,
+                Role = "Employee",
                
             };
         }
