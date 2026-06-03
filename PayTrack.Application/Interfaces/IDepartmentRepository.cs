@@ -10,5 +10,6 @@ namespace PayTrack.Application.Interfaces
     public interface IDepartmentRepository : IBaseRepository<Departments>
     {
         IQueryable<Departments> GetDepartmentsQuery();
+        Task<List<Departments>> GetDepartmentsByUserIdAsync(string userId);
     }
 }

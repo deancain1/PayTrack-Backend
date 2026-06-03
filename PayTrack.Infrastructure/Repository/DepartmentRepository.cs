@@ -14,11 +14,18 @@ namespace PayTrack.Infrastructure.Repository
     {
           public DepartmentRepository(AppDbContext context) : base(context) { }
 
+
         public IQueryable<Departments> GetDepartmentsQuery()
         {
             return _context.Departments
                  .AsNoTracking();
                 
+        }
+        public async Task<List<Departments>> GetDepartmentsByUserIdAsync(string userId)
+        {
+            return await _context.Departments
+                .Where(d => d.ApplicationUserId == userId)
+                .ToListAsync();
         }
 
     }

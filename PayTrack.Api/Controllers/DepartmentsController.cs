@@ -31,5 +31,14 @@ namespace PayTrack.Api.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet("my-departments")]
+        public async Task<IActionResult> GetMyDepartments()
+        {
+            var departments = await _mediator.Send(new GetMyDepartmentsQuery());
+
+            return Ok(departments);
+
+        }
     }
 }
