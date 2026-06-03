@@ -92,7 +92,9 @@ namespace PayTrack.Application.Features.Users.Queries
                     Role = request.RoleName,
                     Roles = roles,
 
-                    //ProfilePictureBase64 = employee.User.ProfilePictureBase64,
+                    ProfilePictureBase64 = employee.ApplicationUser.ProfilePicture != null
+                    ? $"data:image/png;base64,{Convert.ToBase64String(employee.ApplicationUser.ProfilePicture)}"
+                    : null,
 
                     EmployeeNumber = employee.EmployeeNumber,
                     Department = employee.Department,

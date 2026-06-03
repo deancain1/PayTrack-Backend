@@ -17,6 +17,8 @@ namespace PayTrack.Domain.Entities
         public string Role { get; set; }
         public string? RefreshToken { get; set; }
         public DateTime? RefreshTokenExpiryTime { get; set; }
+        public byte[]? ProfilePicture { get; set; }
+        
         public Employees? Employee { get; set; }
         public ICollection<Departments> Departments { get; set; }
          = new List<Departments>();

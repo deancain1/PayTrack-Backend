@@ -28,13 +28,25 @@ namespace PayTrack.Application.Features.Employee.Commands
           RegisterEmployeeCommand request,
           CancellationToken cancellationToken)
         {
+            byte[]? profileBytes = null;
+
+            if (!string.IsNullOrWhiteSpace(request.ProfilePicture))
+            {
+                var base64 = request.ProfilePicture.Contains(',')
+                    ? request.ProfilePicture.Split(',')[1]
+                    : request.ProfilePicture;
+
+                profileBytes = Convert.FromBase64String(base64);
+            }
+
             var user = new ApplicationUser
             {
                 FullName = request.FullName,
                 Email = request.Email,
                 UserName = request.Email,
                 PhoneNumber = request.PhoneNumber,
-                 Role = request.Role,
+                ProfilePicture = profileBytes,
+                Role = request.Role,
             };
 
             var result = await _userManager.CreateAsync(
@@ -76,6 +88,8 @@ namespace PayTrack.Application.Features.Employee.Commands
                 FullName = user.FullName,
                 Email = user.Email!,
                 PhoneNumber = user.PhoneNumber,
+                Department = employee.Department,
+                EmployeeNumber = employee.EmployeeNumber,
                 UserId = user.Id,
                 Role = "Employee",
                
