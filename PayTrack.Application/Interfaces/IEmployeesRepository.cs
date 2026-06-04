@@ -11,5 +11,7 @@ namespace PayTrack.Application.Interfaces
     {
         Task AddEmployeeAsync(Employees employee);
         IQueryable<Employees> GetEmployeesWithApplicationUser();
+        Task<Employees?> GetEmployeeByEmployeeIdAsync(Guid employeeId);
+        Task UpdateAsync(Employees employee);
     }
 }
