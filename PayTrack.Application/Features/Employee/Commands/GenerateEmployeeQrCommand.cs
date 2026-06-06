@@ -9,5 +9,5 @@ using System.Threading.Tasks;
 namespace PayTrack.Application.Features.Employee.Commands
 {
     public record GenerateEmployeeQrCommand(Guid EmployeeId)
-     : IRequest<EmployeeDTO>;
+     : IRequest<GenerateQrResponseDTO>;
 }

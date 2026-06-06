@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Application.Features.Employee.Commands
 {
-    public class GenerateEmployeeQrCommandHandler : IRequestHandler<GenerateEmployeeQrCommand, EmployeeDTO>
+    public class GenerateEmployeeQrCommandHandler : IRequestHandler<GenerateEmployeeQrCommand, GenerateQrResponseDTO>
     {
         private readonly IEmployeesRepository _employeesRepository;
         private readonly IQrCodeService _qrCodeService;
@@ -22,9 +22,9 @@ namespace PayTrack.Application.Features.Employee.Commands
             _qrCodeService = qrCodeService;
         }
 
-        public async Task<EmployeeDTO> Handle(
-            GenerateEmployeeQrCommand request,
-            CancellationToken cancellationToken)
+        public async Task<GenerateQrResponseDTO> Handle(
+        GenerateEmployeeQrCommand request,
+        CancellationToken cancellationToken)
         {
             var employee =
                 await _employeesRepository.GetEmployeeByEmployeeIdAsync(request.EmployeeId);
@@ -32,19 +32,13 @@ namespace PayTrack.Application.Features.Employee.Commands
             if (employee is null)
                 throw new Exception("Employee not found");
 
-            employee.QrCodeBase64 =
-                _qrCodeService.GenerateQrCodeBase64(
-                    employee.Id.ToString());
+            employee.QrCodeBase64 = _qrCodeService.GenerateQrCodeBase64($"{employee.Id}|{employee.EmployeeNumber}");
 
             await _employeesRepository.UpdateAsync(employee);
 
-            return new EmployeeDTO(
+            return new GenerateQrResponseDTO(
                 employee.Id,
                 employee.EmployeeNumber,
-                employee.Department,
-                employee.Role,
-                employee.DateHired,
-                employee.ApplicationUserId,
                 employee.QrCodeBase64
             );
         }

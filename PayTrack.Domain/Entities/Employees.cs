@@ -13,7 +13,8 @@ namespace PayTrack.Domain.Entities
         public string Department { get; set; }
         public string Role { get; set; }
         public DateTime DateHired { get; set; }
-        public string ApplicationUserId { get; set; } 
+        public string ApplicationUserId { get; set; }
+        public string? QrCodeBase64 { get; set; }
         public ApplicationUser ApplicationUser { get; set; } = null!;
     }
 }
