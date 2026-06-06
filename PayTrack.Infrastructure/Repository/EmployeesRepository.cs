@@ -41,5 +41,12 @@ namespace PayTrack.Infrastructure.Repository
            _context.Employees.Update(employee);
             await _context.SaveChangesAsync();
         }
+
+        public IQueryable<Employees> GetEmployeesQuery()
+        {
+            return _context.Employees
+                .Include(e => e.ApplicationUser)
+                .AsNoTracking();
+        }
     }
 }

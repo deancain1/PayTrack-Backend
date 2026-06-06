@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PayTrack.Application.DTOs;
 using PayTrack.Application.Features.Employee.Commands;
+using PayTrack.Application.Features.Employee.Queries;
 
 
 namespace PayTrack.Api.Controllers
@@ -25,7 +26,13 @@ namespace PayTrack.Api.Controllers
 
             return Ok(result);
         }
-   
+
+        [HttpGet]
+        public async Task<IActionResult> GetEmployees([FromQuery] GetEmployeesQuery query)
+        {
+            var result = await _mediator.Send(query);
+            return Ok(result);
+        }
 
     }
 }
