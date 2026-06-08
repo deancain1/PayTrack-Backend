@@ -14,6 +14,7 @@ namespace PayTrack.Infrastructure.Data
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
         public DbSet<Employees> Employees => Set<Employees>();
         public DbSet<Departments> Departments => Set<Departments>();
+        public DbSet<Attendances> Attendances => Set<Attendances>();
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Employees>()

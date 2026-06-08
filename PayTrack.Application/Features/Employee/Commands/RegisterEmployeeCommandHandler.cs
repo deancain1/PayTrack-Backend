@@ -16,13 +16,15 @@ namespace PayTrack.Application.Features.Employee.Commands
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IEmployeesRepository _employeesRepository;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly IQrCodeService _qrCodeService;
         public RegisterEmployeeCommandHandler(
             UserManager<ApplicationUser> userManager,
-            IEmployeesRepository employeesRepository, RoleManager<IdentityRole> roleManager )
+            IEmployeesRepository employeesRepository, RoleManager<IdentityRole> roleManager, IQrCodeService qrCodeService )
         {
             _userManager = userManager;
             _employeesRepository = employeesRepository;
             _roleManager = roleManager;
+            _qrCodeService = qrCodeService;
         }
         public async Task<AuthResponseDTO> Handle(
           RegisterEmployeeCommand request,
@@ -81,6 +83,11 @@ namespace PayTrack.Application.Features.Employee.Commands
 
             await _employeesRepository.AddEmployeeAsync(
                 employee);
+
+            employee.QrCodeBase64 =
+             _qrCodeService.GenerateQrCodeBase64(employee.Id.ToString());
+
+            await _employeesRepository.UpdateAsync(employee);
 
 
             return new AuthResponseDTO
