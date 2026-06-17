@@ -34,5 +34,14 @@ namespace PayTrack.Api.Controllers
             return Ok(result);
         }
 
+        [HttpGet("lookup")]
+        public async Task<IActionResult> GetEmployeesLookup()
+        {
+            var result = await _mediator.Send(
+                new GetEmployeesLookupQuery());
+
+            return Ok(result);
+        }
+
     }
 }

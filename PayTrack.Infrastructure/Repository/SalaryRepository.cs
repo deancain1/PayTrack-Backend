@@ -36,8 +36,9 @@ namespace PayTrack.Infrastructure.Repository
         public IQueryable<EmployeeSalary> GetEmployeeSalaryQuery()
         {
             return _context.EmployeeSalaries
-                .Include(e => e.ApplicationUser)
-                .AsNoTracking();
+                .Include(s => s.Employee)
+                .ThenInclude(e => e.ApplicationUser)
+                .AsQueryable();
         }
 
     }

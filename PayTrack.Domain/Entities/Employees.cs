@@ -16,5 +16,6 @@ namespace PayTrack.Domain.Entities
         public string ApplicationUserId { get; set; }
         public string? QrCodeBase64 { get; set; }
         public ApplicationUser ApplicationUser { get; set; } = null!;
+        public EmployeeSalary Salary { get; set; }
     }
 }

@@ -48,5 +48,28 @@ namespace PayTrack.Infrastructure.Repository
                 .Include(e => e.ApplicationUser)
                 .AsNoTracking();
         }
+
+        public async Task<Employees?> GetByIdAndNumberAsync(Guid employeeId, string employeeNumber)
+        {
+            return await _context.Employees
+                .FirstOrDefaultAsync(e =>
+                    e.Id == employeeId &&
+                    e.EmployeeNumber == employeeNumber);
+        }
+
+        public async Task<Employees?> GetByIdAsync(Guid id)
+        {
+            return await _context.Employees
+                .Include(e => e.ApplicationUser)
+                .FirstOrDefaultAsync(e => e.Id == id);
+        }
+
+        public async Task<List<Employees>> GetAllAsync()
+        {
+            return await _context.Employees
+                .Include(e => e.ApplicationUser)
+                .ToListAsync();
+        }
     }
 }
+

@@ -11,12 +11,10 @@ namespace PayTrack.Domain.Entities
     {
         public Guid Id { get; set; }
         public Guid EmployeeId { get; set; }
-
-        public decimal Rate { get; set; } // hourly or daily or monthly
-
+        public decimal Rate { get; set; } 
         public int RequiredHours { get; set; }
-
         public PayrollPolicy Policy { get; set; }
-        public Employees Employee { get; set; }
+        public Employees Employee { get; set; } = null!;
+
     }
 }
