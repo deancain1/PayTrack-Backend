@@ -32,10 +32,14 @@ namespace PayTrack.Application.Features.Salary.Queries
             {
                 var term = request.Search.Trim();
 
-                query = query.Where(e =>
-                    EF.Functions.Like(e.ApplicationUser.FullName!, $"%{term}%") ||
-                    EF.Functions.Like(e.EmployeeNumber, $"%{term}%") ||
-                    EF.Functions.Like(e.ApplicationUser.Email!, $"%{term}%"));
+                query = query.Where(s =>
+                    EF.Functions.Like(
+                        s.Employee.ApplicationUser.FullName,
+                        $"%{term}%")
+                    ||
+                    EF.Functions.Like(
+                        s.Employee.ApplicationUser.Email!,
+                        $"%{term}%"));
             }
 
             // Total Count
@@ -51,21 +55,20 @@ namespace PayTrack.Application.Features.Salary.Queries
                 : request.PageNumber;
 
             var items = await query
-                .OrderBy(e => e.ApplicationUser.FullName)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .Select(s => new SalaryDTO(
-                    s.EmployeeId,
-                    s.EmployeeNumber,
-                    s.ApplicationUser.FullName,
-                    s.Rate,
-                    s.RequiredHours,
-                    s.ApplicationUser.ProfilePicture != null
-                        ? $"data:image/png;base64,{Convert.ToBase64String(s.ApplicationUser.ProfilePicture)}"
-                        : null,
-                    s.Policy
-                ))
-                .ToListAsync(cancellationToken);
+     .OrderBy(s => s.Employee.ApplicationUser.FullName)
+     .Skip((pageNumber - 1) * pageSize)
+     .Take(pageSize)
+     .Select(s => new SalaryDTO(
+         s.EmployeeId,
+         s.Employee.ApplicationUser.FullName,
+         s.Rate,
+         s.RequiredHours,
+         s.Employee.ApplicationUser.ProfilePicture != null
+             ? $"data:image/png;base64,{Convert.ToBase64String(s.Employee.ApplicationUser.ProfilePicture)}"
+             : null,
+         s.Policy
+     ))
+     .ToListAsync(cancellationToken);
 
             return new PagedResult<SalaryDTO>(
                 items,
