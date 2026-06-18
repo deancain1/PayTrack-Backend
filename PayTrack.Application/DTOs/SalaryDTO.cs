@@ -7,14 +7,15 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Application.DTOs
 {
-    public class SalaryDTO
-    {
-        public Guid EmployeeId { get; set; }
-
-        public decimal Rate { get; set; }
-
-        public int RequiredHours { get; set; }
-
-        public PayrollPolicy Policy { get; set; }
-    }
+    public record SalaryDTO(
+       Guid EmployeeId,
+       string? FullName,
+       string EmployeeNumber,
+       string Department,
+       decimal Rate,
+       int RequiredHours,
+       string? ProfilePictureBase64,
+       PayrollPolicy Policy
+   );
 }
+

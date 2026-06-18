@@ -55,20 +55,22 @@ namespace PayTrack.Application.Features.Salary.Queries
                 : request.PageNumber;
 
             var items = await query
-     .OrderBy(s => s.Employee.ApplicationUser.FullName)
-     .Skip((pageNumber - 1) * pageSize)
-     .Take(pageSize)
-     .Select(s => new SalaryDTO(
-         s.EmployeeId,
-         s.Employee.ApplicationUser.FullName,
-         s.Rate,
-         s.RequiredHours,
-         s.Employee.ApplicationUser.ProfilePicture != null
+            .OrderBy(s => s.Employee.ApplicationUser.FullName)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Select(s => new SalaryDTO(
+             s.EmployeeId,
+             s.Employee.ApplicationUser.FullName,
+             s.Employee.EmployeeNumber,
+             s.Employee.Department,
+             s.Rate,
+             s.RequiredHours,
+             s.Employee.ApplicationUser.ProfilePicture != null
              ? $"data:image/png;base64,{Convert.ToBase64String(s.Employee.ApplicationUser.ProfilePicture)}"
              : null,
-         s.Policy
-     ))
-     .ToListAsync(cancellationToken);
+             s.Policy
+             ))
+            .ToListAsync(cancellationToken);
 
             return new PagedResult<SalaryDTO>(
                 items,
