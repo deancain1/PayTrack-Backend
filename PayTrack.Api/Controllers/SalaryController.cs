@@ -46,6 +46,15 @@ namespace PayTrack.Api.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet("summary")]
+        public async Task<IActionResult> GetSummary()
+        {
+            var result = await _mediator.Send(
+                new GetSalarySummaryQuery());
+
+            return Ok(result);
+        }
     }
 }
 
