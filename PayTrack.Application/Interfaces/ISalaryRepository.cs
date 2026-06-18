@@ -13,6 +13,7 @@ namespace PayTrack.Application.Interfaces
         Task AddAsync(EmployeeSalary salary);
         Task UpdateAsync(EmployeeSalary salary);
         IQueryable<EmployeeSalary> GetEmployeeSalaryQuery();
+        Task<List<EmployeeSalary>> GetAllAsync();
 
     }
 }
