@@ -10,6 +10,8 @@ namespace PayTrack.Application.Interfaces
     public interface IAttendanceRepository
     {
         Task AddAsync(Attendances attendance);
-
+        Task<Attendances?> GetTodayAttendanceAsync(Guid employeeId);
+        Task UpdateAsync(Attendances attendance);
+        Task<List<Attendances>> GetTodayAttendancesAsync();
     }
 }

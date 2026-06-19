@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PayTrack.Application.DTOs;
 using PayTrack.Application.Features.Attendance.Commands;
+using PayTrack.Application.Features.Attendance.Queries;
 
 namespace PayTrack.Api.Controllers
 {
@@ -17,20 +18,36 @@ namespace PayTrack.Api.Controllers
         }
 
         [HttpPost("scan")]
-        public async Task<IActionResult> Scan(AttendanceDTO attendanceDTO)
+        public async Task<IActionResult> ScanAttendance(
+            [FromBody] RecordAttendanceCommand command)
         {
-            var attendanceId =
-                await _mediator.Send(
-                    new RecordAttendanceCommand(
-                        attendanceDTO.Id,
-                        attendanceDTO.EmployeeNumber,
-                        attendanceDTO.PhotoBase64));
-
-            return Ok(new
+            try
             {
-                AttendanceId = attendanceId,
-                Message = "Attendance recorded successfully."
-            });
+                var attendanceId =
+                    await _mediator.Send(command);
+
+                return Ok(new
+                {
+                    Success = true,
+                    AttendanceId = attendanceId,
+                    Message = "Attendance recorded successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("today")]
+        public async Task<IActionResult> GetTodayAttendance(CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(new GetTodayAttendanceQuery(), cancellationToken);
+            return Ok(result);
         }
     }
 }
