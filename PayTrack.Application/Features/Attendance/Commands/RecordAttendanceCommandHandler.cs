@@ -15,7 +15,7 @@ namespace PayTrack.Application.Features.Attendance.Commands
         private readonly IAttendanceRepository _attendanceRepository;
         private readonly IPhotoStorageService _photoStorageService;
         private readonly ISalaryRepository _salaryRepository;
-        private readonly IPayrollRepository _payrollRepository;
+        private readonly IPayrollRecordRepository _payrollRecordRepository;
         private readonly IPayrollService _payrollService;
 
         public RecordAttendanceCommandHandler(
@@ -23,20 +23,18 @@ namespace PayTrack.Application.Features.Attendance.Commands
             IAttendanceRepository attendanceRepository,
             IPhotoStorageService photoStorageService,
             ISalaryRepository salaryRepository,
-            IPayrollRepository payrollRepository,
+            IPayrollRecordRepository payrollRecordRepository,
             IPayrollService payrollService)
         {
             _employeesRepository = employeesRepository;
             _attendanceRepository = attendanceRepository;
             _photoStorageService = photoStorageService;
             _salaryRepository = salaryRepository;
-            _payrollRepository = payrollRepository;
+            _payrollRecordRepository = payrollRecordRepository;
             _payrollService = payrollService;
         }
 
-        public async Task<Guid> Handle(
-    RecordAttendanceCommand request,
-    CancellationToken cancellationToken)
+        public async Task<Guid> Handle(RecordAttendanceCommand request, CancellationToken cancellationToken)
         {
             var employee =
                 await _employeesRepository
@@ -82,7 +80,7 @@ namespace PayTrack.Application.Features.Attendance.Commands
                 var duration = attendance.TimeOut.Value - attendance.TimeIn;
 
                 attendance.HoursWorked = Math.Round(
-                    (decimal)duration.TotalHours,
+                    (decimal)duration.TotalSeconds,
                     2);
 
                 await _attendanceRepository.UpdateAsync(attendance);
@@ -105,7 +103,7 @@ namespace PayTrack.Application.Features.Attendance.Commands
                     CreatedAt = DateTime.UtcNow
                 };
 
-                await _payrollRepository.AddAsync(payroll);
+                await _payrollRecordRepository.AddAsync(payroll);
 
                 return attendance.Id;
             }
