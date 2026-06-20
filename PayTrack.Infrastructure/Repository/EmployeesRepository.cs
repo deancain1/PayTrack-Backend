@@ -63,6 +63,14 @@ namespace PayTrack.Infrastructure.Repository
                 .Include(e => e.ApplicationUser)
                 .FirstOrDefaultAsync(e => e.Id == id);
         }
+        public async Task<List<Employees>> GetByIdsAsync(List<Guid> ids)
+        {
+            return await _context.Employees
+                .Where(x => ids.Contains(x.Id))
+                .Include(x => x.ApplicationUser)
+                .Include(x => x.Salary)
+                .ToListAsync();
+        }
 
         public async Task<List<Employees>> GetAllAsync()
         {
