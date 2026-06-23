@@ -46,8 +46,18 @@ namespace PayTrack.Api.Controllers
         [HttpGet("today")]
         public async Task<IActionResult> GetTodayAttendance(CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new GetTodayAttendanceQuery(), cancellationToken);
+            var result = await _mediator.Send(new GetAttendanceTodayQuery(), cancellationToken);
             return Ok(result);
         }
+
+        [HttpGet("attendance-stats")]
+        public async Task<IActionResult> GetStats()
+        {
+            var result = await _mediator.Send(
+                new GetAttendanceStatsQuery());
+
+            return Ok(result);
+        }
+
     }
 }

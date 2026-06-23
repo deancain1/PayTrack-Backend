@@ -31,21 +31,40 @@ namespace PayTrack.Infrastructure.Repository
                  x.EmployeeId == employeeId &&
                  x.Date == today);
         }
-        public async Task<List<Attendances>> GetTodayAttendancesAsync()
+        public async Task<List<Attendances>> GetTodayAttendancesAsync(string companyAdminId)
         {
-            var today = DateTime.UtcNow.Date;
+            var today = DateTime.Today;
 
             return await _context.Attendances
-                .Include(x => x.Employee)
-                .ThenInclude(e => e.ApplicationUser)
-                .Where(x => x.Date == today)
+                .Include(a => a.Employee)
+                    .ThenInclude(e => e.ApplicationUser)
+                .Where(a =>
+                    a.Date.Date == today &&
+                    a.Employee.CompanyAdminId == companyAdminId)
+                .OrderByDescending(a => a.TimeIn)
                 .ToListAsync();
         }
+        public async Task<int> GetPresentTodayCountAsync(string companyAdminId)
+        {
+            var today = DateTime.Today;
+
+            return await _context.Attendances
+                .Include(a => a.Employee)
+                .Where(a =>
+                    a.Date.Date == today &&
+                    a.Employee.CompanyAdminId == companyAdminId)
+                .Select(a => a.EmployeeId)
+                .Distinct()
+                .CountAsync();
+        }
+
+
         public async Task UpdateAsync(Attendances attendance)
         {
             _context.Attendances.Update(attendance);
 
             await _context.SaveChangesAsync();
         }
+
     }
 }
