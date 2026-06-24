@@ -18,6 +18,7 @@ namespace PayTrack.Infrastructure.Data
         public DbSet<PayrollRecord> PayrollRecords => Set<PayrollRecord>();
         public DbSet<Payrolls> Payrolls => Set<Payrolls>();
         public DbSet<PayrollBatch> PayrollBatches { get; set; }
+        public DbSet<WorkSchedules> WorkSchedules { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -55,6 +56,20 @@ namespace PayTrack.Infrastructure.Data
                  .WithOne(e => e.Salary)
                  .HasForeignKey<EmployeeSalary>(s => s.EmployeeId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Employee -> WorkSchedule
+            modelBuilder.Entity<Employees>()
+              .HasOne(e => e.WorkSchedule)
+              .WithMany(ws => ws.Employees)
+              .HasForeignKey(e => e.WorkScheduleId)
+              .OnDelete(DeleteBehavior.SetNull);
+
+            // WorkSchedule -> CompanyAdmin
+            modelBuilder.Entity<WorkSchedules>()
+             .HasOne(ws => ws.CompanyAdmin)
+             .WithMany()
+             .HasForeignKey(ws => ws.CompanyAdminId)
+             .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

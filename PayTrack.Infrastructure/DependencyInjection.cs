@@ -23,6 +23,8 @@ namespace PayTrack.Infrastructure
             services.AddScoped<IPayrollService, PayrollService>();
             services.AddScoped<IPayrollRecordRepository, PayrollRecordRepository>();
             services.AddScoped<IPayrollBatchRepository, PayrollBatchRepository>();
+            services.AddScoped<IWorkScheduleRepository, WorkScheduleRepository>();
+            services.AddScoped<IAttendancePolicyService, AttendancePolicyService>();
             return services;
         }
     }
