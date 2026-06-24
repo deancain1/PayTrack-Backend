@@ -17,6 +17,7 @@ namespace PayTrack.Application.Features.Attendance.Commands
         private readonly ISalaryRepository _salaryRepository;
         private readonly IPayrollRecordRepository _payrollRecordRepository;
         private readonly IPayrollService _payrollService;
+        private readonly IAttendancePolicyService _attendancePolicyService;
 
         public RecordAttendanceCommandHandler(
             IEmployeesRepository employeesRepository,
@@ -24,7 +25,7 @@ namespace PayTrack.Application.Features.Attendance.Commands
             IPhotoStorageService photoStorageService,
             ISalaryRepository salaryRepository,
             IPayrollRecordRepository payrollRecordRepository,
-            IPayrollService payrollService)
+            IPayrollService payrollService, IAttendancePolicyService attendancePolicyService)
         {
             _employeesRepository = employeesRepository;
             _attendanceRepository = attendanceRepository;
@@ -32,6 +33,7 @@ namespace PayTrack.Application.Features.Attendance.Commands
             _salaryRepository = salaryRepository;
             _payrollRecordRepository = payrollRecordRepository;
             _payrollService = payrollService;
+                _attendancePolicyService = attendancePolicyService;
         }
 
         public async Task<Guid> Handle(RecordAttendanceCommand request, CancellationToken cancellationToken)
@@ -42,8 +44,16 @@ namespace PayTrack.Application.Features.Attendance.Commands
                     request.Id,
                     request.EmployeeNumber);
 
+           
+
             if (employee == null)
                 throw new Exception("Employee not found.");
+
+            var status =
+              _attendancePolicyService
+                 .DetermineStatus(
+                 employee.WorkSchedule!,
+                 DateTime.Now);
 
             var photoPath =
                 await _photoStorageService
@@ -61,8 +71,9 @@ namespace PayTrack.Application.Features.Attendance.Commands
                 {
                     Id = Guid.NewGuid(),
                     EmployeeId = employee.Id,
-                    Date = DateTime.UtcNow.Date,
-                    TimeIn = DateTime.UtcNow,
+                    Status = status,
+                    Date = DateTime.Now.Date,
+                    TimeIn = DateTime.Now,
                     TimeInPhoto = photoPath
                 };
 
@@ -74,25 +85,38 @@ namespace PayTrack.Application.Features.Attendance.Commands
             // Second Scan = Time Out
             if (attendance.TimeOut == null)
             {
-                attendance.TimeOut = DateTime.UtcNow;
+                attendance.TimeOut = DateTime.Now;
                 attendance.TimeOutPhoto = photoPath;
 
-                var duration = attendance.TimeOut.Value - attendance.TimeIn;
+                var duration =
+                    attendance.TimeOut.Value - attendance.TimeIn;
 
                 attendance.HoursWorked = Math.Round(
-                    (decimal)duration.TotalSeconds,
+                    (decimal)duration.TotalMinutes,
                     2);
 
                 await _attendanceRepository.UpdateAsync(attendance);
 
-                // PAYROLL LOGIC STARTS HERE
+                // PAYROLL LOGIC
 
-                var salary = await _salaryRepository
-                    .GetByEmployeeIdAsync(employee.Id);
+                var salary = employee.Salary;
 
-                var earned = _payrollService.Calculate(
-                    salary,
-                    attendance.HoursWorked);
+                if (salary == null)
+                    throw new Exception(
+                        "Employee salary not configured.");
+
+                if (employee.WorkSchedule == null)
+                    throw new Exception(
+                        "Employee work schedule not assigned.");
+
+                var requiredHours =
+                    employee.WorkSchedule.RequiredHours;
+
+                var earned =
+                    _payrollService.Calculate(
+                        salary,
+                        attendance.HoursWorked,
+                        requiredHours);
 
                 var payroll = new PayrollRecord
                 {
@@ -100,7 +124,7 @@ namespace PayTrack.Application.Features.Attendance.Commands
                     EmployeeId = employee.Id,
                     AttendanceId = attendance.Id,
                     AmountEarned = earned,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.Now
                 };
 
                 await _payrollRecordRepository.AddAsync(payroll);

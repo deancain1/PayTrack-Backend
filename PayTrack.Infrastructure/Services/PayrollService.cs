@@ -11,36 +11,48 @@ namespace PayTrack.Infrastructure.Services
 {
     public class PayrollService : IPayrollService
     {
-        public decimal Calculate(
-            EmployeeSalary salary,
-            decimal hoursWorked)
+        public decimal Calculate(EmployeeSalary salary, decimal hoursWorked, int requiredHours)
         {
             decimal earned = 0;
 
             switch (salary.Policy)
             {
                 case PayrollPolicy.Hourly:
-                    earned = salary.Rate * hoursWorked;
+
+                    earned =
+                        salary.Rate * hoursWorked;
+
                     break;
 
                 case PayrollPolicy.ProRated:
-                    earned = (salary.Rate / salary.RequiredHours)
-                             * hoursWorked;
+
+                    earned =
+                        (salary.Rate / requiredHours)
+                        * hoursWorked;
+
                     break;
 
                 case PayrollPolicy.FullDay:
-                    earned = salary.Rate;
+
+                    earned =
+                        hoursWorked >= requiredHours
+                        ? salary.Rate
+                        : 0;
+
                     break;
 
                 case PayrollPolicy.HalfDay:
 
-                    if (hoursWorked >= salary.RequiredHours)
+                    if (hoursWorked >= requiredHours)
                     {
                         earned = salary.Rate;
                     }
-                    else if (hoursWorked >= salary.RequiredHours / 2m)
+                    else if (
+                        hoursWorked >=
+                        requiredHours / 2m)
                     {
-                        earned = salary.Rate / 2m;
+                        earned =
+                            salary.Rate / 2m;
                     }
                     else
                     {
@@ -50,12 +62,10 @@ namespace PayTrack.Infrastructure.Services
                     break;
 
                 case PayrollPolicy.Monthly:
-                    earned = salary.Rate;
-                    break;
 
-                default:
-                    throw new InvalidOperationException(
-                        "Invalid payroll policy.");
+                    earned = salary.Rate;
+
+                    break;
             }
 
             return Math.Round(earned, 2);
