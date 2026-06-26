@@ -17,9 +17,11 @@ namespace PayTrack.Application.Interfaces
 
         Task<WorkSchedules?> GetByIdAsync(Guid id);
 
-        Task<List<WorkSchedules>> GetAllByAdminAsync(string companyAdminId);
+        //Task<List<WorkSchedules>> GetAllByAdminAsync(string companyAdminId);
 
         Task AssignScheduleToEmployeeAsync(Guid employeeId,Guid scheduleId);
+        IQueryable<WorkSchedules> GetSchedulesByCompanyAdminQuery(string companyAdminId);
+        IQueryable<WorkSchedules> GetWorkSchedulesQuery(string companyAdminId);
     }
 }
 
