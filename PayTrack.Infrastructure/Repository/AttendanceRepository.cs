@@ -40,7 +40,7 @@ namespace PayTrack.Infrastructure.Repository
                     .ThenInclude(e => e.ApplicationUser)
                 .Where(a =>
                     a.Date.Date == today &&
-                    a.Employee.CompanyAdminId == companyAdminId)
+                    a.Employee.  CompanyAdminId == companyAdminId)
                 .OrderByDescending(a => a.TimeIn)
                 .ToListAsync();
         }
@@ -52,12 +52,40 @@ namespace PayTrack.Infrastructure.Repository
                 .Include(a => a.Employee)
                 .Where(a =>
                     a.Date.Date == today &&
-                    a.Employee.CompanyAdminId == companyAdminId)
+                    a.Employee.CompanyAdminId == companyAdminId &&
+                    a.Status == "Present")
                 .Select(a => a.EmployeeId)
                 .Distinct()
                 .CountAsync();
         }
+        public async Task<int> GetLateTodayCountAsync(string companyAdminId)
+        {
+            var today = DateTime.Today;
 
+            return await _context.Attendances
+                .Include(a => a.Employee)
+                .Where(a =>
+                    a.Date.Date == today &&
+                    a.Employee.CompanyAdminId == companyAdminId &&
+                    a.Status == "Late")
+                .Select(a => a.EmployeeId)
+                .Distinct()
+                .CountAsync();
+        }
+        public async Task<int> GetAbsentTodayCountAsync(string companyAdminId)
+        {
+            var today = DateTime.Today;
+
+            return await _context.Attendances
+                .Include(a => a.Employee)
+                .Where(a =>
+                    a.Date.Date == today &&
+                    a.Employee.CompanyAdminId == companyAdminId &&
+                    a.Status == "Absent")
+                .Select(a => a.EmployeeId)
+                .Distinct()
+                .CountAsync();
+        }
 
         public async Task UpdateAsync(Attendances attendance)
         {
@@ -66,5 +94,7 @@ namespace PayTrack.Infrastructure.Repository
             await _context.SaveChangesAsync();
         }
 
+       
     }
+    
 }

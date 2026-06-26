@@ -51,7 +51,7 @@ namespace PayTrack.Api.Controllers
         }
 
         [HttpGet("attendance-stats")]
-        public async Task<IActionResult> GetStats()
+        public async Task<IActionResult> GetAttendnceStats()
         {
             var result = await _mediator.Send(
                 new GetAttendanceStatsQuery());

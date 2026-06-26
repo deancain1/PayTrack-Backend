@@ -14,7 +14,11 @@ namespace PayTrack.Application.Interfaces
         Task UpdateAsync(Attendances attendance);
         Task<List<Attendances>> GetTodayAttendancesAsync(string companyAdminId);
         Task<int> GetPresentTodayCountAsync(string companyAdminId);
+        Task<int> GetLateTodayCountAsync(string companyAdminId);
+        Task<int> GetAbsentTodayCountAsync(string companyAdminId);
+
 
 
     }
 }
+

@@ -23,18 +23,22 @@ namespace PayTrack.Application.Features.Attendance.Queries
         }
         public async Task<AttendanceStatsDTO> Handle(GetAttendanceStatsQuery request, CancellationToken cancellationToken)
         {
-          var companyAdminId = _currentUserService.UserId;
+            var companyAdminId = _currentUserService.UserId;
 
-            var totalEmployees = await _employeesRepository.GetTotalEmployeesByCompanyAdminAsync(companyAdminId);
+            var presentToday = await _attendanceRepository
+                .GetPresentTodayCountAsync(companyAdminId);
 
-            var presentToday = await _attendanceRepository.GetPresentTodayCountAsync(companyAdminId);
+            var lateToday = await _attendanceRepository
+                .GetLateTodayCountAsync(companyAdminId);
 
-            var absentToday = totalEmployees - presentToday;
+            var absentToday = await _attendanceRepository
+                .GetAbsentTodayCountAsync(companyAdminId);
 
             return new AttendanceStatsDTO(
-               PresentToday: presentToday,
-               AbsentToday: absentToday
-           );
+                PresentToday: presentToday,
+                LateToday: lateToday,
+                AbsentToday: absentToday
+            );
         }
     }
 }
