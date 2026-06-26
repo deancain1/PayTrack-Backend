@@ -1,11 +1,12 @@
 ﻿using MediatR;
+using PayTrack.Application.DTOs;
 using PayTrack.Application.Features.WorkSchedule.Commands;
 using PayTrack.Application.Interfaces;
 using PayTrack.Domain.Entities;
 using PayTrack.Domain.Enums;
 
 public class CreateWorkScheduleCommandHandler
-    : IRequestHandler<CreateWorkScheduleCommand, Guid>
+    : IRequestHandler<CreateWorkScheduleCommand, WorkSchedulesDTO>
 {
     private readonly IWorkScheduleRepository _repository;
     private readonly ICurrentUserService _currentUser;
@@ -18,7 +19,7 @@ public class CreateWorkScheduleCommandHandler
         _currentUser = currentUser;
     }
 
-    public async Task<Guid> Handle(
+    public async Task<WorkSchedulesDTO> Handle(
         CreateWorkScheduleCommand request,
         CancellationToken cancellationToken)
     {
@@ -49,6 +50,16 @@ public class CreateWorkScheduleCommandHandler
                 _currentUser.UserId
         };
 
-        return await _repository.CreateAsync(schedule);
+         await _repository.CreateAsync(schedule);
+
+        return new WorkSchedulesDTO(
+                schedule.Id,
+                schedule.ScheduleName,
+                (int)schedule.ScheduleType,
+                schedule.StartTime,
+                schedule.EndTime,
+                schedule.RequiredHours,
+                schedule.GracePeriodMinutes
+            );
     }
 }
