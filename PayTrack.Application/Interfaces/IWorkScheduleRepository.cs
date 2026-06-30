@@ -19,7 +19,7 @@ namespace PayTrack.Application.Interfaces
 
         //Task<List<WorkSchedules>> GetAllByAdminAsync(string companyAdminId);
 
-        Task AssignScheduleToEmployeeAsync(Guid employeeId,Guid scheduleId);
+        Task AssignScheduleToEmployeeAsync(Guid employeeId,Guid scheduleId, DateTime scheduleEffectiveDate);
         IQueryable<WorkSchedules> GetSchedulesByCompanyAdminQuery(string companyAdminId);
         IQueryable<WorkSchedules> GetWorkSchedulesQuery(string companyAdminId);
     }

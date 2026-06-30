@@ -10,6 +10,7 @@ namespace PayTrack.Application.Features.WorkSchedule.Commands
     public record AssignScheduleToEmployeeCommand
     (
         Guid EmployeeId,
-        Guid WorkScheduleId
+        Guid WorkScheduleId,
+        DateTime ScheduleEffectiveDate
     ) : IRequest;
 }

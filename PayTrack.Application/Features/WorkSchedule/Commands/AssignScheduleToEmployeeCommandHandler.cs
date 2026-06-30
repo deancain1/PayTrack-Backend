@@ -18,7 +18,7 @@ namespace PayTrack.Application.Features.WorkSchedule.Commands
         public async Task Handle(AssignScheduleToEmployeeCommand request, CancellationToken cancellationToken)
         {
             await _workScheduleRepository.AssignScheduleToEmployeeAsync(
-            request.EmployeeId, request.WorkScheduleId);
+                request.EmployeeId, request.WorkScheduleId, request.ScheduleEffectiveDate);
         }
     }
 }

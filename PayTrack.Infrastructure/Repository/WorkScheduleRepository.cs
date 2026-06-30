@@ -53,20 +53,19 @@ namespace PayTrack.Infrastructure.Repository
                 .FirstOrDefaultAsync(x => x.Id == id);
         }
 
-        public async Task<List<WorkSchedules>>
-            GetAllByAdminAsync(
-                string companyAdminId)
-        {
-            return await _context.WorkSchedules
-                .Where(x =>
-                    x.CompanyAdminId ==
-                    companyAdminId)
-                .ToListAsync();
-        }
+        //public async Task<List<WorkSchedules>>GetAllByAdminAsync(
+        //        string companyAdminId)
+        //{
+        //    return await _context.WorkSchedules
+        //        .Where(x =>
+        //            x.CompanyAdminId ==
+        //            companyAdminId)
+        //        .ToListAsync();
+        //}
 
         public async Task AssignScheduleToEmployeeAsync(
             Guid employeeId,
-            Guid scheduleId)
+            Guid scheduleId, DateTime scheduleEffectiveDate)
         {
             var employee =
                 await _context.Employees
@@ -80,7 +79,22 @@ namespace PayTrack.Infrastructure.Repository
             employee.WorkScheduleId =
                 scheduleId;
 
+            employee.ScheduleEffectiveDate = scheduleEffectiveDate;
+
             await _context.SaveChangesAsync();
+        }
+        public IQueryable<WorkSchedules> GetSchedulesByCompanyAdminQuery(string companyAdminId)
+        {
+            return _context.WorkSchedules
+            .Where(x => x.CompanyAdminId == companyAdminId)
+            .AsNoTracking();
+        }
+
+        public IQueryable<WorkSchedules> GetWorkSchedulesQuery(string companyAdminId)
+        {
+          return _context.WorkSchedules
+            .Where(x => x.CompanyAdminId == companyAdminId)
+            .AsNoTracking();
         }
     }
 }
