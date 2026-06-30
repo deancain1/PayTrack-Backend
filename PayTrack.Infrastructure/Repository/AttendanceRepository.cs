@@ -40,7 +40,7 @@ namespace PayTrack.Infrastructure.Repository
                     .ThenInclude(e => e.ApplicationUser)
                 .Where(a =>
                     a.Date.Date == today &&
-                    a.Employee.  CompanyAdminId == companyAdminId)
+                    a.Employee.  CompanyAdminId == companyAdminId && a.TimeIn != null && a.TimeOut != null)
                 .OrderByDescending(a => a.TimeIn)
                 .ToListAsync();
         }
@@ -93,8 +93,15 @@ namespace PayTrack.Infrastructure.Repository
 
             await _context.SaveChangesAsync();
         }
+        public async Task<bool> AttendanceExistsTodayAsync(Guid employeeId)
+        {
+            var today = DateTime.Today;
 
-       
+            return await _context.Attendances.AnyAsync(x =>
+                x.EmployeeId == employeeId &&
+                x.Date == today);
+        }
+
     }
     
 }
