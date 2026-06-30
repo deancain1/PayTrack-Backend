@@ -17,7 +17,7 @@ namespace PayTrack.Application.Interfaces
         Task<int> GetLateTodayCountAsync(string companyAdminId);
         Task<int> GetAbsentTodayCountAsync(string companyAdminId);
 
-
+        Task<bool> AttendanceExistsTodayAsync(Guid employeeId);
 
     }
 }

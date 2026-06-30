@@ -22,6 +22,7 @@ namespace PayTrack.Domain.Entities
         public int RequiredHours { get; set; }
 
         public int GracePeriodMinutes { get; set; }
+        public TimeSpan AbsentCutoffTime { get; set; }
 
         public string CompanyAdminId { get; set; } = string.Empty;
 

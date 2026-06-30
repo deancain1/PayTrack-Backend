@@ -14,10 +14,13 @@ namespace PayTrack.Application.Interfaces
         Task<Employees?> GetEmployeeByEmployeeIdAsync(Guid employeeId);
         Task UpdateAsync(Employees employee);
         IQueryable<Employees> GetEmployeesQuery();
+        IQueryable<Employees> GetEmployeesByCompanyAdminQuery(string companyAdminId);
         Task<Employees?> GetByIdAndNumberAsync(Guid employeeId, string employeeNumber);
         Task<Employees?> GetByIdAsync(Guid id);
         Task<List<Employees>> GetByIdsAsync(List<Guid> ids);
         Task<List<Employees>> GetAllAsync();
+        Task<int> GetTotalEmployeesByCompanyAdminAsync(string companyAdminId);
+        Task<List<Employees>> GetEmployeesForAbsentAutomationAsync();
 
 
     }
