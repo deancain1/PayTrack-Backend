@@ -11,53 +11,49 @@ namespace PayTrack.Infrastructure.Services
 {
     public class PayrollService : IPayrollService
     {
-        public decimal Calculate(EmployeeSalary salary, decimal hoursWorked, int requiredHours)
+        public decimal Calculate(EmployeeSalary salary, Attendances attendance, WorkSchedules schedule)
         {
             decimal earned = 0;
+
+            var scheduledEnd = attendance.Date + schedule.EndTime;
+
+            bool completedShift =
+                attendance.TimeOut.HasValue &&
+                attendance.TimeOut.Value >= scheduledEnd;
 
             switch (salary.Policy)
             {
                 case PayrollPolicy.Hourly:
 
-                    earned =
-                        salary.Rate * hoursWorked;
+                    earned = salary.Rate * attendance.HoursWorked;
 
                     break;
 
                 case PayrollPolicy.ProRated:
 
                     earned =
-                        (salary.Rate / requiredHours)
-                        * hoursWorked;
+                        (salary.Rate / schedule.RequiredHours)
+                        * attendance.HoursWorked;
 
                     break;
 
                 case PayrollPolicy.FullDay:
 
-                    earned =
-                        hoursWorked >= requiredHours
-                        ? salary.Rate
-                        : 0;
+                    if (completedShift)
+                        earned = salary.Rate;
+                    else
+                        earned = 0;
 
                     break;
 
                 case PayrollPolicy.HalfDay:
 
-                    if (hoursWorked >= requiredHours)
-                    {
+                    if (completedShift)
                         earned = salary.Rate;
-                    }
-                    else if (
-                        hoursWorked >=
-                        requiredHours / 2m)
-                    {
-                        earned =
-                            salary.Rate / 2m;
-                    }
+                    else if (attendance.HoursWorked >= schedule.RequiredHours / 2m)
+                        earned = salary.Rate / 2m;
                     else
-                    {
                         earned = 0;
-                    }
 
                     break;
 
