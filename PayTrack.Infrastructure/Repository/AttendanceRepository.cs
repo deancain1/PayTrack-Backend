@@ -22,6 +22,13 @@ namespace PayTrack.Infrastructure.Repository
             await _context.Attendances.AddAsync(attendance);
             await _context.SaveChangesAsync();
         }
+        public IQueryable<Attendances> GetAttendancesByCompanyAdminQuery(string companyAdminId)
+        {
+            return _context.Attendances
+                .Include(a => a.Employee)
+                    .ThenInclude(e => e.ApplicationUser)
+                .Where(a => a.Employee.CompanyAdminId == companyAdminId);
+        }
 
         public Task<Attendances?> GetTodayAttendanceAsync(Guid employeeId)
         {
@@ -40,7 +47,7 @@ namespace PayTrack.Infrastructure.Repository
                     .ThenInclude(e => e.ApplicationUser)
                 .Where(a =>
                     a.Date.Date == today &&
-                    a.Employee.  CompanyAdminId == companyAdminId && a.TimeIn != null && a.TimeOut != null)
+                    a.Employee.  CompanyAdminId == companyAdminId && a.TimeIn != null)
                 .OrderByDescending(a => a.TimeIn)
                 .ToListAsync();
         }
@@ -86,7 +93,25 @@ namespace PayTrack.Infrastructure.Repository
                 .Distinct()
                 .CountAsync();
         }
+        public async Task<(int Present, int Late, int Absent)> GetAttendanceSummaryAsync(string companyAdminId, int month, int year)
+        {
+            var startDate = new DateTime(year, month, 1);
+            var endDate = startDate.AddMonths(1);
 
+            var attendances = await _context.Attendances
+                .Include(a => a.Employee)
+                .Where(a =>
+                    a.Employee.CompanyAdminId == companyAdminId &&
+                    a.Date >= startDate &&
+                    a.Date < endDate)
+                .ToListAsync();
+
+            var present = attendances.Count(x => x.Status == "Present");
+            var late = attendances.Count(x => x.Status == "Late");
+            var absent = attendances.Count(x => x.Status == "Absent");
+
+            return (present, late, absent);
+        }
         public async Task UpdateAsync(Attendances attendance)
         {
             _context.Attendances.Update(attendance);
@@ -102,6 +127,7 @@ namespace PayTrack.Infrastructure.Repository
                 x.Date == today);
         }
 
+     
     }
     
 }

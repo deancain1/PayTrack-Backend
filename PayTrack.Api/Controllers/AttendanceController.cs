@@ -43,6 +43,13 @@ namespace PayTrack.Api.Controllers
             }
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetAttendance([FromQuery] GetAttendanceQuery query)
+        {
+            var result = await _mediator.Send(query);
+            return Ok(result);
+
+        }
         [HttpGet("today")]
         public async Task<IActionResult> GetTodayAttendance(CancellationToken cancellationToken)
         {
@@ -58,6 +65,13 @@ namespace PayTrack.Api.Controllers
 
             return Ok(result);
         }
+        [HttpGet("summary")]
+        public async Task<IActionResult> GetSummary([FromQuery] int month,[FromQuery] int year)
+        {
+            var result = await _mediator.Send(
+                new GetAttendanceSummaryQuery(month, year));
 
+            return Ok(result);
+        }
     }
 }
