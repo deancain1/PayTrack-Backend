@@ -26,22 +26,20 @@ namespace PayTrack.Application.Features.Attendance.Queries
 
             var result = await _attendanceRepository
             .GetTodayAttendancesAsync(companyAdminId);
+          
 
             return result.Select(a => new AttendanceDTO(
                 a.Id,
-                a.Employee.EmployeeNumber,
-
                 a.Employee.ApplicationUser.ProfilePicture != null
                     ? $"data:image/png;base64,{Convert.ToBase64String(a.Employee.ApplicationUser.ProfilePicture)}"
                     : null,
 
                 a.Employee.ApplicationUser.FullName,
-
-                a.TimeIn.ToString("yyyy-MM-dd HH:mm:ss"),
-
-                a.TimeOut.HasValue
-                    ? a.TimeOut.Value.ToString("yyyy-MM-dd HH:mm:ss")
-                    : "-"
+                a.Employee.Department,
+                a.Employee.EmployeeNumber,
+                a.TimeIn,
+                a.TimeOut,
+                a.Status
             )).ToList();
         }
     }
