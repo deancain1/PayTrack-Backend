@@ -62,9 +62,8 @@ namespace PayTrack.Application.Features.Salary.Queries
              s.EmployeeId,
              s.Employee.ApplicationUser.FullName,
              s.Employee.EmployeeNumber,
-             s.Employee.Department,
+             s.Employee.Department != null ? s.Employee.Department.DepartmentName: "Unassigned",
              s.Rate,
-             s.RequiredHours,
              s.Employee.ApplicationUser.ProfilePicture != null
              ? $"data:image/png;base64,{Convert.ToBase64String(s.Employee.ApplicationUser.ProfilePicture)}"
              : null,
