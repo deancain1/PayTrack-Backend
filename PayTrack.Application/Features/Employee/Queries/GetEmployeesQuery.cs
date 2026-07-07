@@ -8,5 +8,5 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Application.Features.Employee.Queries
 {
-    public record GetEmployeesQuery(int PageNumber = 1, int? PageSize = null, string? Search = null) : IRequest<PagedResult<EmployeeDTO>>;
+    public record GetEmployeesQuery(int PageNumber = 1, int? PageSize = null, string? Search = null, Guid? DepartmentId = null) : IRequest<PagedResult<EmployeeDTO>>;
 }

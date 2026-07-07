@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PayTrack.Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,7 +11,7 @@ namespace PayTrack.Domain.Entities
     {
         public Guid Id { get; set; }
         public string EmployeeNumber { get; set; }
-        public string Department { get; set; }
+        public Guid DepartmentId { get; set; }
         public string Role { get; set; }
         public DateTime DateHired { get; set; }
         public string ApplicationUserId { get; set; }
@@ -21,5 +22,11 @@ namespace PayTrack.Domain.Entities
         public ApplicationUser ApplicationUser { get; set; } = null!;
         public EmployeeSalary Salary { get; set; }
         public WorkSchedules? WorkSchedule { get; set; }
+
+        public bool UseCompanyLatePolicy { get; set; } = true;
+        public Guid? AttendancePolicyId { get; set; }
+
+        public AttendancePolicy? AttendancePolicy { get; set; }
+        public Departments? Department { get; set; }
     }
 }

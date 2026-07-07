@@ -13,5 +13,7 @@ namespace PayTrack.Domain.Entities
         public string Description { get; set; }
         public string ApplicationUserId { get; set; }
         public ApplicationUser ApplicationUser { get; set; } = null!;
+          public ICollection<Employees> Employees { get; set; }
+        = new List<Employees>();
     }
 }
