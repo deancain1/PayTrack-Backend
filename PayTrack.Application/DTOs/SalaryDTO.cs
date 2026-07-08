@@ -13,7 +13,6 @@ namespace PayTrack.Application.DTOs
        string EmployeeNumber,
        string Department,
        decimal Rate,
-       int RequiredHours,
        string? ProfilePictureBase64,
        PayrollPolicy Policy
    );

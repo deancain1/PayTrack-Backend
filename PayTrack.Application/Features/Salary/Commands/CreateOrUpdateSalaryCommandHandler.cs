@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using PayTrack.Application.DTOs;
 using PayTrack.Application.Interfaces;
 using PayTrack.Domain.Entities;
 using System;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Application.Features.Salary.Commands
 {
-    public class CreateOrUpdateSalaryCommandHandler: IRequestHandler<CreateOrUpdateSalaryCommand, Guid>
+    public class CreateOrUpdateSalaryCommandHandler: IRequestHandler<CreateOrUpdateSalaryCommand, SalaryDTO>
     {
         private readonly ISalaryRepository _salaryRepository;
         private readonly IEmployeesRepository _employeeRepository;
@@ -19,45 +20,50 @@ namespace PayTrack.Application.Features.Salary.Commands
             _employeeRepository = employeeRepository;
         }
 
-        public async Task<Guid> Handle(CreateOrUpdateSalaryCommand request, CancellationToken cancellationToken)
+        public async Task<SalaryDTO> Handle(CreateOrUpdateSalaryCommand request, CancellationToken cancellationToken)
         {
-            var dto = request.createSalaryDTO;
-
-            // Find employee by EmployeeNumber
-            var employee = await _employeeRepository
-                .GetByIdAsync(dto.EmployeeId);
+            var employee = await _employeeRepository.GetByIdAsync(request.EmployeeId);
 
             if (employee == null)
-                throw new Exception($"Employee '{dto.EmployeeId}' not found.");
+                throw new Exception($"Employee '{request.EmployeeId}' not found.");
 
-            // Check if salary already exists for this employee
-            var existing = await _salaryRepository
-                .GetByEmployeeIdAsync(employee.Id);
+            var existing = await _salaryRepository.GetByEmployeeIdAsync(employee.Id);
+
+            EmployeeSalary salary;
 
             if (existing == null)
             {
-                var newSalary = new EmployeeSalary
+                salary = new EmployeeSalary
                 {
                     Id = Guid.NewGuid(),
                     EmployeeId = employee.Id,
-                    Rate = dto.Rate,
-                    RequiredHours = dto.RequiredHours,
-                    Policy = dto.Policy
+                    Rate = request.Rate,
+                    Policy = request.Policy
                 };
 
-                await _salaryRepository.AddAsync(newSalary);
+                await _salaryRepository.AddAsync(salary);
+            }
+            else
+            {
+                existing.Rate = request.Rate;
+                existing.Policy = request.Policy;
 
-                return newSalary.Id;
+                await _salaryRepository.UpdateAsync(existing);
+
+                salary = existing;
             }
 
-            // Update existing salary
-            existing.Rate = dto.Rate;
-            existing.RequiredHours = dto.RequiredHours;
-            existing.Policy = dto.Policy;
-
-            await _salaryRepository.UpdateAsync(existing);
-
-            return existing.Id;
+            return new SalaryDTO(
+      EmployeeId: employee.Id,
+      FullName: employee.ApplicationUser.FullName,
+      EmployeeNumber: employee.EmployeeNumber,
+      Department: employee.Department?.DepartmentName ?? "Unassigned",
+      Rate: salary.Rate,
+      ProfilePictureBase64: employee.ApplicationUser.ProfilePicture != null
+          ? $"data:image/png;base64,{Convert.ToBase64String(employee.ApplicationUser.ProfilePicture)}"
+          : null,
+      Policy: salary.Policy
+  );
         }
     }
 }

@@ -19,18 +19,11 @@ namespace PayTrack.Api.Controllers
         }
 
         [HttpPost("setup")]
-        public async Task<IActionResult> SetupSalary(
-            [FromBody] CreateSalaryDTO createSalaryDTO)
+        public async Task<ActionResult<SalaryDTO>> SetupSalary([FromBody] CreateOrUpdateSalaryCommand command)
         {
-            var result = await _mediator.Send(
-                new CreateOrUpdateSalaryCommand(createSalaryDTO));
+            var salary = await _mediator.Send(command);
 
-            return Ok(new
-            {
-                Success = true,
-                SalaryId = result,
-                Message = "Salary setup saved successfully."
-            });
+            return Ok(salary);
         }
         [HttpGet]
         public async Task<ActionResult<PagedResult<SalaryDTO>>> GetSalaries([FromQuery] string? search, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 7)
