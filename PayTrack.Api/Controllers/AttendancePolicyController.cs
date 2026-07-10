@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using PayTrack.Application.Features.AttendancePolicies.Commands;
 using PayTrack.Application.Features.AttendancePolicies.Queries;
+using PayTrack.Application.Features.Employee.Queries;
+using PayTrack.Application.Features.WorkSchedule.Commands;
 
 namespace PayTrack.API.Controllers
 {
@@ -16,9 +18,7 @@ namespace PayTrack.API.Controllers
             _mediator = mediator;
         }
 
-        // ==========================================
-        // Get all attendance policies of a company
-        // ==========================================
+   
         [HttpGet("{companyAdminId}")]
         public async Task<IActionResult> GetAll(string companyAdminId)
         {
@@ -28,9 +28,7 @@ namespace PayTrack.API.Controllers
             return Ok(result);
         }
 
-        // ==========================================
-        // Get attendance policy by Id
-        // ==========================================
+
         [HttpGet("details/{id:guid}")]
         public async Task<IActionResult> GetById(Guid id)
         {
@@ -43,21 +41,17 @@ namespace PayTrack.API.Controllers
             return Ok(result);
         }
 
-        // ==========================================
-        // Lookup for Employee Dropdown
-        // ==========================================
-        [HttpGet("lookup/{companyAdminId}")]
-        public async Task<IActionResult> Lookup(string companyAdminId)
+        [HttpGet("attendance-policy-lookup")]
+        public async Task<IActionResult> GetAttendancePolicyLookup()
         {
             var result = await _mediator.Send(
-                new GetAttendancePolicyLookupQuery(companyAdminId));
+                new GetAttendancePolicyLookupQuery());
 
             return Ok(result);
         }
 
-        // ==========================================
-        // Create Attendance Policy
-        // ==========================================
+   
+
         [HttpPost]
         public async Task<IActionResult> Create(
             [FromBody] CreateAttendancePolicyCommand command)
@@ -67,9 +61,7 @@ namespace PayTrack.API.Controllers
             return Ok(id);
         }
 
-        // ==========================================
-        // Update Attendance Policy
-        // ==========================================
+  
         [HttpPut]
         public async Task<IActionResult> Update(
             [FromBody] UpdateAttendancePolicyCommand command)
@@ -79,15 +71,19 @@ namespace PayTrack.API.Controllers
             return NoContent();
         }
 
-        // ==========================================
-        // Delete Attendance Policy
-        // ==========================================
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {
             await _mediator.Send(
                 new DeleteAttendancePolicyCommand(id));
 
+            return NoContent();
+        }
+
+        [HttpPut("assign-attendance-policy")]
+        public async Task<IActionResult> AssignAttendancePolicyToEmployee(AssignAttendancePolicyCommand command)
+        {
+            await _mediator.Send(command);
             return NoContent();
         }
     }
