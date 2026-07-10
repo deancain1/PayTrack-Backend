@@ -8,5 +8,5 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Application.Features.AttendancePolicies.Queries
 {
-    public record GetAttendancePolicyLookupQuery(string CompanyAdminId) : IRequest<List<AttendancePolicyLookupDTO>>;
+    public record GetAttendancePolicyLookupQuery() : IRequest<List<AttendancePolicyLookupDTO>>;
 }

@@ -12,19 +12,21 @@ namespace PayTrack.Application.Features.AttendancePolicies.Queries
     public class GetAttendancePolicyLookupQueryHandler : IRequestHandler<GetAttendancePolicyLookupQuery, List<AttendancePolicyLookupDTO>>
     {
        private readonly IAttendancePolicyRepository _attendancePolicyRepository; 
-        public GetAttendancePolicyLookupQueryHandler(IAttendancePolicyRepository attendancePolicyRepository)
+       private readonly ICurrentUserService _currentUserService;
+        public GetAttendancePolicyLookupQueryHandler(IAttendancePolicyRepository attendancePolicyRepository, ICurrentUserService currentUserService)
         {
             _attendancePolicyRepository = attendancePolicyRepository;
+            _currentUserService = currentUserService;
         }
         public async  Task<List<AttendancePolicyLookupDTO>> Handle(GetAttendancePolicyLookupQuery request, CancellationToken cancellationToken)
         {
-            var policies = await _attendancePolicyRepository
-               .GetAllByCompanyAsync(request.CompanyAdminId);
+            var companyAdminId = _currentUserService.UserId; 
+            var policies = await _attendancePolicyRepository.GetAllByCompanyAsync(companyAdminId);
 
             return policies
                 .Select(x => new AttendancePolicyLookupDTO(
                     x.Id,
-                    x.Name))
+                    x.PolicyName))
                 .ToList();
         }
     }
