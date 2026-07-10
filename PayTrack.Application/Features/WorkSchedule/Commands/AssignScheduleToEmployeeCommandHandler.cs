@@ -10,15 +10,25 @@ namespace PayTrack.Application.Features.WorkSchedule.Commands
 {
     public class AssignScheduleToEmployeeCommandHandler : IRequestHandler<AssignScheduleToEmployeeCommand>
     {
-        private readonly IWorkScheduleRepository _workScheduleRepository;
-        public AssignScheduleToEmployeeCommandHandler(IWorkScheduleRepository workScheduleRepository)
+        private readonly IEmployeesRepository _employeesRepository;
+        public AssignScheduleToEmployeeCommandHandler(IEmployeesRepository employeesRepository)
         {
-            _workScheduleRepository = workScheduleRepository;
+            _employeesRepository = employeesRepository;
         }
         public async Task Handle(AssignScheduleToEmployeeCommand request, CancellationToken cancellationToken)
         {
-            await _workScheduleRepository.AssignScheduleToEmployeeAsync(
-                request.EmployeeId, request.WorkScheduleId, request.ScheduleEffectiveDate);
+            var employee = await _employeesRepository
+                 .GetByIdAsync(request.EmployeeId);
+
+            if (employee == null)
+            {
+                throw new Exception("Employee not found.");
+            }
+
+            employee.WorkScheduleId = request.WorkScheduleId;
+            employee.ScheduleEffectiveDate = request.ScheduleEffectiveDate;
+
+            await _employeesRepository.UpdateAsync(employee);
         }
     }
 }
