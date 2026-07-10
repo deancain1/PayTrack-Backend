@@ -42,16 +42,28 @@ namespace PayTrack.Infrastructure.Repository
             await _context.SaveChangesAsync();
         }
 
-        public IQueryable<Employees> GetEmployeesQuery()
+        public async Task<List<Employees>> GetAllEmployeesByCompanyAdminAsync(string companyAdminId)
+        {
+            return await _context.Employees
+                .Include(e => e.ApplicationUser)
+                .Include(e => e.Department)
+                .Where(e => e.CompanyAdminId == companyAdminId)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+        public IQueryable<Employees> GetEmployeesByCompanyAdminQuery(string companyAdminId)
         {
             return _context.Employees
                 .Include(e => e.ApplicationUser)
-                .AsNoTracking();
+                .Include(e => e.Department)
+                .Where(e => e.CompanyAdminId == companyAdminId)
+                .AsQueryable();
         }
-
         public async Task<Employees?> GetByIdAndNumberAsync(Guid employeeId, string employeeNumber)
         {
             return await _context.Employees
+                .Include(x => x.WorkSchedule)
+                .Include(x => x.Salary)
                 .FirstOrDefaultAsync(e =>
                     e.Id == employeeId &&
                     e.EmployeeNumber == employeeNumber);
@@ -76,6 +88,32 @@ namespace PayTrack.Infrastructure.Repository
         {
             return await _context.Employees
                 .Include(e => e.ApplicationUser)
+                .ToListAsync();
+        }
+        public async Task<int> GetTotalEmployeesByCompanyAdminAsync(
+           string companyAdminId)
+        {
+            return await _context.Employees
+                .Where(e => e.CompanyAdminId == companyAdminId)
+                .CountAsync();
+        }
+        public async Task<List<Employees>> GetEmployeesForAbsentAutomationAsync()
+        {
+            return await _context.Employees
+                .Include(e => e.WorkSchedule)
+                .Where(e => e.WorkSchedule != null)
+                .ToListAsync();
+        }
+
+        public async Task<List<Employees>> GetEmployeesWithAssignedScheduleAsync()
+        {
+            return await _context.Employees
+                .Include(e => e.WorkSchedule)
+                .Include(e => e.ApplicationUser)
+                .Where(e =>
+                    e.WorkScheduleId != null &&
+                    e.WorkSchedule != null &&
+                    e.ScheduleEffectiveDate != null)
                 .ToListAsync();
         }
     }
