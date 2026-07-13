@@ -195,6 +195,7 @@ namespace PayTrack.Application.Features.Attendance.Commands
                 {
                     Id = Guid.NewGuid(),
                     EmployeeId = employee.Id,
+                    ApplicationUserId = employee.ApplicationUserId,
                     AttendanceId = attendance.Id,
                     AmountEarned = finalSalary,
                     CreatedAt = DateTime.Now

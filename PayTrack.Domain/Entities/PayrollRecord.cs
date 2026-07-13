@@ -11,6 +11,7 @@ namespace PayTrack.Domain.Entities
         public Guid Id { get; set; }
 
         public Guid EmployeeId { get; set; }
+        public string ApplicationUserId { get; set; }
 
         public Guid AttendanceId { get; set; }
 
@@ -19,5 +20,6 @@ namespace PayTrack.Domain.Entities
         public DateTime CreatedAt { get; set; }
         public Employees Employee { get; set; }
         public Attendances Attendance { get; set; }
+        public ApplicationUser ApplicationUser { get; set; }
     }
 }
