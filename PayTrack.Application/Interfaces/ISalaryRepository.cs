@@ -12,8 +12,9 @@ namespace PayTrack.Application.Interfaces
         Task<EmployeeSalary>GetByEmployeeIdAsync(Guid employeeId);
         Task AddAsync(EmployeeSalary salary);
         Task UpdateAsync(EmployeeSalary salary);
-        IQueryable<EmployeeSalary> GetEmployeeSalaryQuery();
-        Task<List<EmployeeSalary>> GetAllAsync();
+        IQueryable<EmployeeSalary> GetEmployeeSalaryQueryByCompanyAdmin(string companyAdminId);
+        Task<List<EmployeeSalary>> GetAllAsync(string companyAdminId);
 
+        Task<decimal> GetDailyRateAsync(Guid employeeId);
     }
 }
