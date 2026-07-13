@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using PayTrack.Application.Features.AttendancePolicies.Queries;
 using PayTrack.Application.Interfaces;
 using PayTrack.Domain.Entities;
 using PayTrack.Infrastructure.Data;
@@ -35,6 +36,27 @@ namespace PayTrack.Infrastructure.Repository
         public IQueryable<PayrollRecord> Query()
         {
             return _context.PayrollRecords.AsQueryable();
+        }
+
+        //Get Current Month earnings
+        public async Task<decimal> GetTotalEarningsByEmployeeAsync(Guid employeeId)
+        {
+            var today = DateTime.Today;
+
+            return await _context.PayrollRecords
+                .Where(x =>
+                    x.EmployeeId == employeeId &&
+                    x.CreatedAt.Year == today.Year &&
+                    x.CreatedAt.Month == today.Month)
+                .SumAsync(x => (decimal?)x.AmountEarned) ?? 0;
+        }
+
+        public IQueryable<PayrollRecord> GetPayrollRecordByEmployeeAsync(string employeeApplicationUserId)
+        {
+           return _context.PayrollRecords
+                .Include(e => e.ApplicationUser)
+                .Where(e => e.ApplicationUserId == employeeApplicationUserId)
+                .AsQueryable();
         }
     }
 }

@@ -15,5 +15,7 @@ namespace PayTrack.Application.Interfaces
             DateTime periodStart,
             DateTime periodEnd);
         IQueryable<PayrollRecord> Query();
+        IQueryable<PayrollRecord> GetPayrollRecordByEmployeeAsync(string employeeApplicationUserId);
+        Task<decimal> GetTotalEarningsByEmployeeAsync(Guid employeeId);
     }
 }
