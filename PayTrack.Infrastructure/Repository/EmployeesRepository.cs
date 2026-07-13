@@ -116,6 +116,14 @@ namespace PayTrack.Infrastructure.Repository
                     e.ScheduleEffectiveDate != null)
                 .ToListAsync();
         }
+
+        public async Task<Employees?> GetCurrentEmployeeAsync(string employeeApplicationUserId)
+        {
+            return await _context.Employees
+                .Include(e => e.ApplicationUser)
+                .Include(e => e.Department)
+                .FirstOrDefaultAsync(x => x.ApplicationUserId == employeeApplicationUserId);
+        }
     }
 }
 
