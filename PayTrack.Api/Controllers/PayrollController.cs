@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PayTrack.Application.Features.Payroll.Commands;
+using PayTrack.Application.Features.Payroll.Queries;
 
 namespace PayTrack.Api.Controllers
 {
@@ -19,6 +20,15 @@ namespace PayTrack.Api.Controllers
         public async Task<IActionResult> Generate([FromBody] GeneratePayrollCommand command)
         {
             var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+
+        [HttpGet("my-summary")]
+        public async Task<IActionResult> GetMyPayrollSummary()
+        {
+            var result = await _mediator.Send(
+                new GetMyPayrollSummaryQuery());
+
             return Ok(result);
         }
     }
