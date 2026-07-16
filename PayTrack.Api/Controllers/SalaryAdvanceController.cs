@@ -17,6 +17,14 @@ namespace PayTrack.Api.Controllers
             _mediator = mediator;
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetSalaryAdvancesByEmployee([FromQuery] GetCurrentEmployeeSalaryAdvancesQuery query)
+        {
+            var result = await _mediator.Send(query);
+            return Ok(result);
+        }
+
+
         [HttpPost("scan")]
         public async Task<IActionResult> ScanEmployeeQr(
             [FromBody] ScanEmployeeQrForAdvanceQuery query)
