@@ -18,15 +18,40 @@ namespace PayTrack.Infrastructure.Repository
         {
             _context = context;
         }
+        public async Task<bool> HasPendingRequestAsync(Guid employeeId)
+        {
+            return await _context.SalaryAdvances.AnyAsync(x =>
+                x.EmployeeId == employeeId &&
+                x.Status == SalaryAdvanceStatus.Pending);
+        }
+        public IQueryable<SalaryAdvances> GetPendingSalaryAdvanceRequestsQueryByCompanyAdmin(string companyAdminId)
+        {
+            return _context.SalaryAdvances
+                .Include(x => x.Employee)
+                    .ThenInclude(e => e.ApplicationUser)
+                .Where(x =>
+                    x.Employee.CompanyAdminId == companyAdminId &&
+                    x.Status == SalaryAdvanceStatus.Pending)
+                .AsNoTracking();
+        }
+        public async Task<decimal> GetTotalUndeductedAdvancesAsync(Guid employeeId)
+        {
+            return await _context.SalaryAdvances
+                .Where(x =>
+                    x.EmployeeId == employeeId &&
+                    !x.IsDeducted)
+                .SumAsync(x => (decimal?)x.Amount) ?? 0;
+        }
+
         public async Task<decimal> GetTotalAdvancesAsync(Guid employeeId, DateTime startDate, DateTime endDate)
         {
             return await _context.SalaryAdvances
-         .Where(x =>
-             x.EmployeeId == employeeId &&
-             x.RequestDate.Date >= startDate.Date &&
-             x.RequestDate.Date <= endDate.Date &&
-             !x.IsDeducted)
-         .SumAsync(x => (decimal?)x.Amount) ?? 0;
+                .Where(x =>
+                    x.EmployeeId == employeeId &&
+                    x.Status == SalaryAdvanceStatus.Approved &&
+                    x.RequestDate >= startDate &&
+                    x.RequestDate <= endDate)
+                .SumAsync(x => x.Amount);
         }
         public async Task AddAsync(SalaryAdvances salaryAdvance)
         {
@@ -42,6 +67,23 @@ namespace PayTrack.Infrastructure.Repository
                  .ThenInclude(e => e.ApplicationUser)
                  .Where(e => e.ApplicationUserId == employeeApplicationUserId)
                  .AsQueryable();
+        }
+
+        public async Task<SalaryAdvances?> GetByIdAsync(Guid id)
+        {
+            return await _context.SalaryAdvances
+                .Include(x => x.Employee)
+                .FirstOrDefaultAsync(x => x.Id == id);
+        }
+
+
+
+        public async Task UpdateAsync(
+            SalaryAdvances salaryAdvance)
+        {
+            _context.SalaryAdvances.Update(salaryAdvance);
+
+            await _context.SaveChangesAsync();
         }
     }
 }

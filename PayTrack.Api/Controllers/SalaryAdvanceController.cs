@@ -17,6 +17,20 @@ namespace PayTrack.Api.Controllers
             _mediator = mediator;
         }
 
+        [HttpPost("request")]
+        public async Task<IActionResult> RequestSalaryAdvance( CreateSalaryAdvanceRequestCommand command)
+        {
+            var id = await _mediator.Send(command);
+
+            return Ok(id);
+        }
+
+        [HttpGet("pending-requests")]
+        public async Task<IActionResult> GetPendingSalaryAdvances([FromQuery] GetPendingSalaryAdvanceRequestsQuery query)
+        {
+            var result = await _mediator.Send(query);
+            return Ok(result);
+        }
         [HttpGet]
         public async Task<IActionResult> GetSalaryAdvancesByEmployee([FromQuery] GetCurrentEmployeeSalaryAdvancesQuery query)
         {
@@ -34,17 +48,23 @@ namespace PayTrack.Api.Controllers
             return Ok(result);
         }
 
-        [HttpPost("salary-advance")]
-        public async Task<IActionResult> Create(CreateSalaryAdvanceCommand command)
+        [HttpPut("{id}/approve")]
+        public async Task<IActionResult> Approve(Guid id)
         {
-            var id = await _mediator.Send(command);
+
+            var result =
+                await _mediator.Send(
+                    new ApproveSalaryAdvanceCommand(id));
+
 
             return Ok(new
             {
-                Success = true,
-                SalaryAdvanceId = id,
-                Message = "Salary advance recorded successfully."
+                message = "Salary advance approved.",
+                success = result
             });
+
+
         }
+
     }
 }
