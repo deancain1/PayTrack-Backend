@@ -11,21 +11,15 @@ namespace PayTrack.Domain.Entities
     {
         public Guid Id { get; set; }
         public Guid EmployeeId { get; set; }
-       
         public string ApplicationUserId { get; set; }
 
-        public Employees Employee { get; set; }
-
-        public decimal Amount { get; set; }
-
-        public DateTime RequestDate { get; set; }
-
         public string Remarks { get; set; }
-
+        public decimal Amount { get; set; }
+        public DateTime RequestDate { get; set; }
         public bool IsDeducted { get; set; }
-
+        public SalaryAdvanceStatus Status { get; set; } = SalaryAdvanceStatus.Pending;
         public Guid? PayrollId { get; set; }
-
+        public Employees Employee { get; set; }
         public Payrolls? Payroll { get; set; }
         public ApplicationUser ApplicationUser { get; set; }
     }
