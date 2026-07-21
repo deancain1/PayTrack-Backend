@@ -31,5 +31,15 @@ namespace PayTrack.Api.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet("monthly-payroll-expenses")]
+        public async Task<IActionResult> GetMonthlyPayrollExpenses(CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(
+                new GetMonthlyPayrollExpensesQuery(),
+                cancellationToken);
+
+            return Ok(result);
+        }
     }
 }
