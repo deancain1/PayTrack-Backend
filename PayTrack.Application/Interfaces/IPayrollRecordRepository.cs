@@ -17,5 +17,7 @@ namespace PayTrack.Application.Interfaces
         IQueryable<PayrollRecord> Query();
         IQueryable<PayrollRecord> GetPayrollRecordByEmployeeAsync(string employeeApplicationUserId);
         Task<decimal> GetTotalEarningsByEmployeeAsync(Guid employeeId);
+
+        Task<bool> HasUnpaidAttendanceBeforePeriodAsync(DateTime periodStart);
     }
 }

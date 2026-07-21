@@ -58,5 +58,15 @@ namespace PayTrack.Infrastructure.Repository
                 .Where(e => e.ApplicationUserId == employeeApplicationUserId)
                 .AsQueryable();
         }
+
+        public async Task<bool> HasUnpaidAttendanceBeforePeriodAsync(DateTime periodStart)
+        {
+            return await _context.Attendances
+                .Where(a => a.Date < periodStart)
+                .AnyAsync(a =>
+                    !_context.PayrollRecords
+                    .Any(p => p.AttendanceId == a.Id)
+                    );
+        }
     }
 }

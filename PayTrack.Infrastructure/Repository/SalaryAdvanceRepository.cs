@@ -39,6 +39,7 @@ namespace PayTrack.Infrastructure.Repository
             return await _context.SalaryAdvances
                 .Where(x =>
                     x.EmployeeId == employeeId &&
+                     x.Status == SalaryAdvanceStatus.Approved &&
                     !x.IsDeducted)
                 .SumAsync(x => (decimal?)x.Amount) ?? 0;
         }

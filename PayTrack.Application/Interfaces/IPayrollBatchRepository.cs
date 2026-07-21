@@ -13,5 +13,6 @@ namespace PayTrack.Application.Interfaces
         Task<PayrollBatch?> GetByPeriodAsync(DateTime periodStart, DateTime periodEnd);
         Task AddAsync(PayrollBatch batch);
         Task UpdateAsync(PayrollBatch batch);
+        Task<bool> HasOverlappingBatchAsync(DateTime periodStart, DateTime periodEnd, Guid? excludeBatchId);
     }
 }
