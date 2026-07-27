@@ -58,10 +58,12 @@ namespace PayTrack.Application.Features.Attendance.Queries
                 .Take(pageSize)
                 .Select(a => new AttendanceDTO(
                     a.Id,
-                    a.ApplicationUser.ProfilePicture != null
-                    ? $"data:image/png;base64,{Convert.ToBase64String(a.ApplicationUser.ProfilePicture)}" : null,
+                    a.Date,
+                    a.Employee.ApplicationUser.ProfilePicture != null
+                    ? $"data:image/png;base64,{Convert.ToBase64String(a.Employee.ApplicationUser.ProfilePicture)}"
+                    : null,
                     a.Employee.ApplicationUser.FullName,
-                    a.Employee.Department,
+                    a.Employee.Department != null? a.Employee.Department.DepartmentName: null,
                     a.Employee.EmployeeNumber,
                     a.TimeIn,
                     a.TimeOut,

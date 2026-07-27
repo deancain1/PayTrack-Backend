@@ -45,6 +45,8 @@ namespace PayTrack.Infrastructure.Repository
             return await _context.Attendances
                 .Include(a => a.Employee)
                     .ThenInclude(e => e.ApplicationUser)
+                    .Include(a => a.Employee)
+                     .ThenInclude(e => e.Department)
                 .Where(a =>
                     a.Date.Date == today &&
                     a.Employee.  CompanyAdminId == companyAdminId && a.TimeIn != null)
@@ -95,6 +97,9 @@ namespace PayTrack.Infrastructure.Repository
         }
         public async Task<(int Present, int Late, int Absent)> GetAttendanceSummaryAsync(string companyAdminId, int month, int year)
         {
+            month = month <= 0 ? DateTime.Today.Month : month;
+            year = year <= 0 ? DateTime.Today.Year : year;
+
             var startDate = new DateTime(year, month, 1);
             var endDate = startDate.AddMonths(1);
 
@@ -106,11 +111,11 @@ namespace PayTrack.Infrastructure.Repository
                     a.Date < endDate)
                 .ToListAsync();
 
-            var present = attendances.Count(x => x.Status == "Present");
-            var late = attendances.Count(x => x.Status == "Late");
-            var absent = attendances.Count(x => x.Status == "Absent");
-
-            return (present, late, absent);
+            return (
+                attendances.Count(x => x.Status == "Present"),
+                attendances.Count(x => x.Status == "Late"),
+                attendances.Count(x => x.Status == "Absent")
+            );
         }
         public async Task UpdateAsync(Attendances attendance)
         {
@@ -127,7 +132,43 @@ namespace PayTrack.Infrastructure.Repository
                 x.Date == today);
         }
 
-     
+        public async Task<List<Employees>> GetEmployeesMissingTimeInReminderAsync()
+        {
+            var today = DateTime.Today;
+            var now = DateTime.Now.TimeOfDay;
+
+            return await _context.Employees
+                .Include(e => e.ApplicationUser)
+                .Include(e => e.WorkSchedule)
+                .Where(e =>
+                    e.WorkScheduleId != null &&
+                    e.WorkSchedule != null &&
+                    e.ScheduleEffectiveDate != null &&
+                    e.ScheduleEffectiveDate.Value.Date <= today)
+                .Where(e =>
+                    now >= e.WorkSchedule!.StartTime
+                        .Add(TimeSpan.FromMinutes(e.WorkSchedule.GracePeriodMinutes)))
+                .Where(e =>
+                    !_context.Attendances.Any(a =>
+                        a.EmployeeId == e.Id &&
+                        a.Date.Date == today &&
+                        a.TimeIn != null))
+                .ToListAsync();
+        }
+
+        public async Task<List<Attendances>> GetByEmployeeAndDateRangeAsync(
+    Guid employeeId,
+    DateTime startDate,
+    DateTime endDate)
+        {
+            return await _context.Attendances
+                .Where(a =>
+                    a.EmployeeId == employeeId &&
+                    a.Date >= startDate &&
+                    a.Date <= endDate)
+                .ToListAsync();
+        }
+
     }
     
 }

@@ -9,13 +9,14 @@ namespace PayTrack.Application.DTOs
     public record AttendanceDTO
     (
         Guid Id,
-        string? PhotoBase64,
-        string FullName,
-        string Department,
-        string EmployeeNumber,
-        DateTime? TimeIn,
-        DateTime? TimeOut,
-        string Status
+        DateTime date,
+        string? ProfilePictureBase64,
+        string fullName,
+        string? department,
+        string employeeNumber,
+        DateTime? timeIn,
+        DateTime? timeOut,
+        string status
 
     );
 }
