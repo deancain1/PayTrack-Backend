@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 namespace PayTrack.Application.DTOs
 {
     public record SalaryDTO(
+       Guid Id,
        Guid EmployeeId,
        string? FullName,
        string EmployeeNumber,

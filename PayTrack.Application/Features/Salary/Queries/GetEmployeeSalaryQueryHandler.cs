@@ -12,20 +12,20 @@ namespace PayTrack.Application.Features.Salary.Queries
     public class GetEmployeeSalaryQueryHandler : IRequestHandler<GetEmployeeSalaryQuery, PagedResult<SalaryDTO>>
     {
         private readonly ISalaryRepository _salaryRepository;
-
+        private readonly ICurrentUserService _currentUserService;
         private const int DefaultPageSize = 7;
         private const int MaxPageSize = 20;
 
-        public GetEmployeeSalaryQueryHandler(ISalaryRepository salaryRepository)
+        public GetEmployeeSalaryQueryHandler(ISalaryRepository salaryRepository, ICurrentUserService currentUserService)
         {
             _salaryRepository = salaryRepository;
+            _currentUserService = currentUserService;
         }
 
-        public async Task<PagedResult<SalaryDTO>> Handle(
-            GetEmployeeSalaryQuery request,
-            CancellationToken cancellationToken)
+        public async Task<PagedResult<SalaryDTO>> Handle(GetEmployeeSalaryQuery request,CancellationToken cancellationToken)
         {
-            var query = _salaryRepository.GetEmployeeSalaryQuery();
+
+            var query = _salaryRepository.GetEmployeeSalaryQueryByCompanyAdmin(_currentUserService.UserId);
 
             // Search
             if (!string.IsNullOrWhiteSpace(request.Search))
@@ -59,6 +59,7 @@ namespace PayTrack.Application.Features.Salary.Queries
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .Select(s => new SalaryDTO(
+             s.Id,
              s.EmployeeId,
              s.Employee.ApplicationUser.FullName,
              s.Employee.EmployeeNumber,

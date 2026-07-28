@@ -13,16 +13,17 @@ namespace PayTrack.Application.Features.Salary.Queries
     public class GetSalarySummaryQueryHandler: IRequestHandler<GetSalarySummaryQuery, SalarySummaryDTO>
     {
         private readonly ISalaryRepository _salaryRepository;
-
-        public GetSalarySummaryQueryHandler(
-            ISalaryRepository salaryRepository)
+        private readonly ICurrentUserService _currentUserService;
+        public GetSalarySummaryQueryHandler(ISalaryRepository salaryRepository, ICurrentUserService currentUserService )
         {
             _salaryRepository = salaryRepository;
+            _currentUserService = currentUserService;
         }
 
         public async Task<SalarySummaryDTO> Handle(GetSalarySummaryQuery request,CancellationToken cancellationToken)
         {
-            var salaries = await _salaryRepository.GetAllAsync();
+            var companyAdminId = _currentUserService.UserId;
+            var salaries = await _salaryRepository.GetAllAsync(companyAdminId);
 
             var fullDay = salaries
                 .Where(x => x.Policy == PayrollPolicy.FullDay)
