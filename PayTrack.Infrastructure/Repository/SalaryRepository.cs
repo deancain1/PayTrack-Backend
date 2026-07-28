@@ -56,5 +56,18 @@ namespace PayTrack.Infrastructure.Repository
                 .Select(x => x.Rate)
                 .FirstOrDefaultAsync();
         }
+
+        public async Task<List<EmployeeSalary>> GetByIdsAsync(List<Guid> ids)
+        {
+          return await _context.EmployeeSalaries
+                .Where(s => ids.Contains(s.Id))
+                .ToListAsync();
+        }
+
+        public async Task DeleteRangeAsync(List<EmployeeSalary> salaries)
+        {
+           _context.EmployeeSalaries.RemoveRange(salaries);
+            await _context.SaveChangesAsync();
+        }
     }
 }

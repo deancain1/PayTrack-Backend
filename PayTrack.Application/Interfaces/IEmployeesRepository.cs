@@ -21,8 +21,8 @@ namespace PayTrack.Application.Interfaces
         Task<List<Employees>> GetAllAsync();
         Task<int> GetTotalEmployeesByCompanyAdminAsync(string companyAdminId);
         Task<List<Employees>> GetEmployeesForAbsentAutomationAsync();
-
         Task<List<Employees>> GetEmployeesWithAssignedScheduleAsync();
+        Task<bool> HasEmployeesInDepartmentsAsync(List<Guid> departmentIds);
 
 
     }

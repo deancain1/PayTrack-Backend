@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PayTrack.Application.Features.Department.Commands;
 using PayTrack.Application.Features.Department.Queries;
+using PayTrack.Application.Features.WorkSchedule.Commands;
 
 namespace PayTrack.Api.Controllers
 {
@@ -39,6 +40,14 @@ namespace PayTrack.Api.Controllers
 
             return Ok(departments);
 
+        }
+
+        [HttpDelete("bulk-delete")]
+        public async Task<IActionResult> BulkDelete([FromBody] DeleteDepartmentsCommand command)
+        {
+            await _mediator.Send(command);
+
+            return NoContent();
         }
     }
 }

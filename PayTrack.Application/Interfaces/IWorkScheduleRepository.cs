@@ -1,4 +1,5 @@
-﻿using PayTrack.Domain.Entities;
+﻿using PayTrack.Application.Interfaces;
+using PayTrack.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,21 +8,15 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Application.Interfaces
 {
-    public interface IWorkScheduleRepository
+    public interface IWorkScheduleRepository : IBaseRepository<WorkSchedules>
     {
-        Task<Guid> CreateAsync(WorkSchedules schedule);
-
-        Task UpdateAsync(WorkSchedules schedule);
-
-        Task DeleteAsync(Guid id);
-
-        Task<WorkSchedules?> GetByIdAsync(Guid id);
-
+   
         //Task<List<WorkSchedules>> GetAllByAdminAsync(string companyAdminId);
 
-        Task AssignScheduleToEmployeeAsync(Guid employeeId,Guid scheduleId, DateTime scheduleEffectiveDate);
         IQueryable<WorkSchedules> GetSchedulesByCompanyAdminQuery(string companyAdminId);
         IQueryable<WorkSchedules> GetWorkSchedulesQuery(string companyAdminId);
+        Task<List<WorkSchedules>> GetByIdsAsync(List<Guid> ids);
+        Task DeleteRangeAsync(List<WorkSchedules> schedules);
     }
 }
 

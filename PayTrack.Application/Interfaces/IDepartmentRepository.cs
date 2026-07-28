@@ -11,5 +11,7 @@ namespace PayTrack.Application.Interfaces
     {
         IQueryable<Departments> GetDepartmentsQuery();
         Task<List<Departments>> GetDepartmentsByUserIdAsync(string userId);
+        Task<List<Departments>> GetByIdsAsync(List<Guid> ids);
+        Task DeleteRangeAsync(List<Departments> departments);
     }
 }

@@ -124,6 +124,11 @@ namespace PayTrack.Infrastructure.Repository
                 .Include(e => e.Department)
                 .FirstOrDefaultAsync(x => x.ApplicationUserId == employeeApplicationUserId);
         }
+        public async Task<bool> HasEmployeesInDepartmentsAsync(List<Guid> departmentIds)
+        {
+            return await _context.Employees
+                .AnyAsync(e => departmentIds.Contains(e.DepartmentId));
+        }
     }
 }
 

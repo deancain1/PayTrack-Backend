@@ -48,6 +48,21 @@ namespace PayTrack.Api.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet("daily-rate")]
+        public async Task<IActionResult> GetDailyRate()
+        {
+            var result = await _mediator.Send(new GetDailyRateQuery());
+
+            return Ok(result);
+        }
+        [HttpDelete("bulk-delete")]
+        public async Task<IActionResult> BulkDelete([FromBody] DeleteEmployeeSalariesCommand command)
+        {
+            await _mediator.Send(command);
+
+            return NoContent();
+        }
     }
 }
 

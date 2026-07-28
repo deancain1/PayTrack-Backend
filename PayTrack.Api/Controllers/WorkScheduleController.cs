@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PayTrack.Application.DTOs;
+using PayTrack.Application.Features.Department.Commands;
 using PayTrack.Application.Features.Employee.Queries;
 using PayTrack.Application.Features.WorkSchedule.Commands;
 using PayTrack.Application.Features.WorkSchedule.Queries;
@@ -34,7 +35,7 @@ namespace PayTrack.Api.Controllers
         }
 
         [HttpPut("assign-schedule")]
-        public async Task<IActionResult> AssignScheduleToEmployee(AssignScheduleToEmployeeCommand command)
+        public async Task<IActionResult> AssignScheduleToEmployee(AssignWorkScheduleToEmployeeCommand command)
         {
             await _mediator.Send(command);
             return NoContent();
@@ -47,6 +48,13 @@ namespace PayTrack.Api.Controllers
                 new GetSchedulesLookupQuery());
 
             return Ok(result);
+        }
+        [HttpDelete("bulk-delete")]
+        public async Task<IActionResult> BulkDelete([FromBody] DeleteWorkSchedulesCommand command)
+        {
+            await _mediator.Send(command);
+
+            return NoContent();
         }
     }
 }

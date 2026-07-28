@@ -10,49 +10,21 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Infrastructure.Repository
 {
-    public class WorkScheduleRepository : IWorkScheduleRepository
+    public class WorkScheduleRepository: BaseRepository<WorkSchedules>, IWorkScheduleRepository
     {
-        private readonly AppDbContext _context;
-        public WorkScheduleRepository(AppDbContext context)
-        {
-            _context = context;
-        }
+        public WorkScheduleRepository(AppDbContext context) : base(context) {}
 
-        public async Task<Guid> CreateAsync(WorkSchedules schedule)
-        {
-            await _context.WorkSchedules.AddAsync(schedule);
-
-            await _context.SaveChangesAsync();
-
-            return schedule.Id;
-        }
-
-        public async Task UpdateAsync(WorkSchedules schedule)
-        {
-            _context.WorkSchedules.Update(schedule);
-
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task DeleteAsync(Guid id)
-        {
-            var schedule =
-                await GetByIdAsync(id);
-
-            if (schedule == null)
-                return;
-
-            _context.WorkSchedules.Remove(schedule);
-
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task<WorkSchedules?> GetByIdAsync(Guid id)
+        public async Task<List<WorkSchedules>> GetByIdsAsync(List<Guid> ids)
         {
             return await _context.WorkSchedules
-                .FirstOrDefaultAsync(x => x.Id == id);
+                .Where(s => ids.Contains(s.Id))
+                .ToListAsync();
         }
-
+        public async Task DeleteRangeAsync(List<WorkSchedules> schedules)
+        {
+            _context.WorkSchedules.RemoveRange(schedules);
+            await SaveChangesAsync();
+        }
         //public async Task<List<WorkSchedules>>GetAllByAdminAsync(
         //        string companyAdminId)
         //{
@@ -63,26 +35,6 @@ namespace PayTrack.Infrastructure.Repository
         //        .ToListAsync();
         //}
 
-        public async Task AssignScheduleToEmployeeAsync(
-            Guid employeeId,
-            Guid scheduleId, DateTime scheduleEffectiveDate)
-        {
-            var employee =
-                await _context.Employees
-                    .FirstOrDefaultAsync(x =>
-                        x.Id == employeeId);
-
-            if (employee == null)
-                throw new Exception(
-                    "Employee not found");
-
-            employee.WorkScheduleId =
-                scheduleId;
-
-            employee.ScheduleEffectiveDate = scheduleEffectiveDate;
-
-            await _context.SaveChangesAsync();
-        }
         public IQueryable<WorkSchedules> GetSchedulesByCompanyAdminQuery(string companyAdminId)
         {
             return _context.WorkSchedules

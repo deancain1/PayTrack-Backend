@@ -12,7 +12,7 @@ namespace PayTrack.Infrastructure.Repository
 {
     public class DepartmentRepository: BaseRepository<Departments>, IDepartmentRepository
     {
-          public DepartmentRepository(AppDbContext context) : base(context) { }
+        public DepartmentRepository(AppDbContext context) : base(context) { }
 
 
         public IQueryable<Departments> GetDepartmentsQuery()
@@ -28,5 +28,17 @@ namespace PayTrack.Infrastructure.Repository
                 .ToListAsync();
         }
 
+        public async Task<List<Departments>> GetByIdsAsync(List<Guid> ids)
+        {
+          return await _context.Departments
+                .Where(d => ids.Contains(d.Id))
+                .ToListAsync();
+        }
+
+        public async Task DeleteRangeAsync(List<Departments> departments)
+        {
+            _context.Departments.RemoveRange(departments);
+            await SaveChangesAsync();
+        }
     }
 }
