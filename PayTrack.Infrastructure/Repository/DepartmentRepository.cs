@@ -27,6 +27,13 @@ namespace PayTrack.Infrastructure.Repository
                 .Where(d => d.ApplicationUserId == userId)
                 .ToListAsync();
         }
+        public async Task<Departments?> GetByIdAndCompanyAdminAsync(Guid departmentId,string companyAdminId)
+        {
+            return await _context.Departments
+                .FirstOrDefaultAsync(d =>
+                    d.Id == departmentId &&
+                    d.ApplicationUserId == companyAdminId);
+        }
 
         public async Task<List<Departments>> GetByIdsAsync(List<Guid> ids)
         {

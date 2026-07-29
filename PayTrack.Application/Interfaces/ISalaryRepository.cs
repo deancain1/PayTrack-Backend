@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Application.Interfaces
 {
-    public interface ISalaryRepository
+    public interface ISalaryRepository : IBaseRepository<EmployeeSalary>
     {
         Task<EmployeeSalary>GetByEmployeeIdAsync(Guid employeeId);
-        Task AddAsync(EmployeeSalary salary);
+        Task<EmployeeSalary?> GetByIdAndCompanyAdminAsync(Guid salaryId, string companyAdminId);
         Task UpdateAsync(EmployeeSalary salary);
         IQueryable<EmployeeSalary> GetEmployeeSalaryQueryByCompanyAdmin(string companyAdminId);
         Task<List<EmployeeSalary>> GetAllAsync(string companyAdminId);

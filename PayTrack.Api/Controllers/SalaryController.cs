@@ -19,7 +19,7 @@ namespace PayTrack.Api.Controllers
         }
 
         [HttpPost("setup")]
-        public async Task<ActionResult<SalaryDTO>> SetupSalary([FromBody] CreateOrUpdateSalaryCommand command)
+        public async Task<ActionResult<SalaryDTO>> SetupSalary([FromBody] CreateSalaryCommand command)
         {
             var salary = await _mediator.Send(command);
 
@@ -40,6 +40,19 @@ namespace PayTrack.Api.Controllers
             return Ok(result);
         }
 
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(Guid id,[FromBody] UpdateEmployeeSalaryCommand command)
+        {
+            if (id != command.Id)
+                return BadRequest("Salary ID mismatch.");
+
+            var result = await _mediator.Send(command);
+
+            if (!result)
+                return NotFound();
+
+            return NoContent();
+        }
         [HttpGet("summary")]
         public async Task<IActionResult> GetSummary()
         {

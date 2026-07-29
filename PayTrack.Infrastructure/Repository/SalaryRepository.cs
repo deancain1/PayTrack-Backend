@@ -10,24 +10,24 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Infrastructure.Repository
 {
-    public class SalaryRepository : ISalaryRepository
+    public class SalaryRepository : BaseRepository<EmployeeSalary>, ISalaryRepository
     {
-        private readonly AppDbContext _context;
-        public SalaryRepository(AppDbContext context)
-        {
-            _context = context;
-        }
+        public SalaryRepository(AppDbContext context) : base(context) { }
+
         public async Task<EmployeeSalary?> GetByEmployeeIdAsync(Guid employeeId)
         {
             return await _context.EmployeeSalaries
                 .FirstOrDefaultAsync(x => x.EmployeeId == employeeId);
         }
-        public async Task AddAsync(EmployeeSalary salary)
-        {
-            await _context.EmployeeSalaries.AddAsync(salary);
-            await _context.SaveChangesAsync();
-        }
 
+        public async Task<EmployeeSalary?> GetByIdAndCompanyAdminAsync(Guid salaryId,string companyAdminId)
+        {
+            return await _context.EmployeeSalaries
+                .Include(x => x.Employee)
+                .FirstOrDefaultAsync(x =>
+                    x.Id == salaryId &&
+                    x.Employee.CompanyAdminId == companyAdminId);
+        }
         public async Task UpdateAsync(EmployeeSalary salary)
         {
             _context.EmployeeSalaries.Update(salary);
