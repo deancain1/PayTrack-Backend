@@ -9,8 +9,7 @@ namespace PayTrack.Domain.Enums
     public enum NotificationType
     {
         SalaryAdvance = 1,
-        LeaveRequest = 2,
-        PayrollGenerated = 3,
-        Attendance = 4
+        TimeIn = 2,
+        TimeOut = 3
     }
 }
