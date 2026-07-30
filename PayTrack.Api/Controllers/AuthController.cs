@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PayTrack.Application.DTOs;
 using PayTrack.Application.Features.Auth.Commands;
+using PayTrack.Application.Features.Auth.Queries;
 using PayTrack.Application.Features.Employee.Commands;
 
 namespace PayTrack.Api.Controllers
@@ -54,8 +55,7 @@ namespace PayTrack.Api.Controllers
             return Ok(result);
         }
         [HttpPost("register-employee")]
-        public async Task<ActionResult<AuthResponseDTO>> RegisterEmployee(
-     [FromBody] RegisterEmployeeCommand command)
+        public async Task<ActionResult<AuthResponseDTO>> RegisterEmployee([FromBody] RegisterEmployeeCommand command)
         {
             try
             {
@@ -72,6 +72,38 @@ namespace PayTrack.Api.Controllers
                     StackTrace = ex.StackTrace
                 });
             }
+        }
+
+        [HttpPost("enable-2fa")]
+        public async Task<IActionResult> EnableTwoFactor()
+        {
+            var result = await _mediator.Send(new EnableTwoFactorCommand());
+
+            return Ok(result);
+        }
+
+        [HttpPost("disable-2fa")]
+        public async Task<IActionResult> DisableTwoFactor()
+        {
+            var result = await _mediator.Send(new DisableTwoFactorCommand());
+
+            return Ok(result);
+        }
+
+        [HttpGet("2fa-status")]
+        public async Task<IActionResult> GetTwoFactorStatus()
+        {
+            var result = await _mediator.Send(new GetTwoFactorStatusQuery());
+
+            return Ok(result);
+        }
+
+        [HttpPost("verify-email-otp")]
+        public async Task<IActionResult> VerifyEmailOtp(VerifyEmailOtpCommand command)
+        {
+            var result = await _mediator.Send(command);
+
+            return Ok(result);
         }
     }
 }

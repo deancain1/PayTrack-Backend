@@ -25,6 +25,15 @@ namespace PayTrack.Infrastructure
             services.AddScoped<IPayrollBatchRepository, PayrollBatchRepository>();
             services.AddScoped<IWorkScheduleRepository, WorkScheduleRepository>();
             services.AddScoped<IAttendancePolicyService, AttendancePolicyService>();
+            services.AddScoped<IAttendanceAutomationService, AttendanceAutomationService>();
+            services.AddHostedService<AttendanceBackgroundService>();
+            services.AddScoped<IAttendancePolicyRepository, AttendancePolicyRepository>();
+            services.AddScoped<IAttendanceReminderService, AttendanceReminderService>();
+            services.AddScoped<ISalaryAdvanceRepository, SalaryAdvanceRepository>();
+            services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<INotificationRepository, NotificationRepository>();
+            services.AddScoped<IEmailOTPRepository, EmailOTPRepository>();
+
             return services;
         }
     }

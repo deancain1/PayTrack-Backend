@@ -12,5 +12,9 @@ namespace PayTrack.Application.Interfaces
             string email,
             string token
         );
+        Task SendLoginOtpEmailAsync(
+      string email,
+      string fullName,
+      string otp);
     }
 }

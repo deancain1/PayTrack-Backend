@@ -23,6 +23,10 @@ namespace PayTrack.Domain.Entities
         public ICollection<Departments> Departments { get; set; }
          = new List<Departments>();
 
+        public bool TwoFactorEnabled { get; set; }
+
+        public ICollection<EmailOTP> EmailOtps { get; set; }
+            = new List<EmailOTP>();
 
     }
 }

@@ -77,6 +77,71 @@ namespace PayTrack.Infrastructure.Services
 
             await smtp.DisconnectAsync(true);
         }
+
+        public async Task SendLoginOtpEmailAsync(
+    string email,
+    string fullName,
+    string otp)
+        {
+            var message = new MimeMessage();
+
+            message.From.Add(new MailboxAddress(
+                "PayTrack System",
+                _configuration["EmailSettings:Email"]));
+
+            message.To.Add(MailboxAddress.Parse(email));
+
+            message.Subject = "Your PayTrack Login Verification Code";
+
+            message.Body = new TextPart("html")
+            {
+                Text = $@"
+            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto;'>
+
+                <h2 style='color:#661F1F;'>PayTrack Login Verification</h2>
+
+                <p>Hello <strong>{fullName}</strong>,</p>
+
+                <p>Your verification code is:</p>
+
+                <div style='
+                    font-size:32px;
+                    font-weight:bold;
+                    letter-spacing:8px;
+                    text-align:center;
+                    padding:20px;
+                    background:#f5f5f5;
+                    border-radius:8px;
+                    margin:20px 0;'>
+                    {otp}
+                </div>
+
+                <p>This code will expire in <strong>5 minutes</strong>.</p>
+
+                <p>If you did not attempt to sign in, please ignore this email.</p>
+
+                <br/>
+
+                <p>Regards,<br/><strong>PayTrack Team</strong></p>
+
+            </div>"
+            };
+
+            using var smtp = new SmtpClient();
+
+            await smtp.ConnectAsync(
+                _configuration["EmailSettings:Host"],
+                int.Parse(_configuration["EmailSettings:Port"]),
+                MailKit.Security.SecureSocketOptions.StartTls);
+
+            await smtp.AuthenticateAsync(
+                _configuration["EmailSettings:Email"],
+                _configuration["EmailSettings:Password"]);
+
+            await smtp.SendAsync(message);
+
+            await smtp.DisconnectAsync(true);
+        }
     }
 }
 
