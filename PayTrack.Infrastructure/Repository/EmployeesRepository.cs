@@ -62,6 +62,7 @@ namespace PayTrack.Infrastructure.Repository
         public async Task<Employees?> GetByIdAndNumberAsync(Guid employeeId, string employeeNumber)
         {
             return await _context.Employees
+                .Include(x => x.ApplicationUser)
                 .Include(x => x.WorkSchedule)
                 .Include(x => x.Salary)
                 .FirstOrDefaultAsync(e =>

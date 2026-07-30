@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using PayTrack.Application.Features.Notification.Events;
 using PayTrack.Application.Interfaces;
 using PayTrack.Domain.Entities;
 using PayTrack.Domain.Enums;
@@ -15,7 +16,7 @@ namespace PayTrack.Application.Features.Attendance.Commands
         private readonly IPayrollService _payrollService;
         private readonly IAttendancePolicyService _attendancePolicyService;
         private readonly IAttendancePolicyRepository _attendancePolicyRepository;
-
+        private readonly IMediator _mediator;
         public RecordAttendanceCommandHandler(
             IEmployeesRepository employeesRepository,
             IAttendanceRepository attendanceRepository,
@@ -24,7 +25,8 @@ namespace PayTrack.Application.Features.Attendance.Commands
             IPayrollRecordRepository payrollRecordRepository,
             IPayrollService payrollService,
             IAttendancePolicyService attendancePolicyService,
-            IAttendancePolicyRepository attendancePolicyRepository)
+            IAttendancePolicyRepository attendancePolicyRepository,
+            IMediator mediator)
         {
             _employeesRepository = employeesRepository;
             _attendanceRepository = attendanceRepository;
@@ -34,6 +36,7 @@ namespace PayTrack.Application.Features.Attendance.Commands
             _payrollService = payrollService;
             _attendancePolicyService = attendancePolicyService;
             _attendancePolicyRepository = attendancePolicyRepository;
+            _mediator = mediator;
         }
 
         public async Task<Guid> Handle(RecordAttendanceCommand request,CancellationToken cancellationToken)
@@ -97,6 +100,14 @@ namespace PayTrack.Application.Features.Attendance.Commands
                 };
 
                 await _attendanceRepository.AddAsync(attendance);
+
+                await _mediator.Publish(new NotificationCreatedEvent(
+                 Guid.NewGuid(),
+                 employee.CompanyAdminId,
+                 NotificationType.TimeIn,
+                 $"{employee.ApplicationUser.FullName} has timed in at {attendance.TimeIn:hh:mm tt}.",
+                 DateTime.UtcNow
+                ));
 
                 return attendance.Id;
             }
@@ -203,6 +214,13 @@ namespace PayTrack.Application.Features.Attendance.Commands
 
                 await _payrollRecordRepository.AddAsync(payroll);
 
+                await _mediator.Publish(new NotificationCreatedEvent(
+                Guid.NewGuid(),
+                employee.CompanyAdminId,
+                NotificationType.TimeOut,
+                $"{employee.ApplicationUser.FullName} has timed out at {attendance.TimeOut:hh:mm tt}.",
+                DateTime.UtcNow
+                ));
                 return attendance.Id;
             }
 
