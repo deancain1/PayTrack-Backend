@@ -68,5 +68,44 @@ namespace PayTrack.Infrastructure.Repository
                     .Any(p => p.AttendanceId == a.Id)
                     );
         }
+
+        public IQueryable<PayrollRecord> GetPayrollRecordByCompanyAdminsync(string companyAdminId)
+        {
+            return _context.PayrollRecords
+                .Include(e => e.ApplicationUser)
+                .Where(e => e.Employee.CompanyAdminId == companyAdminId)
+                .AsQueryable();
+        }
+
+        public async Task<decimal> GetTotalPayrollTodayAsync(string companyAdminId)
+        {
+            var today = DateTime.UtcNow.Date;
+            var tomorrow = today.AddDays(1);
+
+            return await _context.PayrollRecords
+                .Where(x =>
+                    x.Employee.CompanyAdminId == companyAdminId &&
+                    x.Attendance.TimeIn >= today &&
+                    x.Attendance.TimeIn < tomorrow)
+                .SumAsync(x => x.AmountEarned);
+        }
+
+        public async Task<decimal> GetAverageDailyPayoutAsync(string companyAdminId)
+        {
+            var today = DateTime.UtcNow.Date;
+            var tomorrow = today.AddDays(1);
+
+            var query = _context.PayrollRecords
+                .Where(x =>
+                    x.Employee.CompanyAdminId == companyAdminId &&
+                    x.Attendance.TimeIn >= today &&
+                    x.Attendance.TimeIn < tomorrow);
+
+            if (!await query.AnyAsync())
+                return 0;
+
+            return await query.AverageAsync(
+                x => x.AmountEarned);
+        }
     }
 }

@@ -169,6 +169,16 @@ namespace PayTrack.Infrastructure.Repository
                 .ToListAsync();
         }
 
+        public async Task<int> GetActiveTrackedAsync(string companyAdminId)
+        {
+            return await _context.Attendances
+                .CountAsync(x =>
+                    x.Employee.CompanyAdminId == companyAdminId &&
+                    x.TimeIn != null &&
+                    x.TimeOut == null);
+        }
+
+     
     }
     
 }

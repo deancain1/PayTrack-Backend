@@ -10,14 +10,17 @@ namespace PayTrack.Application.Interfaces
     public interface IPayrollRecordRepository
     {
         Task AddAsync(PayrollRecord payroll);
-        Task<decimal> GetTotalEarningsAsync(
-            Guid employeeId,
-            DateTime periodStart,
-            DateTime periodEnd);
+        Task<decimal> GetTotalEarningsAsync( Guid employeeId, DateTime periodStart, DateTime periodEnd);
         IQueryable<PayrollRecord> Query();
         IQueryable<PayrollRecord> GetPayrollRecordByEmployeeAsync(string employeeApplicationUserId);
+        IQueryable<PayrollRecord> GetPayrollRecordByCompanyAdminsync(string companyAdminId);
         Task<decimal> GetTotalEarningsByEmployeeAsync(Guid employeeId);
 
         Task<bool> HasUnpaidAttendanceBeforePeriodAsync(DateTime periodStart);
+        Task<decimal> GetTotalPayrollTodayAsync(
+      string companyAdminId);
+
+        Task<decimal> GetAverageDailyPayoutAsync(
+            string companyAdminId);
     }
 }
