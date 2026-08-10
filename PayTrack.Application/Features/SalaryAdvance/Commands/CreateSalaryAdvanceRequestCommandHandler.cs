@@ -1,94 +1,147 @@
 ﻿using MediatR;
-using PayTrack.Application.Interfaces;
+using PayTrack.Application.Features.Notification.Events;
+using PayTrack.Application.Interfaces.Repositories;
+using PayTrack.Application.Interfaces.Services;
 using PayTrack.Domain.Entities;
 using PayTrack.Domain.Enums;
 
-namespace PayTrack.Application.Features.SalaryAdvance.Commands;
-
-public class CreateSalaryAdvanceRequestCommandHandler
-    : IRequestHandler<CreateSalaryAdvanceRequestCommand, Guid>
+namespace PayTrack.Application.Features.SalaryAdvance.Commands
 {
-    private readonly IEmployeesRepository _employeesRepository;
-    private readonly ISalaryAdvanceRepository _salaryAdvanceRepository;
-    private readonly IPayrollRecordRepository _payrollRecordRepository;
-    private readonly ICurrentUserService _currentUserService;
-
-    public CreateSalaryAdvanceRequestCommandHandler(
-        IEmployeesRepository employeesRepository,
-        ISalaryAdvanceRepository salaryAdvanceRepository,
-        IPayrollRecordRepository payrollRecordRepository,
-        ICurrentUserService currentUserService)
+    public class CreateSalaryAdvanceRequestCommandHandler
+        : IRequestHandler<CreateSalaryAdvanceRequestCommand, Guid>
     {
-        _employeesRepository = employeesRepository;
-        _salaryAdvanceRepository = salaryAdvanceRepository;
-        _payrollRecordRepository = payrollRecordRepository;
-        _currentUserService = currentUserService;
-    }
+        private readonly IEmployeesRepository _employeesRepository;
+        private readonly ISalaryAdvanceRepository _salaryAdvanceRepository;
+        private readonly ICurrentUserService _currentUserService;
+        private readonly IMediator _mediator;
+        private readonly ISalaryAdvanceEligibilityService
+            _salaryAdvanceEligibilityService;
 
-    public async Task<Guid> Handle(CreateSalaryAdvanceRequestCommand request, CancellationToken cancellationToken)
-    {
-        var applicationUserId = _currentUserService.UserId;
-
-        var employee =
-            await _employeesRepository.GetCurrentEmployeeAsync(applicationUserId);
-
-        if (employee == null)
-            throw new Exception("Employee not found.");
-
-        var hasPending =
-            await _salaryAdvanceRepository.HasPendingRequestAsync(employee.Id);
-
-        if (hasPending)
-            throw new Exception("You already have a pending salary advance request.");
-
-        var startDate = new DateTime(
-            DateTime.Today.Year,
-            DateTime.Today.Month,
-            1);
-
-        var endDate = DateTime.Today;
-
-        var currentEarnings =
-            await _payrollRecordRepository.GetTotalEarningsAsync(
-                employee.Id,
-                startDate,
-                endDate);
-
-        var approvedAdvances =
-            await _salaryAdvanceRepository.GetTotalAdvancesAsync(
-                employee.Id,
-                startDate,
-                endDate);
-
-        var availableAdvance =
-            currentEarnings - approvedAdvances;
-
-        if (availableAdvance < 0)
-            availableAdvance = 0;
-
-        if (request.Amount > availableAdvance)
-            throw new Exception(
-                $"Maximum available salary advance is ₱{availableAdvance:N2}");
-
-        var salaryAdvance = new SalaryAdvances
+        public CreateSalaryAdvanceRequestCommandHandler(
+            IEmployeesRepository employeesRepository,
+            ISalaryAdvanceRepository salaryAdvanceRepository,
+            ICurrentUserService currentUserService,
+            IMediator mediator,
+            ISalaryAdvanceEligibilityService salaryAdvanceEligibilityService)
         {
-            Id = Guid.NewGuid(),
+            _employeesRepository = employeesRepository;
+            _salaryAdvanceRepository = salaryAdvanceRepository;
+            _currentUserService = currentUserService;
+            _mediator = mediator;
+            _salaryAdvanceEligibilityService =
+                salaryAdvanceEligibilityService;
+        }
 
-            EmployeeId = employee.Id,
+        public async Task<Guid> Handle(CreateSalaryAdvanceRequestCommand request, CancellationToken cancellationToken)
+        {
+            // 1. GET CURRENT EMPLOYEE
 
-            ApplicationUserId = applicationUserId,
+            var applicationUserId =
+                _currentUserService.UserId;
 
-            Amount = request.Amount,
+            var employee =
+                await _employeesRepository
+                    .GetCurrentEmployeeAsync(applicationUserId);
 
-            Remarks = request.Remarks,
+            if (employee == null)
+            {
+                throw new Exception("Employee not found.");
+            }
 
-            RequestDate = DateTime.UtcNow,
+            // 2. CHECK PENDING SALARY ADVANCE
 
-            Status = SalaryAdvanceStatus.Pending
-        };
+            var hasPending =
+                await _salaryAdvanceRepository
+                    .HasPendingRequestAsync(employee.Id);
 
-        await _salaryAdvanceRepository.AddAsync(salaryAdvance);
+            if (hasPending)
+            {
+                throw new Exception(
+                    "You already have a pending salary advance request.");
+            }
 
-        return salaryAdvance.Id;
+
+            // 3. CHECK SALARY ADVANCE ELIGIBILITY
+
+            var eligibility =
+                await _salaryAdvanceEligibilityService
+                    .GetEligibilityAsync(employee.Id);
+
+
+            // 4. CHECK IF EMPLOYEE CAN REQUEST
+
+            if (!eligibility.CanRequest)
+            {
+                throw new Exception(
+                    "You do not have enough available earnings " +
+                    "for a salary advance after statutory deductions.");
+            }
+
+
+            // 5. CHECK REQUESTED AMOUNT
+
+            if (request.Amount <= 0)
+            {
+                throw new Exception(
+                    "Salary advance amount must be greater than zero.");
+            }
+
+            if (request.Amount >
+                eligibility.AvailableSalaryAdvance)
+            {
+                throw new Exception(
+                    $"Maximum available salary advance is " +
+                    $"₱{eligibility.AvailableSalaryAdvance:N2}");
+            }
+
+
+            // 6. CREATE SALARY ADVANCE
+
+            var salaryAdvance = new SalaryAdvances
+            {
+                Id = Guid.NewGuid(),
+
+                EmployeeId =
+                    employee.Id,
+
+                ApplicationUserId =
+                    applicationUserId,
+
+                Amount =
+                    request.Amount,
+
+                Remarks =
+                    request.Remarks,
+
+                RequestDate =
+                    DateTime.UtcNow,
+
+                Status =
+                    SalaryAdvanceStatus.Pending
+            };
+
+
+            await _salaryAdvanceRepository
+                .AddAsync(salaryAdvance);
+
+            // 7. SEND NOTIFICATION
+
+            await _mediator.Publish(
+                new NotificationCreatedEvent(
+                    Guid.NewGuid(),
+
+                    employee.CompanyAdminId,
+
+                    NotificationType.SalaryAdvance,
+
+                    $"{employee.ApplicationUser.FullName} " +
+                    $"requested a salary advance.",
+
+                    DateTime.UtcNow
+                ),
+                cancellationToken);
+
+            return salaryAdvance.Id;
+        }
     }
 }
