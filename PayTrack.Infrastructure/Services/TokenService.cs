@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using PayTrack.Application.Interfaces;
+using PayTrack.Application.Interfaces.Services;
 using PayTrack.Domain.Entities;
 using PayTrack.Infrastructure.Data;
 using System;
