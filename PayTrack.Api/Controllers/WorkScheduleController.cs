@@ -49,6 +49,19 @@ namespace PayTrack.Api.Controllers
 
             return Ok(result);
         }
+        [HttpPut("{id:guid}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateWorkScheduleCommand command)
+        {
+            if (id != command.Id)
+            {
+                return BadRequest("Work schedule ID does not match.");
+            }
+
+            var result = await _mediator.Send(command);
+
+            return Ok(result);
+        }
+
         [HttpDelete("bulk-delete")]
         public async Task<IActionResult> BulkDelete([FromBody] DeleteWorkSchedulesCommand command)
         {
