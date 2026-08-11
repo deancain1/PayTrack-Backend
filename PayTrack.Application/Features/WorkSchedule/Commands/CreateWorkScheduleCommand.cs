@@ -15,6 +15,7 @@ namespace PayTrack.Application.Features.WorkSchedule.Commands
         TimeSpan StartTime,
         TimeSpan EndTime,
         int RequiredHours,
-        int GracePeriodMinutes
+        int GracePeriodMinutes,
+        TimeSpan AbsentCutoffTime
     ) : IRequest<WorkSchedulesDTO>;
 }

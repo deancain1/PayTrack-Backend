@@ -1,7 +1,8 @@
 ﻿using MediatR;
 using PayTrack.Application.DTOs;
 using PayTrack.Application.Features.WorkSchedule.Commands;
-using PayTrack.Application.Interfaces;
+using PayTrack.Application.Interfaces.Repositories;
+using PayTrack.Application.Interfaces.Services;
 using PayTrack.Domain.Entities;
 using PayTrack.Domain.Enums;
 
@@ -19,9 +20,7 @@ public class CreateWorkScheduleCommandHandler
         _currentUser = currentUser;
     }
 
-    public async Task<WorkSchedulesDTO> Handle(
-        CreateWorkScheduleCommand request,
-        CancellationToken cancellationToken)
+    public async Task<WorkSchedulesDTO> Handle(CreateWorkScheduleCommand request,CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(_currentUser.UserId))
         {
@@ -39,19 +38,14 @@ public class CreateWorkScheduleCommandHandler
 
             StartTime = request.StartTime,
             EndTime = request.EndTime,
-
-            RequiredHours =
-                request.RequiredHours,
-
-            GracePeriodMinutes =
-                request.GracePeriodMinutes,
-
-            CompanyAdminId =
-                _currentUser.UserId
+            RequiredHours = request.RequiredHours,
+            GracePeriodMinutes = request.GracePeriodMinutes,
+            AbsentCutoffTime = request.AbsentCutoffTime,
+            CompanyAdminId =_currentUser.UserId
         };
 
-         await _repository.CreateAsync(schedule);
-
+         await _repository.AddAsync(schedule);
+        
         return new WorkSchedulesDTO(
                 schedule.Id,
                 schedule.ScheduleName,
@@ -59,7 +53,8 @@ public class CreateWorkScheduleCommandHandler
                 schedule.StartTime,
                 schedule.EndTime,
                 schedule.RequiredHours,
-                schedule.GracePeriodMinutes
+                schedule.GracePeriodMinutes,
+                schedule.AbsentCutoffTime
             );
     }
 }
