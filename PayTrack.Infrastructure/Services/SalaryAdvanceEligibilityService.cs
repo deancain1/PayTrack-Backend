@@ -67,9 +67,7 @@ namespace PayTrack.Infrastructure.Services
         public async Task<SalaryAdvanceEligibilityDTO>
             GetEligibilityAsync(Guid employeeId)
         {
-            // ==========================================
             // 1. GET EMPLOYEE
-            // ==========================================
 
             var employee =
                 await _employeesRepository
@@ -82,9 +80,7 @@ namespace PayTrack.Infrastructure.Services
             }
 
 
-            // ==========================================
             // 2. GET EMPLOYEE SALARY
-            // ==========================================
 
             var employeeSalary =
                 await _salaryRepository
@@ -100,17 +96,13 @@ namespace PayTrack.Infrastructure.Services
                 employeeSalary.MonthlyRate;
 
 
-            // ==========================================
             // 3. GET COMPANY ADMIN ID
-            // ==========================================
 
             var companyAdminId =
                 employee.CompanyAdminId;
 
 
-            // ==========================================
             // 4. GET PAYROLL SETTINGS
-            // ==========================================
 
             var payrollSetting =
                 await _companyPayrollSettingRepository
@@ -127,19 +119,18 @@ namespace PayTrack.Infrastructure.Services
                 payrollSetting.Frequency;
 
 
-            // ==========================================
             // 5. GET UNPAID EARNINGS
-            // ==========================================
+
+            var employeeApplicationUserId =
+                employee.ApplicationUserId;
 
             var grossEarnings =
                 await _payrollRecordRepository
                     .GetTotalUnpaidEarningsAsync(
-                        employeeId);
+                        employeeApplicationUserId);
 
 
-            // ==========================================
             // 6. CALCULATE SSS
-            // ==========================================
 
             var sss =
                 await _sssService
@@ -148,9 +139,7 @@ namespace PayTrack.Infrastructure.Services
                         payrollFrequency);
 
 
-            // ==========================================
             // 7. CALCULATE PHILHEALTH
-            // ==========================================
 
             var philHealth =
                 await _philHealthService
@@ -159,9 +148,7 @@ namespace PayTrack.Infrastructure.Services
                         payrollFrequency);
 
 
-            // ==========================================
             // 8. CALCULATE PAG-IBIG
-            // ==========================================
 
             var pagIbig =
                 await _pagIbigService
@@ -170,9 +157,7 @@ namespace PayTrack.Infrastructure.Services
                         payrollFrequency);
 
 
-            // ==========================================
             // 9. TOTAL STATUTORY DEDUCTIONS
-            // ==========================================
 
             var totalStatutoryDeductions =
                 sss +
@@ -180,9 +165,7 @@ namespace PayTrack.Infrastructure.Services
                 pagIbig;
 
 
-            // ==========================================
             // 10. GET EXISTING UNDEDUCTED ADVANCES
-            // ==========================================
 
             var existingAdvances =
                 await _salaryAdvanceRepository
@@ -190,9 +173,7 @@ namespace PayTrack.Infrastructure.Services
                         employeeId);
 
 
-            // ==========================================
             // 11. CALCULATE AVAILABLE ADVANCE
-            // ==========================================
 
             var availableSalaryAdvance =
                 grossEarnings
@@ -200,27 +181,20 @@ namespace PayTrack.Infrastructure.Services
                 - existingAdvances;
 
 
-            // ==========================================
             // 12. PREVENT NEGATIVE VALUE
-            // ==========================================
 
             if (availableSalaryAdvance < 0)
             {
                 availableSalaryAdvance = 0;
             }
 
-
-            // ==========================================
             // 13. DETERMINE ELIGIBILITY
-            // ==========================================
 
             var canRequest =
                 availableSalaryAdvance > 0;
 
 
-            // ==========================================
             // 14. RETURN RESULT
-            // ==========================================
 
             return new SalaryAdvanceEligibilityDTO(
                 grossEarnings,
