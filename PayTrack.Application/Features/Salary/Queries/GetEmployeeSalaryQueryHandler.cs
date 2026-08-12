@@ -1,7 +1,8 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using PayTrack.Application.DTOs;
-using PayTrack.Application.Interfaces;
+using PayTrack.Application.Interfaces.Repositories;
+using PayTrack.Application.Interfaces.Services;
 using System;
 using System.Linq;
 using System.Threading;
@@ -65,6 +66,7 @@ namespace PayTrack.Application.Features.Salary.Queries
              s.Employee.EmployeeNumber,
              s.Employee.Department != null ? s.Employee.Department.DepartmentName: "Unassigned",
              s.Rate,
+             s.MonthlyRate,
              s.Employee.ApplicationUser.ProfilePicture != null
              ? $"data:image/png;base64,{Convert.ToBase64String(s.Employee.ApplicationUser.ProfilePicture)}"
              : null,

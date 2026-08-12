@@ -13,6 +13,7 @@ namespace PayTrack.Application.Features.Salary.Commands
     (
      Guid EmployeeId,
      decimal Rate,
+     decimal MonthlyRate,
      int RequiredHours,
      PayrollPolicy Policy
     ) : IRequest<SalaryDTO>;

@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using PayTrack.Application.DTOs;
-using PayTrack.Application.Interfaces;
+using PayTrack.Application.Interfaces.Repositories;
+using PayTrack.Application.Interfaces.Services;
 using PayTrack.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -39,6 +40,7 @@ namespace PayTrack.Application.Features.Salary.Commands
                 Id = Guid.NewGuid(),
                 EmployeeId = employee.Id,
                 Rate = request.Rate,
+                MonthlyRate = request.MonthlyRate,
                 Policy = request.Policy,
                 CompanyAdminId = _currentUserService.UserId
             };
@@ -51,6 +53,7 @@ namespace PayTrack.Application.Features.Salary.Commands
                 FullName: employee.ApplicationUser.FullName,
                 EmployeeNumber: employee.EmployeeNumber,
                 Department: employee.Department?.DepartmentName ?? "Unassigned",
+                MonthlyRate: salary.MonthlyRate,
                 Rate: salary.Rate,
                 ProfilePictureBase64: employee.ApplicationUser.ProfilePicture != null
                     ? $"data:image/png;base64,{Convert.ToBase64String(employee.ApplicationUser.ProfilePicture)}"
