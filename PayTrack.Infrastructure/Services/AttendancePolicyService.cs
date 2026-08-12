@@ -1,4 +1,4 @@
-﻿using PayTrack.Application.Interfaces;
+﻿using PayTrack.Application.Interfaces.Services;
 using PayTrack.Domain.Entities;
 using PayTrack.Domain.Enums;
 using System;

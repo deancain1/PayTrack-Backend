@@ -1,4 +1,4 @@
-﻿using PayTrack.Application.Interfaces;
+﻿using PayTrack.Application.Interfaces.Services;
 using QRCoder;
 using System;
 using System.Collections.Generic;

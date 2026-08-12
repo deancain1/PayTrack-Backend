@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using PayTrack.Application.Interfaces;
+using PayTrack.Application.Interfaces.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
