@@ -76,6 +76,7 @@ namespace PayTrack.Application.Features.Auth.Commands
                 request.Role
             );
 
+            await _companyDetailsRepository.AddAsync(company);
             // Send verification email
             await _emailService.SendVerificationEmailAsync(
                 user.Email!,
