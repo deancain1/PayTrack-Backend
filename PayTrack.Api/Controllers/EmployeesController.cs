@@ -54,7 +54,7 @@ namespace PayTrack.Api.Controllers
         [HttpGet("me")]
         public async Task<IActionResult> GetCurrentEmployee()
         {
-            var employee = await _mediator.Send(new GetCurrentEmployeeQuery());
+            var employee = await _mediator.Send(new GetCurrentEmployeeInformationQuery());
 
             return Ok(employee);
         }
