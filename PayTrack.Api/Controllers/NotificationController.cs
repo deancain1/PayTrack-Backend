@@ -18,13 +18,13 @@ namespace PayTrack.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> GetCompanyAdminNotifications()
         {
-            return Ok(await _mediator.Send(new GetNotificationsQuery()));
+            return Ok(await _mediator.Send(new GetCompanyAdminNotificationsQuery()));
         }
 
         [HttpGet("unread-count")]
-        public async Task<IActionResult> GetUnreadCount()
+        public async Task<IActionResult> GetCompanyAdminUnreadNotificationCount()
         {
             return Ok(await _mediator.Send(new GetUnreadNotificationQuery()));
         }
@@ -35,6 +35,44 @@ namespace PayTrack.Api.Controllers
             await _mediator.Send(new MarkNotificationAsReadCommand(id));
 
             return NoContent();
+        }
+
+
+        // employees 
+        [HttpGet("employee-notifications")]
+        public async Task<IActionResult> GetEmployeeNotifications()
+        {
+            var result = await _mediator.Send(
+                new GetEmployeeNotificationsQuery());
+
+            return Ok(result);
+        }
+        [HttpGet("employee-unread-count")]
+        public async Task<IActionResult> GetEmployeeUnreadNotificationCount()
+        {
+            var result = await _mediator.Send(
+                new GetUnreadEmployeeNotificationQuery());
+
+            return Ok(result);
+        }
+        [HttpGet("employee-preferences")]
+        public async Task<IActionResult> GetEmployeeNotificationPreferences()
+        {
+            var result =
+                await _mediator.Send(
+                    new GetEmployeeNotificationPreferencesQuery());
+
+            return Ok(result);
+        }
+
+
+        [HttpPut("employee-preferences")]
+        public async Task<IActionResult> UpdateEmployeeNotificationPreferences([FromBody] UpdateEmployeeNotificationPreferencesCommand command)
+        {
+            var result =
+                await _mediator.Send(command);
+
+            return Ok(result);
         }
     }
 }
