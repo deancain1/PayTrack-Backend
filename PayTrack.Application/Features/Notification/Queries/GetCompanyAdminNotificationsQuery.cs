@@ -8,6 +8,6 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Application.Features.Notification.Queries
 {
-    public record GetNotificationsQuery : IRequest<List<NotificationDTO>>;
+    public record GetCompanyAdminNotificationsQuery : IRequest<List<AdminNotificationDTO>>;
     
 }

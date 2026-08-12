@@ -1,36 +1,36 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PayTrack.Application.Interfaces;
+using PayTrack.Application.Interfaces.Repositories;
 using PayTrack.Domain.Entities;
 using PayTrack.Domain.Enums;
 using PayTrack.Infrastructure.Data;
 
 namespace PayTrack.Infrastructure.Repository;
 
-public class NotificationRepository : INotificationRepository
+public class CompanyAdminNotificationRepository : ICompanyAdminNotificationRepository
 {
     private readonly AppDbContext _context;
 
-    public NotificationRepository(AppDbContext context)
+    public CompanyAdminNotificationRepository(AppDbContext context)
     {
         _context = context;
     }
 
-    public async Task AddAsync(Notification notification)
+    public async Task AddAsync(CompanyAdminNotification notification)
     {
         await _context.Notifications.AddAsync(notification);
         await _context.SaveChangesAsync();
     }
 
-    public async Task<List<Notification>> GetByCompanyAdminIdAsync(string companyAdminId)
+    public async Task<List<CompanyAdminNotification>> GetByCompanyAdminIdAsync(string companyAdminId)
     {
         return await _context.Notifications
             .Where(n =>
             n.CompanyAdminId == companyAdminId &&
             (
-                n.Type == NotificationType.SalaryAdvance ||
+                n.Type == CompanyAdminNotificationType.SalaryAdvance ||
                 (
-                    (n.Type == NotificationType.TimeIn ||
-                     n.Type == NotificationType.TimeOut) &&
+                    (n.Type == CompanyAdminNotificationType.TimeIn ||
+                     n.Type == CompanyAdminNotificationType.TimeOut) &&
                     n.CreatedAt >= DateTime.UtcNow.AddHours(-24)
                 )
             ))
