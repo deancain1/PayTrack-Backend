@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PayTrack.Application.Interfaces;
+using PayTrack.Application.Interfaces.Repositories;
 using PayTrack.Domain.Entities;
 using PayTrack.Domain.Enums;
 using PayTrack.Infrastructure.Data;
@@ -34,21 +34,21 @@ namespace PayTrack.Infrastructure.Repository
                     x.Status == SalaryAdvanceStatus.Pending)
                 .AsNoTracking();
         }
-        public async Task<decimal> GetTotalUndeductedAdvancesAsync(Guid employeeId)
+        public async Task<decimal> GetTotalUndeductedAdvancesAsync(Guid emploeeId)
         {
             return await _context.SalaryAdvances
                 .Where(x =>
-                    x.EmployeeId == employeeId &&
+                    x.EmployeeId == emploeeId &&
                      x.Status == SalaryAdvanceStatus.Approved &&
                     !x.IsDeducted)
                 .SumAsync(x => (decimal?)x.Amount) ?? 0;
         }
 
-        public async Task<decimal> GetTotalAdvancesAsync(Guid employeeId, DateTime startDate, DateTime endDate)
+        public async Task<decimal> GetTotalAdvancesAsync(string employeeApplicationUserId, DateTime startDate, DateTime endDate)
         {
             return await _context.SalaryAdvances
                 .Where(x =>
-                    x.EmployeeId == employeeId &&
+                    x.ApplicationUserId == employeeApplicationUserId &&
                     x.Status == SalaryAdvanceStatus.Approved &&
                     x.RequestDate >= startDate &&
                     x.RequestDate <= endDate)

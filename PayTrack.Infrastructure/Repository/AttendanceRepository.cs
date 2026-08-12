@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PayTrack.Application.Interfaces;
+using PayTrack.Application.Interfaces.Repositories;
 using PayTrack.Domain.Entities;
 using PayTrack.Infrastructure.Data;
 using System;
@@ -156,10 +156,7 @@ namespace PayTrack.Infrastructure.Repository
                 .ToListAsync();
         }
 
-        public async Task<List<Attendances>> GetByEmployeeAndDateRangeAsync(
-    Guid employeeId,
-    DateTime startDate,
-    DateTime endDate)
+        public async Task<List<Attendances>> GetByEmployeeAndDateRangeAsync(Guid employeeId, DateTime startDate,DateTime endDate)
         {
             return await _context.Attendances
                 .Where(a =>

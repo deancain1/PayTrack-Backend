@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PayTrack.Application.Interfaces;
+using PayTrack.Application.Interfaces.Repositories;
 using PayTrack.Domain.Entities;
 using PayTrack.Infrastructure.Data;
 using System;
@@ -118,7 +118,7 @@ namespace PayTrack.Infrastructure.Repository
                 .ToListAsync();
         }
 
-        public async Task<Employees?> GetCurrentEmployeeAsync(string employeeApplicationUserId)
+        public async Task<Employees?> GetCurrentEmployeeByApplicationUserIdAsync(string employeeApplicationUserId)
         {
             return await _context.Employees
                 .Include(e => e.ApplicationUser)
