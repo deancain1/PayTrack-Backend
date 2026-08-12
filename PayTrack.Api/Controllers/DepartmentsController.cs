@@ -42,6 +42,20 @@ namespace PayTrack.Api.Controllers
 
         }
 
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateDepartmentCommand command)
+        {
+            if (id != command.Id)
+                return BadRequest("Department ID mismatch.");
+
+            var result = await _mediator.Send(command);
+
+            if (!result)
+                return NotFound();
+
+            return NoContent();
+        }
+
         [HttpDelete("bulk-delete")]
         public async Task<IActionResult> BulkDelete([FromBody] DeleteDepartmentsCommand command)
         {
