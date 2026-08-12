@@ -1,5 +1,5 @@
 ﻿using MediatR;
-using PayTrack.Application.Interfaces;
+using PayTrack.Application.Interfaces.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,9 +10,9 @@ namespace PayTrack.Application.Features.Notification.Commands
 {
     public class MarkNotificationAsReadCommandHandler : IRequestHandler<MarkNotificationAsReadCommand>
     {
-        private readonly INotificationRepository _notificationRepository;
+        private readonly ICompanyAdminNotificationRepository _notificationRepository;
 
-        public MarkNotificationAsReadCommandHandler(INotificationRepository notificationRepository)
+        public MarkNotificationAsReadCommandHandler(ICompanyAdminNotificationRepository notificationRepository)
         {
             _notificationRepository = notificationRepository;
         }

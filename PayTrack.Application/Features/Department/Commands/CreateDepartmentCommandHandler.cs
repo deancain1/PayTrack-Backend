@@ -1,7 +1,8 @@
 ﻿using AutoMapper;
 using MediatR;
 using PayTrack.Application.DTOs;
-using PayTrack.Application.Interfaces;
+using PayTrack.Application.Interfaces.Repositories;
+using PayTrack.Application.Interfaces.Services;
 using PayTrack.Domain.Entities;
 using System;
 using System.Collections.Generic;
