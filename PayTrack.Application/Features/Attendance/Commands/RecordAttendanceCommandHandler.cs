@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using PayTrack.Application.Features.Notification.Events;
-using PayTrack.Application.Interfaces;
+using PayTrack.Application.Interfaces.Repositories;
+using PayTrack.Application.Interfaces.Services;
 using PayTrack.Domain.Entities;
 using PayTrack.Domain.Enums;
 
@@ -104,7 +105,7 @@ namespace PayTrack.Application.Features.Attendance.Commands
                 await _mediator.Publish(new NotificationCreatedEvent(
                  Guid.NewGuid(),
                  employee.CompanyAdminId,
-                 NotificationType.TimeIn,
+                 CompanyAdminNotificationType.TimeIn,
                  $"{employee.ApplicationUser.FullName} has timed in at {attendance.TimeIn:hh:mm tt}.",
                  DateTime.UtcNow
                 ));
@@ -209,6 +210,7 @@ namespace PayTrack.Application.Features.Attendance.Commands
                     ApplicationUserId = employee.ApplicationUserId,
                     AttendanceId = attendance.Id,
                     AmountEarned = finalSalary,
+                    Status = PayrollRecordStatus.Unpaid,
                     CreatedAt = DateTime.Now
                 };
 
@@ -217,7 +219,7 @@ namespace PayTrack.Application.Features.Attendance.Commands
                 await _mediator.Publish(new NotificationCreatedEvent(
                 Guid.NewGuid(),
                 employee.CompanyAdminId,
-                NotificationType.TimeOut,
+                CompanyAdminNotificationType.TimeOut,
                 $"{employee.ApplicationUser.FullName} has timed out at {attendance.TimeOut:hh:mm tt}.",
                 DateTime.UtcNow
                 ));
