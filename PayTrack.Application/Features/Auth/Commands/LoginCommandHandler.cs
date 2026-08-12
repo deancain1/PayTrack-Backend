@@ -1,8 +1,11 @@
-﻿using MediatR;
+﻿using System.Security.Cryptography;
+using MediatR;
 using Microsoft.AspNetCore.Identity;
 using PayTrack.Application.DTOs;
-using PayTrack.Application.Interfaces;
+using PayTrack.Application.Interfaces.Repositories;
+using PayTrack.Application.Interfaces.Services;
 using PayTrack.Domain.Entities;
+using PayTrack.Domain.Enums;
 
 namespace PayTrack.Application.Features.Auth.Commands
 {
@@ -12,15 +15,24 @@ namespace PayTrack.Application.Features.Auth.Commands
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ITokenService _tokenService;
+        private readonly IEmailOTPRepository _emailOTPRepository;
+        private readonly IEmailService _emailService;
+        private readonly IUserRepository _userRepository;
 
         public LoginCommandHandler(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            ITokenService tokenService)
+            ITokenService tokenService,
+            IEmailOTPRepository emailOTPRepository,
+            IEmailService emailService,
+            IUserRepository userRepository)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _tokenService = tokenService;
+            _emailOTPRepository = emailOTPRepository;
+            _emailService = emailService;
+            _userRepository = userRepository;
         }
 
         public async Task<AuthResponseDTO> Handle(
@@ -32,47 +44,96 @@ namespace PayTrack.Application.Features.Auth.Commands
 
             if (user == null)
             {
-                throw new UnauthorizedAccessException("Invalid credentials");
+                throw new UnauthorizedAccessException(
+                    "Invalid credentials.");
             }
 
-            // 2. CHECK EMAIL VERIFICATION (IMPORTANT FIX)
-            if (!user.IsEmailVerified)
-            {
-                throw new UnauthorizedAccessException("Please verify your email before logging in.");
-            }
-
-            // 3. Check password
+            // 2. Validate password
             var result = await _signInManager.CheckPasswordSignInAsync(
                 user,
                 request.Password,
-                false
-            );
+                lockoutOnFailure: false);
 
             if (!result.Succeeded)
             {
-                throw new UnauthorizedAccessException("Invalid credentials");
+                throw new UnauthorizedAccessException(
+                    "Invalid credentials.");
             }
 
-            // 4. Sign in user
-            await _signInManager.SignInAsync(user, isPersistent: false);
+            // 3. Two-Factor Authentication
+            if (user.TwoFactorEnabled)
+            {
+                // Invalidate previous unused login OTPs
+                await _emailOTPRepository.InvalidatePreviousOtpsAsync(
+                    user.Id,
+                    EmailOTPPurpose.Login);
+
+                // Generate secure 6-digit OTP
+                string otpCode = RandomNumberGenerator
+                    .GetInt32(100000, 1000000)
+                    .ToString();
+
+                // Save OTP
+                var otp = new EmailOTP
+                {
+                    ApplicationUserId = user.Id,
+                    Code = otpCode,
+                    Purpose = EmailOTPPurpose.Login,
+                    ExpiresAt = DateTime.UtcNow.AddMinutes(5),
+                    IsUsed = false,
+                    FailedAttempts = 0
+                };
+
+                await _emailOTPRepository.AddAsync(otp);
+
+                // Send OTP email
+                await _emailService.SendLoginOtpEmailAsync(
+                    user.Email!,
+                    user.FullName,
+                    otpCode);
+
+                // Do not generate JWT yet
+                return new AuthResponseDTO(
+                    FullName: user.FullName,
+                    PhoneNumber: user.PhoneNumber ?? string.Empty,
+                    Email: user.Email ?? string.Empty,
+                    Token: string.Empty,
+                    RefreshToken: string.Empty,
+                    UserId: user.Id,
+                    Role: string.Empty,
+                    RequiresTwoFactor: true
+                );
+            }
+
+            // 4. Sign in
+            await _signInManager.SignInAsync(
+                user,
+                isPersistent: false);
 
             // 5. Get roles
             var roles = await _userManager.GetRolesAsync(user);
 
-            // 6. Generate tokens
-            var accessToken = _tokenService.GenerateAccessToken(user, roles);
-            var refreshToken = await _tokenService.GenerateAndSaveRefreshTokenAsync(user);
+            // 6. Generate access token
+            var accessToken = _tokenService.GenerateAccessToken(
+                user,
+                roles);
 
-            // 7. Return response
-            return new AuthResponseDTO
-            {
-                FullName = user.FullName,
-                Email = user.Email,
-                Token = accessToken,
-                RefreshToken = refreshToken,
-                UserId = user.Id.ToString(),
-                Role = roles.FirstOrDefault()
-            };
+            // 7. Generate refresh token
+            var refreshToken =
+                await _tokenService.GenerateAndSaveRefreshTokenAsync(
+                    user);
+
+            // 8. Return authenticated response
+            return new AuthResponseDTO(
+                FullName: user.FullName,
+                PhoneNumber: user.PhoneNumber ?? string.Empty,
+                Email: user.Email ?? string.Empty,
+                Token: accessToken,
+                RefreshToken: refreshToken,
+                UserId: user.Id,
+                Role: roles.FirstOrDefault() ?? string.Empty,
+                RequiresTwoFactor: false
+            );
         }
     }
 }

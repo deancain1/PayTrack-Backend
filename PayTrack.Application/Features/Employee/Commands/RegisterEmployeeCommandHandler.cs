@@ -1,37 +1,38 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Identity;
 using PayTrack.Application.DTOs;
-using PayTrack.Application.Interfaces;
+using PayTrack.Application.Interfaces.Repositories;
+using PayTrack.Application.Interfaces.Services;
 using PayTrack.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PayTrack.Application.Features.Employee.Commands
 {
-    public class RegisterEmployeeCommandHandler : IRequestHandler<RegisterEmployeeCommand, AuthResponseDTO>
+    public class RegisterEmployeeCommandHandler: IRequestHandler< RegisterEmployeeCommand,RegisterEmployeeResponseDTO>
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IEmployeesRepository _employeesRepository;
         private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly IQrCodeService _qrCodeService;
+        private readonly ICurrentUserService _currentUserService;
+
         public RegisterEmployeeCommandHandler(
             UserManager<ApplicationUser> userManager,
-            IEmployeesRepository employeesRepository, RoleManager<IdentityRole> roleManager, IQrCodeService qrCodeService )
+            IEmployeesRepository employeesRepository,
+            RoleManager<IdentityRole> roleManager,
+            ICurrentUserService currentUserService)
         {
             _userManager = userManager;
             _employeesRepository = employeesRepository;
             _roleManager = roleManager;
-            _qrCodeService = qrCodeService;
+            _currentUserService = currentUserService;
         }
-        public async Task<AuthResponseDTO> Handle(
-          RegisterEmployeeCommand request,
-          CancellationToken cancellationToken)
+
+        public async Task<RegisterEmployeeResponseDTO> Handle(
+            RegisterEmployeeCommand request,
+            CancellationToken cancellationToken)
         {
             byte[]? profileBytes = null;
 
+            // Convert profile picture
             if (!string.IsNullOrWhiteSpace(request.ProfilePicture))
             {
                 var base64 = request.ProfilePicture.Contains(',')
@@ -41,6 +42,10 @@ namespace PayTrack.Application.Features.Employee.Commands
                 profileBytes = Convert.FromBase64String(base64);
             }
 
+            // Employee role is controlled by the backend
+            const string employeeRole = "Employee";
+
+            // Create ApplicationUser
             var user = new ApplicationUser
             {
                 FullName = request.FullName,
@@ -48,9 +53,10 @@ namespace PayTrack.Application.Features.Employee.Commands
                 UserName = request.Email,
                 PhoneNumber = request.PhoneNumber,
                 ProfilePicture = profileBytes,
-                Role = request.Role,
+                Role = employeeRole
             };
 
+            // Create Identity user
             var result = await _userManager.CreateAsync(
                 user,
                 request.Password);
@@ -58,49 +64,52 @@ namespace PayTrack.Application.Features.Employee.Commands
             if (!result.Succeeded)
             {
                 throw new Exception(
-                    string.Join(", ",
-                    result.Errors.Select(x => x.Description)));
+                    string.Join(
+                        ", ",
+                        result.Errors.Select(x => x.Description)));
             }
 
-            if (!await _roleManager.RoleExistsAsync(request.Role))
+            // Create role if it doesn't exist
+            if (!await _roleManager.RoleExistsAsync(employeeRole))
             {
                 await _roleManager.CreateAsync(
-                    new IdentityRole(request.Role)
-                );
+                    new IdentityRole(employeeRole));
             }
 
-            await _userManager.AddToRoleAsync(user, request.Role);
+            // Assign Employee role
+            await _userManager.AddToRoleAsync(
+                user,
+                employeeRole);
 
+            // Create Employee record
             var employee = new Employees
             {
                 Id = Guid.NewGuid(),
                 EmployeeNumber = GenerateEmployeeNumber(),
-                Department = request.Department,
+                DepartmentId = request.DepartmentId,
                 DateHired = request.DateHired,
-                Role = request.Role,
-                ApplicationUserId = user.Id
+                Role = employeeRole,
+                ApplicationUserId = user.Id,
+
+                // Company Admin who registered this employee
+                CompanyAdminId = _currentUserService.UserId,
+
+                UseCompanyLatePolicy = true,
+                AttendancePolicyId = null
             };
 
-            await _employeesRepository.AddEmployeeAsync(
-                employee);
+            await _employeesRepository.AddEmployeeAsync(employee);
 
-            employee.QrCodeBase64 =
-             _qrCodeService.GenerateQrCodeBase64(employee.Id.ToString());
-
-            await _employeesRepository.UpdateAsync(employee);
-
-
-            return new AuthResponseDTO
-            {
-                FullName = user.FullName,
-                Email = user.Email!,
-                PhoneNumber = user.PhoneNumber,
-                Department = employee.Department,
-                EmployeeNumber = employee.EmployeeNumber,
-                UserId = user.Id,
-                Role = "Employee",
-               
-            };
+            // Return employee-specific response
+            return new RegisterEmployeeResponseDTO(
+                FullName: user.FullName,
+                PhoneNumber: user.PhoneNumber ?? string.Empty,
+                Email: user.Email ?? string.Empty,
+                DepartmentId: employee.DepartmentId,
+                EmployeeNumber: employee.EmployeeNumber,
+                UserId: user.Id,
+                Role: employeeRole
+            );
         }
 
         private string GenerateEmployeeNumber()

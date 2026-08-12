@@ -1,29 +1,32 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Identity;
 using PayTrack.Application.DTOs;
-using PayTrack.Application.Interfaces;
+using PayTrack.Application.Interfaces.Repositories;
+using PayTrack.Application.Interfaces.Services;
 using PayTrack.Domain.Entities;
 
 namespace PayTrack.Application.Features.Auth.Commands
 {
     public class RegisterCommandHandler
-        : IRequestHandler<RegisterCommand, AuthResponseDTO>
+        : IRequestHandler<RegisterCommand, RegisterCompanyAdminResponseDTO>
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly ICompanyDetailsRepository _companyDetailsRepository;
         private readonly IEmailService _emailService;
 
         public RegisterCommandHandler(
             UserManager<ApplicationUser> userManager,
-            RoleManager<IdentityRole> roleManager,
+            RoleManager<IdentityRole> roleManager, ICompanyDetailsRepository companyDetailsRepository,
             IEmailService emailService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
+            _companyDetailsRepository = companyDetailsRepository;
             _emailService = emailService;
         }
 
-        public async Task<AuthResponseDTO> Handle(
+        public async Task<RegisterCompanyAdminResponseDTO> Handle(
             RegisterCommand request,
             CancellationToken cancellationToken)
         {
@@ -35,7 +38,7 @@ namespace PayTrack.Application.Features.Auth.Commands
             {
                 FullName = request.FullName,
                 Email = request.Email,
-                CompanyName = request.CompanyName,
+               
                 PhoneNumber = request.PhoneNumber,
                 UserName = request.Email,
                 Role = request.Role,
@@ -76,22 +79,32 @@ namespace PayTrack.Application.Features.Auth.Commands
                 request.Role
             );
 
+            var company = new CompanyDetails
+            {
+                Id = Guid.NewGuid(),
+                CompanyName = request.CompanyName,
+                BusinessType = request.BusinessType,
+                CompanyAdminId = user.Id
+            };
+
             await _companyDetailsRepository.AddAsync(company);
+
             // Send verification email
-            await _emailService.SendVerificationEmailAsync(
-                user.Email!,
-                token
-            );
+            //await _emailService.SendVerificationEmailAsync(
+            //    user.Email!,
+            //    token
+            //);
+
 
             // Return response
-            return new AuthResponseDTO
-            {
-                FullName = user.FullName,
-                Email = user.Email,
-                PhoneNumber = user.PhoneNumber,
-                UserId = user.Id,
-                Role = user.Role
-            };
+            return new RegisterCompanyAdminResponseDTO(
+                FullName: user.FullName,
+                PhoneNumber: user.PhoneNumber ?? string.Empty,
+                Email: user.Email ?? string.Empty,
+                UserId: user.Id,
+                Role: user.Role,
+                CompanyId: Guid.Empty
+            );
         }
     }
 }

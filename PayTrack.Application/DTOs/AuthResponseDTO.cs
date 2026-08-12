@@ -6,17 +6,14 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Application.DTOs
 {
-    public class AuthResponseDTO
-    {
-        public string FullName { get; set; } = string.Empty;
-        public string PhoneNumber { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public Guid DepartmentId { get; set; }
-        public string EmployeeNumber { get; set; } = string.Empty;
-        public string Token { get; set; } = string.Empty;
-        public string RefreshToken { get; set; } = string.Empty;
-        public string UserId { get; set; } = string.Empty;
-        public string Role { get; set; } = string.Empty;
-        public bool RequiresTwoFactor { get; set; }
-    }
+    public record AuthResponseDTO(
+         string FullName,
+         string PhoneNumber,
+         string Email,
+         string Token,
+         string RefreshToken,
+         string UserId,
+         string Role,
+         bool RequiresTwoFactor
+     );
 }
