@@ -29,7 +29,7 @@ namespace PayTrack.Application.Features.SalaryAdvance.Queries
         {
             var employee =
                  await _employeesRepository
-                     .GetCurrentEmployeeAsync(
+                     .GetCurrentEmployeeByApplicationUserIdAsync(
                          _currentUserService.UserId);
 
             if (employee == null)

@@ -1,6 +1,6 @@
 ﻿using MediatR;
 using PayTrack.Application.DTOs;
-using PayTrack.Application.Interfaces;
+using PayTrack.Application.Interfaces.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,7 +47,7 @@ namespace PayTrack.Application.Features.SalaryAdvance.Queries
 
             decimal alreadyAdvanced =
                 await _salaryAdvanceRepository.GetTotalAdvancesAsync(
-                    employee.Id,
+                    employee.ApplicationUserId,
                     startDate,
                     endDate);
 
@@ -57,8 +57,9 @@ namespace PayTrack.Application.Features.SalaryAdvance.Queries
             if (availableAdvance < 0)
                 availableAdvance = 0;
 
-            return new ScanEmployeeForAdvanceDTO(
+            return new ScanEmployeeForAdvanceDTO( 
                 employee.Id,
+                employee.ApplicationUserId,
                 employee.EmployeeNumber,
                 employee.ApplicationUser.FullName,
                 employee.Department?.DepartmentName ?? string.Empty,
