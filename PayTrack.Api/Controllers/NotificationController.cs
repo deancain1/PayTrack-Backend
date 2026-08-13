@@ -26,7 +26,7 @@ namespace PayTrack.Api.Controllers
         [HttpGet("unread-count")]
         public async Task<IActionResult> GetCompanyAdminUnreadNotificationCount()
         {
-            return Ok(await _mediator.Send(new GetUnreadNotificationQuery()));
+            return Ok(await _mediator.Send(new GetCompanyAdminUnreadNotificationQuery()));
         }
 
         [HttpPut("{id}/read")]
