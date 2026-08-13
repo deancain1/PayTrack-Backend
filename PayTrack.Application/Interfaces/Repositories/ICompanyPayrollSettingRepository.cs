@@ -7,10 +7,9 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Application.Interfaces.Repositories
 {
-    public interface ICompanyPayrollSettingRepository
+    public interface ICompanyPayrollSettingRepository : IBaseRepository<CompanyPayrollSetting>
     {
         Task<CompanyPayrollSetting?> GetByCompanyAdminIdAsync(string companyAdminId);
-        Task AddAsync(CompanyPayrollSetting setting);
-        Task UpdateAsync(CompanyPayrollSetting setting);
+       
     }
 }

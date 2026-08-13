@@ -7,15 +7,12 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Application.Interfaces.Repositories
 {
-    public interface IEmployeesRepository
+    public interface IEmployeesRepository : IBaseRepository<Employees>
     {
-        Task AddEmployeeAsync(Employees employee);
         IQueryable<Employees> GetEmployeesWithApplicationUser();
-        Task UpdateAsync(Employees employee);
         Task<List<Employees>> GetAllEmployeesByCompanyAdminAsync(string companyAdminId);
         IQueryable<Employees> GetEmployeesByCompanyAdminQuery(string companyAdminId);
         Task<Employees?> GetByIdAndNumberAsync(Guid employeeId, string employeeNumber);
-        Task<Employees?> GetByIdAsync(Guid id);
         Task<Employees?> GetCurrentEmployeeByApplicationUserIdAsync(string employeeApplicationUserId);
         Task<List<Employees>> GetByIdsAsync(List<Guid> ids);
         Task<List<Employees>> GetAllAsync();
@@ -23,7 +20,6 @@ namespace PayTrack.Application.Interfaces.Repositories
         Task<List<Employees>> GetEmployeesForAbsentAutomationAsync();
         Task<List<Employees>> GetEmployeesWithAssignedScheduleAsync();
         Task<bool> HasEmployeesInDepartmentsAsync(List<Guid> departmentIds);
-
 
     }
 }

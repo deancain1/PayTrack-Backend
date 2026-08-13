@@ -7,15 +7,12 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Application.Interfaces.Repositories
 {
-    public interface IEmployeeNotificationPreferenceRepository
+    public interface IEmployeeNotificationPreferenceRepository : IBaseRepository<EmployeeNotificationPreference>
     {
         Task<EmployeeNotificationPreference?> GetByApplicationUserIdAsync(
           string applicationUserId);
 
         Task<EmployeeNotificationPreference> GetOrCreateAsync(
             string applicationUserId);
-
-        Task UpdateAsync(
-            EmployeeNotificationPreference preference);
     }
 }

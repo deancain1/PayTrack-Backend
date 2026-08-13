@@ -11,25 +11,9 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Infrastructure.Repository
 {
-    internal class EmailOTPRepository : IEmailOTPRepository
+    internal class EmailOTPRepository : BaseRepository<EmailOTP>, IEmailOTPRepository
     {
-        private readonly AppDbContext _context;
-        public EmailOTPRepository(AppDbContext context)
-        {
-            _context = context;
-        }
-
-        public async Task AddAsync(EmailOTP otp)
-        {
-            await _context.EmailOTPs.AddAsync(otp);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task UpdateAsync(EmailOTP otp)
-        {
-            _context.EmailOTPs.Update(otp);
-            await _context.SaveChangesAsync();
-        }
+        public EmailOTPRepository(AppDbContext context) : base(context) { }
 
         public async Task<EmailOTP?> GetLatestValidOtpAsync(
             string applicationUserId,

@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Application.Interfaces.Repositories
 {
-    public interface IEmployeeNotificationRepository
+    public interface IEmployeeNotificationRepository : IBaseRepository<EmployeeNotification>
     {
-        Task AddAsync(EmployeeNotification notification);
+       
         Task<List<EmployeeNotification>> GetByUserIdAsync(string applicationUserId);
         Task<EmployeeNotification?> GetByIdAsync(Guid id,string applicationUserId);
         Task MarkAsReadAsync(Guid id);

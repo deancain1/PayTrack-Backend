@@ -14,6 +14,8 @@ namespace PayTrack.Application.Interfaces.Repositories
         Task<Attendances?> GetTodayAttendanceAsync(Guid employeeId);
         Task<(int Present, int Late, int Absent)> GetAttendanceSummaryAsync(string companyAdminId, int month, int year);
         Task UpdateAsync(Attendances attendance);
+
+        //this must be iquerable for pagination and filtering
         Task<List<Attendances>> GetTodayAttendancesAsync(string companyAdminId);
         Task<int> GetPresentTodayCountAsync(string companyAdminId);
         Task<int> GetLateTodayCountAsync(string companyAdminId);
@@ -21,10 +23,7 @@ namespace PayTrack.Application.Interfaces.Repositories
 
         Task<bool> AttendanceExistsTodayAsync(Guid employeeId);
         Task<List<Employees>> GetEmployeesMissingTimeInReminderAsync();
-        Task<List<Attendances>> GetByEmployeeAndDateRangeAsync(
-    Guid employeeId,
-    DateTime startDate,
-    DateTime endDate);
+        Task<List<Attendances>> GetByEmployeeAndDateRangeAsync(Guid employeeId, DateTime startDate, DateTime endDate);
 
         Task<int> GetActiveTrackedAsync(string companyAdminId);
 

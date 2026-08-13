@@ -22,6 +22,7 @@ namespace PayTrack.Infrastructure.Repository
         public async Task AddAsync(T entity)
         {
             await _dbSet.AddAsync(entity);
+            await _context.SaveChangesAsync();
         }
 
         public void Update(T entity)
@@ -34,7 +35,7 @@ namespace PayTrack.Infrastructure.Repository
             _dbSet.Remove(entity);
         }
 
-        public async Task<T?> GetByIdAsync(int id)
+        public async Task<T?> GetByIdAsync(Guid id)
         {
             return await _dbSet.FindAsync(id);
         }

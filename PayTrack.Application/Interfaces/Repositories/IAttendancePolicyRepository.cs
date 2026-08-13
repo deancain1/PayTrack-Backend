@@ -7,19 +7,12 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Application.Interfaces.Repositories
 {
-    public interface IAttendancePolicyRepository
+    public interface IAttendancePolicyRepository : IBaseRepository<AttendancePolicy>
     {
         Task<List<AttendancePolicy>> GetAllByCompanyAsync(string companyAdminId);
-
-        Task<AttendancePolicy?> GetByIdAsync(Guid id);
-
         Task<AttendancePolicy?> GetDefaultPolicyAsync(string companyAdminId);
 
-        Task AddAsync(AttendancePolicy policy);
-
-        Task UpdateAsync(AttendancePolicy policy);
-
-        Task DeleteAsync(AttendancePolicy policy);
+       
     }
 }
 

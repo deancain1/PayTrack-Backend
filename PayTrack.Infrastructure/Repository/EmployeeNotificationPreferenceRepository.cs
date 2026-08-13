@@ -10,13 +10,11 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Infrastructure.Repository
 {
-    public class EmployeeNotificationPreferenceRepository : IEmployeeNotificationPreferenceRepository
+    public class EmployeeNotificationPreferenceRepository : BaseRepository<EmployeeNotificationPreference>, IEmployeeNotificationPreferenceRepository
     {
-        private readonly AppDbContext _context;
-        public EmployeeNotificationPreferenceRepository(AppDbContext context)
-        {
-            _context = context;
-        }
+    public EmployeeNotificationPreferenceRepository(AppDbContext context) : base(context) { }
+
+
         public async Task<EmployeeNotificationPreference?>
          GetByApplicationUserIdAsync(
              string applicationUserId)
@@ -60,15 +58,7 @@ namespace PayTrack.Infrastructure.Repository
             return preference;
         }
 
-        public async Task UpdateAsync(
-            EmployeeNotificationPreference preference)
-        {
-            _context
-                .EmployeeNotificationPreferences
-                .Update(preference);
-
-            await _context.SaveChangesAsync();
-        }
+   
     }
 }
 

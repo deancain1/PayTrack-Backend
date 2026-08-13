@@ -7,12 +7,9 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Application.Interfaces.Repositories
 {
-    public interface IPayrollBatchRepository
+    public interface IPayrollBatchRepository : IBaseRepository<PayrollBatch>
     {
-        Task<PayrollBatch?> GetByIdAsync(Guid id);
         Task<PayrollBatch?> GetByPeriodAsync(DateTime periodStart, DateTime periodEnd);
-        Task AddAsync(PayrollBatch batch);
-        Task UpdateAsync(PayrollBatch batch);
         Task<bool> HasOverlappingBatchAsync(DateTime periodStart, DateTime periodEnd, Guid? excludeBatchId);
         Task<PayrollBatch?> GetByIdWithPayrollsAsync(Guid id);
 

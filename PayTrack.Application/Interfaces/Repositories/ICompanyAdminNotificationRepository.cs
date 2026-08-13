@@ -2,10 +2,8 @@
 
 namespace PayTrack.Application.Interfaces.Repositories;
 
-public interface ICompanyAdminNotificationRepository
+public interface ICompanyAdminNotificationRepository : IBaseRepository<CompanyAdminNotification>
 {
-    Task AddAsync(CompanyAdminNotification notification);
-
     Task<List<CompanyAdminNotification>> GetByCompanyAdminIdAsync(string companyAdminId);
 
     Task<int> GetUnreadCountAsync(string companyAdminId);

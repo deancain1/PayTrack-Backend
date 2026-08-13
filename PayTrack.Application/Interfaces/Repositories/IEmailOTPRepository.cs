@@ -8,10 +8,8 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Application.Interfaces.Repositories
 {
-    public interface IEmailOTPRepository
+    public interface IEmailOTPRepository : IBaseRepository<EmailOTP>
     {
-        Task AddAsync(EmailOTP otp);
-        Task UpdateAsync(EmailOTP otp);
         Task<EmailOTP?> GetLatestValidOtpAsync(string applicationUserId, EmailOTPPurpose purpose);
         Task DeleteExpiredOtpsAsync();
         Task InvalidatePreviousOtpsAsync(string applicationUserId, EmailOTPPurpose purpose);

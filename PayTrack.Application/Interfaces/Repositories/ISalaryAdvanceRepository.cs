@@ -8,16 +8,14 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Application.Interfaces.Repositories
 {
-    public interface ISalaryAdvanceRepository
+    public interface ISalaryAdvanceRepository : IBaseRepository<SalaryAdvances>
     {
         Task<decimal> GetTotalAdvancesAsync(string employeeApplicationUserId, DateTime startDate, DateTime endDate);
-        Task AddAsync(SalaryAdvances salaryAdvance);
         IQueryable<SalaryAdvances> GetSalaryAdvancesbyEmployee(string employeeApplicationUserId);
         // Get the total undeducted advances for a specific employee
         Task<decimal> GetTotalUndeductedAdvancesAsync(Guid employeeId);
         Task<bool> HasPendingRequestAsync(Guid employeeId);
         IQueryable<SalaryAdvances> GetPendingSalaryAdvanceRequestsQueryByCompanyAdmin(string companyAdminId);
-        Task<SalaryAdvances?> GetByIdAsync(Guid id);
-        Task UpdateAsync(SalaryAdvances salaryAdvance);
+
     }
 }

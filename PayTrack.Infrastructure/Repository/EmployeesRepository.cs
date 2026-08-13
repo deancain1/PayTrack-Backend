@@ -10,19 +10,12 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Infrastructure.Repository
 {
-    public class EmployeesRepository : IEmployeesRepository
+    public class EmployeesRepository : BaseRepository<Employees>, IEmployeesRepository
     {
-        private readonly AppDbContext _context;
-        public EmployeesRepository(AppDbContext context)
-        {
-            _context = context;
-        }
-        public async Task AddEmployeeAsync(Employees employee)
-        {
-           await _context.Employees.AddAsync(employee);
-           await _context.SaveChangesAsync();
-        }
-
+       
+        public EmployeesRepository(AppDbContext context) : base(context) { }
+       
+     
         public async Task<Employees?> GetEmployeeByEmployeeIdAsync(Guid employeeId)
         {
             return await _context.Employees
@@ -34,12 +27,6 @@ namespace PayTrack.Infrastructure.Repository
             return _context.Employees
                 .Include(e => e.ApplicationUser)
                 .AsQueryable();
-        }
-
-        public async Task UpdateAsync(Employees employee)
-        {
-           _context.Employees.Update(employee);
-            await _context.SaveChangesAsync();
         }
 
         public async Task<List<Employees>> GetAllEmployeesByCompanyAdminAsync(string companyAdminId)
@@ -70,12 +57,6 @@ namespace PayTrack.Infrastructure.Repository
                     e.EmployeeNumber == employeeNumber);
         }
 
-        public async Task<Employees?> GetByIdAsync(Guid id)
-        {
-            return await _context.Employees
-                .Include(e => e.ApplicationUser)
-                .FirstOrDefaultAsync(e => e.Id == id);
-        }
         public async Task<List<Employees>> GetByIdsAsync(List<Guid> ids)
         {
             return await _context.Employees

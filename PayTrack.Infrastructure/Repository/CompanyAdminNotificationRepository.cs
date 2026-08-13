@@ -6,20 +6,9 @@ using PayTrack.Infrastructure.Data;
 
 namespace PayTrack.Infrastructure.Repository;
 
-public class CompanyAdminNotificationRepository : ICompanyAdminNotificationRepository
+public class CompanyAdminNotificationRepository : BaseRepository<CompanyAdminNotification>, ICompanyAdminNotificationRepository
 {
-    private readonly AppDbContext _context;
-
-    public CompanyAdminNotificationRepository(AppDbContext context)
-    {
-        _context = context;
-    }
-
-    public async Task AddAsync(CompanyAdminNotification notification)
-    {
-        await _context.Notifications.AddAsync(notification);
-        await _context.SaveChangesAsync();
-    }
+    public CompanyAdminNotificationRepository(AppDbContext context) : base(context) { }
 
     public async Task<List<CompanyAdminNotification>> GetByCompanyAdminIdAsync(string companyAdminId)
     {

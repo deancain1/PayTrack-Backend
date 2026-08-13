@@ -10,23 +10,10 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Infrastructure.Repository
 {
-    public class EmployeeNotificationRepository : IEmployeeNotificationRepository
+    public class EmployeeNotificationRepository : BaseRepository<EmployeeNotification>, IEmployeeNotificationRepository
     {
-        private readonly AppDbContext _context;
 
-        public EmployeeNotificationRepository(AppDbContext context)
-        {
-            _context = context;
-        }
-
-        public async Task AddAsync(
-        EmployeeNotification notification)
-        {
-            await _context.EmployeeNotifications.AddAsync(
-                notification);
-
-            await _context.SaveChangesAsync();
-        }
+        public EmployeeNotificationRepository(AppDbContext context) : base(context) { }
 
         public async Task<List<EmployeeNotification>> GetByUserIdAsync(
             string applicationUserId)

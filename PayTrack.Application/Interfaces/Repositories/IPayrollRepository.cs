@@ -8,12 +8,9 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Application.Interfaces.Repositories
 {
-    public interface IPayrollRepository
+    public interface IPayrollRepository : IBaseRepository<Payrolls>
     {
-     
-        Task AddAsync(Payrolls payroll);
-        Task<Payrolls?> GetByIdAsync(Guid id);
-        Task UpdateAsync(Payrolls payroll);
+    
         Task<bool> ExistsAsync(Guid employeeId, DateTime periodStart, DateTime periodEnd);
         Task<bool> HasGeneratedPayrollForDateAsync(Guid employeeId, DateTime requestDate);
         Task<List<Payrolls>> GetPayrollsByCompanyAndYearAsync(string companyAdminId, int year);

@@ -11,13 +11,11 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Infrastructure.Repository
 {
-    public class SalaryAdvanceRepository : ISalaryAdvanceRepository
+    public class SalaryAdvanceRepository : BaseRepository<SalaryAdvances>, ISalaryAdvanceRepository
     {
-        private readonly AppDbContext _context;
-        public SalaryAdvanceRepository(AppDbContext context)
-        {
-            _context = context;
-        }
+
+        public SalaryAdvanceRepository(AppDbContext context) : base(context) { }
+
         public async Task<bool> HasPendingRequestAsync(Guid employeeId)
         {
             return await _context.SalaryAdvances.AnyAsync(x =>
@@ -54,13 +52,7 @@ namespace PayTrack.Infrastructure.Repository
                     x.RequestDate <= endDate)
                 .SumAsync(x => x.Amount);
         }
-        public async Task AddAsync(SalaryAdvances salaryAdvance)
-        {
-            await _context.SalaryAdvances.AddAsync(salaryAdvance);
-
-            await _context.SaveChangesAsync();
-        }
-
+     
         public IQueryable<SalaryAdvances> GetSalaryAdvancesbyEmployee(string employeeApplicationUserId)
         {
             return _context.SalaryAdvances
@@ -70,21 +62,5 @@ namespace PayTrack.Infrastructure.Repository
                  .AsQueryable();
         }
 
-        public async Task<SalaryAdvances?> GetByIdAsync(Guid id)
-        {
-            return await _context.SalaryAdvances
-                .Include(x => x.Employee)
-                .FirstOrDefaultAsync(x => x.Id == id);
-        }
-
-
-
-        public async Task UpdateAsync(
-            SalaryAdvances salaryAdvance)
-        {
-            _context.SalaryAdvances.Update(salaryAdvance);
-
-            await _context.SaveChangesAsync();
-        }
     }
 }

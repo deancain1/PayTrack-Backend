@@ -12,32 +12,11 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Infrastructure.Repository
 {
-    public class PayrollRepository : IPayrollRepository
+    public class PayrollRepository : BaseRepository<Payrolls>, IPayrollRepository
     {
-        private readonly AppDbContext _context;
-        public PayrollRepository(AppDbContext context)
-        {
-            _context = context;
-        }
-      
+        
+        public PayrollRepository(AppDbContext context) : base(context) { }
 
-        public async Task AddAsync(Payrolls payroll)
-        {
-            await _context.Payrolls.AddAsync(payroll);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task<Payrolls?> GetByIdAsync(Guid id)
-        {
-            return await _context.Payrolls
-                .FirstOrDefaultAsync(x => x.Id == id);
-        }
-
-        public async Task UpdateAsync(Payrolls payroll)
-        {
-            _context.Payrolls.Update(payroll);
-            await _context.SaveChangesAsync();
-        }
         public async Task<bool> ExistsAsync(Guid employeeId, DateTime periodStart, DateTime periodEnd)
         {
             return await _context.Payrolls.AnyAsync(x =>
