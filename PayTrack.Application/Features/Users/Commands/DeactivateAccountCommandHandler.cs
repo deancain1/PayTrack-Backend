@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Identity;
-using PayTrack.Application.Interfaces;
+using PayTrack.Application.Interfaces.Repositories;
+using PayTrack.Application.Interfaces.Services;
 using PayTrack.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -14,11 +15,13 @@ namespace PayTrack.Application.Features.Users.Commands
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IUserRepository _userRepository;
 
-        public DeactivateAccountCommandHandler(UserManager<ApplicationUser> userManager, ICurrentUserService currentUserService)
+        public DeactivateAccountCommandHandler(UserManager<ApplicationUser> userManager, ICurrentUserService currentUserService, IUserRepository userRepository)
         {
             _userManager = userManager;
             _currentUserService = currentUserService;
+            _userRepository = userRepository;
         }
         public async Task<bool> Handle(DeactivateAccountCommand request, CancellationToken cancellationToken)
         {
@@ -30,13 +33,8 @@ namespace PayTrack.Application.Features.Users.Commands
             if (!user.IsActive)
                 throw new Exception("Your account is already deactivated.");
 
-            user.IsActive = false;
 
-            var result = await _userManager.UpdateAsync(user);
-
-            if (!result.Succeeded)
-                throw new Exception(string.Join(", ", result.Errors.Select(x => x.Description)));
-
+            await _userRepository.DeactivateUserAsync(user);
             return true;
         }
     }

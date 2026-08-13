@@ -10,8 +10,6 @@ namespace PayTrack.Domain.Entities
     public class ApplicationUser : IdentityUser
     {
         public string FullName { get; set; }
-        public string? CompanyName { get; set; }
-        public string? BusinessType { get; set; }
         public bool IsEmailVerified { get; set; }
         public string? EmailVerificationToken { get; set; }
         public string Role { get; set; }
@@ -20,6 +18,7 @@ namespace PayTrack.Domain.Entities
         public byte[]? ProfilePicture { get; set; }
         
         public Employees? Employee { get; set; }
+        public bool IsActive { get; set; } = true;
         public ICollection<Departments> Departments { get; set; }
          = new List<Departments>();
 
@@ -28,5 +27,6 @@ namespace PayTrack.Domain.Entities
         public ICollection<EmailOTP> EmailOtps { get; set; }
             = new List<EmailOTP>();
 
+        public CompanyDetails? CompanyDetails { get; set; }
     }
 }
