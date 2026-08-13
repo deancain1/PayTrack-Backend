@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using PayTrack.Application.DTOs;
+using PayTrack.Application.Features.Notification.Events;
 using PayTrack.Application.Interfaces.Repositories;
 using PayTrack.Application.Interfaces.Services;
 using PayTrack.Domain.Entities;
@@ -21,6 +22,7 @@ namespace PayTrack.Application.Features.Payroll.Commands
         private readonly IPhilHealthService _philHealthService;
         private readonly IPagIbigService _pagIbigService;
         private readonly ISSSService _sssService;
+        private readonly IPublisher _publisher;
 
         public GeneratePayrollCommandHandler(
             IEmployeesRepository employeesRepository,
@@ -33,7 +35,8 @@ namespace PayTrack.Application.Features.Payroll.Commands
             ICompanyPayrollSettingRepository companyPayrollSettingRepository,
             IPhilHealthService philHealthService,
             IPagIbigService pagIbigService,
-            ISSSService sssService)
+            ISSSService sssService,
+            IPublisher publisher)
         {
             _employeesRepository = employeesRepository;
             _payrollRecordRepository = payrollRecordRepository;
@@ -46,6 +49,7 @@ namespace PayTrack.Application.Features.Payroll.Commands
             _philHealthService = philHealthService;
             _pagIbigService = pagIbigService;
             _sssService = sssService;
+            _publisher = publisher;
         }
 
         public async Task<GeneratePayrollResult> Handle(
@@ -66,7 +70,8 @@ namespace PayTrack.Application.Features.Payroll.Commands
             if (existingBatch != null)
             {
                 existingBatch.IsActive = false;
-                await _payrollBatchRepository.UpdateAsync(existingBatch);
+                 _payrollBatchRepository.Update(existingBatch);
+                await _payrollBatchRepository.SaveChangesAsync();
             }
 
             // STEP 2: Prevent Overlapping Payroll
@@ -205,6 +210,17 @@ namespace PayTrack.Application.Features.Payroll.Commands
                 };
 
                 await _payrollRepository.AddAsync(payroll);
+
+                await _publisher.Publish(
+                new EmployeeNotificationCreatedEvent(
+                Guid.NewGuid(),
+                employee.ApplicationUserId,
+                EmployeeNotificationType.PayrollGenerated,
+                "Payroll Generated",
+                $"Your payroll for {request.PeriodStart:MMM dd, yyyy} - {request.PeriodEnd:MMM dd, yyyy} has been generated."
+                ),
+                cancellationToken
+                );
 
                 employeeResults.Add(
                     new EmployeePayrollDTO(

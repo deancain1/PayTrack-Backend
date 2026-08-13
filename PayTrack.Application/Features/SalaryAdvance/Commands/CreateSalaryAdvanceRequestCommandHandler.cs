@@ -41,7 +41,7 @@ namespace PayTrack.Application.Features.SalaryAdvance.Commands
 
             var employee =
                 await _employeesRepository
-                    .GetCurrentEmployeeAsync(applicationUserId);
+                    .GetCurrentEmployeeByApplicationUserIdAsync(applicationUserId);
 
             if (employee == null)
             {
@@ -127,12 +127,12 @@ namespace PayTrack.Application.Features.SalaryAdvance.Commands
             // 7. SEND NOTIFICATION
 
             await _mediator.Publish(
-                new NotificationCreatedEvent(
+                new CompanyAdminNotificationCreatedEvent(
                     Guid.NewGuid(),
 
                     employee.CompanyAdminId,
 
-                    NotificationType.SalaryAdvance,
+                    CompanyAdminNotificationType.SalaryAdvance,
 
                     $"{employee.ApplicationUser.FullName} " +
                     $"requested a salary advance.",
