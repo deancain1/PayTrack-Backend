@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using PayTrack.Application.DTOs;
-using PayTrack.Application.Interfaces;
+using PayTrack.Application.Interfaces.Repositories;
+using PayTrack.Application.Interfaces.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
