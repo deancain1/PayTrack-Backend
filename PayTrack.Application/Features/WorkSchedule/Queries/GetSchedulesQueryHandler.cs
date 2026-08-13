@@ -1,7 +1,8 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using PayTrack.Application.DTOs;
-using PayTrack.Application.Interfaces;
+using PayTrack.Application.Interfaces.Repositories;
+using PayTrack.Application.Interfaces.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -68,7 +69,8 @@ namespace PayTrack.Application.Features.WorkSchedule.Queries
                     x.StartTime,
                     x.EndTime,
                     x.RequiredHours,
-                    x.GracePeriodMinutes
+                    x.GracePeriodMinutes,
+                    x.AbsentCutoffTime
                 ))
                 .ToListAsync(cancellationToken);
 
