@@ -9,8 +9,7 @@ using System.Threading.Tasks;
 namespace PayTrack.Application.Features.AttendancePolicies.Commands
 {
     public record CreateAttendancePolicyCommand(
-        string CompanyAdminId,
-        string Name,
+        string PolicyName,
         bool IsDefault,
         bool EnableLateDeduction,
         LateDeductionType LateDeductionType,

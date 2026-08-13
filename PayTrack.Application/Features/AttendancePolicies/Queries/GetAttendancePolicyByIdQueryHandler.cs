@@ -1,6 +1,6 @@
 ﻿using MediatR;
 using PayTrack.Application.DTOs;
-using PayTrack.Application.Interfaces;
+using PayTrack.Application.Interfaces.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,7 +25,7 @@ namespace PayTrack.Application.Features.AttendancePolicies.Queries
 
             return new AttendancePolicyDTO(
                 policy.Id,
-                policy.Name,
+                policy.PolicyName,
                 policy.IsDefault,
                 policy.EnableLateDeduction,
                 policy.LateDeductionType,

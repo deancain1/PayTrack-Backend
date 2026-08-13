@@ -11,7 +11,7 @@ namespace PayTrack.Application.Features.AttendancePolicies.Commands
     public record UpdateAttendancePolicyCommand(
         Guid Id,
         string CompanyAdminId,
-        string Name,
+        string PolicyName,
         bool IsDefault,
         bool EnableLateDeduction,
         LateDeductionType LateDeductionType,

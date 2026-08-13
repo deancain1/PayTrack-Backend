@@ -1,5 +1,5 @@
 ﻿using MediatR;
-using PayTrack.Application.Interfaces;
+using PayTrack.Application.Interfaces.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,7 +26,7 @@ namespace PayTrack.Application.Features.AttendancePolicies.Commands
             if (policy.IsDefault)
                 throw new Exception("Default policy cannot be deleted.");
 
-            await _attendancePolicyRepository.DeleteAsync(policy);
+             _attendancePolicyRepository.Delete(policy);
         }
     }
     

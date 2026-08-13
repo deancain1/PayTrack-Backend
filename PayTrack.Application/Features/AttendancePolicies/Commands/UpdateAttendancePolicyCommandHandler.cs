@@ -1,5 +1,5 @@
 ﻿using MediatR;
-using PayTrack.Application.Interfaces;
+using PayTrack.Application.Interfaces.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,17 +34,19 @@ namespace PayTrack.Application.Features.AttendancePolicies.Commands
                 {
                     currentDefault.IsDefault = false;
 
-                    await _attendancePolicyRepository.UpdateAsync(currentDefault);
+                     _attendancePolicyRepository.Update(currentDefault);
+                    await _attendancePolicyRepository.SaveChangesAsync();
                 }
             }
 
-            policy.Name = request.Name;
+            policy.PolicyName = request.PolicyName;
             policy.IsDefault = request.IsDefault;
             policy.EnableLateDeduction = request.EnableLateDeduction;
             policy.LateDeductionType = request.LateDeductionType;
             policy.DeductionValue = request.DeductionValue;
 
-            await _attendancePolicyRepository.UpdateAsync(policy);
+             _attendancePolicyRepository.Update(policy);
+            await _attendancePolicyRepository.SaveChangesAsync();
         }
     }
     

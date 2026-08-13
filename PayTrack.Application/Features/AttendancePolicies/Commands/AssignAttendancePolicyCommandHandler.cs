@@ -1,5 +1,5 @@
 ﻿using MediatR;
-using PayTrack.Application.Interfaces;
+using PayTrack.Application.Interfaces.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,7 +46,8 @@ namespace PayTrack.Application.Features.AttendancePolicies.Commands
                 employee.UseCompanyLatePolicy = false;
             }
 
-            await _employeesRepository.UpdateAsync(employee);
+             _employeesRepository.Update(employee);
+            await _employeesRepository.SaveChangesAsync();
         }
     }
 }
