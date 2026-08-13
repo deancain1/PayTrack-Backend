@@ -1,5 +1,6 @@
 ﻿using MediatR;
-using PayTrack.Application.Interfaces;
+using PayTrack.Application.Interfaces.Repositories;
+using PayTrack.Application.Interfaces.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,13 +23,13 @@ namespace PayTrack.Application.Features.PayrollRecords.Queries
 
         public async Task<decimal> Handle(GetEmployeeTotalEarningsQuery request, CancellationToken cancellationToken)
         {
-            var employee = await _employeesRepository.GetCurrentEmployeeAsync(_currentUserService.UserId);
+            var employee = await _employeesRepository.GetCurrentEmployeeByApplicationUserIdAsync(_currentUserService.UserId);
 
             if (employee == null)
                 throw new Exception("Employee not found.");
 
             return await _payrollRecordRepository
-                .GetTotalEarningsAsync(employee.Id);
+                .GetTotalEarningsByEmployeeAsync(employee.Id);
         }
     }
 }
