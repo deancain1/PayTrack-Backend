@@ -9,8 +9,8 @@ namespace PayTrack.Domain.Enums
     public enum  EmailOTPPurpose
     {
         Login = 1,
-    ForgotPassword = 2,
-    EmailVerification = 3,
-    ChangeEmail = 4
+        ForgotPassword = 2,
+        EmailVerification = 3,
+        ChangeEmail = 4
     }
 }

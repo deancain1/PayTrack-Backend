@@ -8,12 +8,9 @@ namespace PayTrack.Domain.Enums
 {
     public enum LateDeductionType
     {
-        None,
-
-        FixedAmount,
-
-        Percentage,
-
-        PerMinute
+        None = 1,
+        FixedAmount = 2,
+        Percentage = 3,
+        PerMinute =  4
     }
 }

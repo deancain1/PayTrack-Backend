@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Domain.Enums
 {
-    public enum NotificationType
+    public enum PayrollRecordStatus
     {
-        SalaryAdvance = 1,
-        TimeIn = 2,
-        TimeOut = 3
+        Unpaid = 1,
+        Paid = 2
     }
 }

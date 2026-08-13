@@ -8,10 +8,10 @@ namespace PayTrack.Domain.Enums
 {
     public enum PayrollPolicy
     {
-        FullDay,
-        ProRated,
-        HalfDay,
-        Hourly,
-        Monthly
+        FullDay =1 ,
+        ProRated = 2,
+        HalfDay = 3,
+        Hourly = 4,
+      
     }
 }
