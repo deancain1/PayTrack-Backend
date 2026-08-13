@@ -98,7 +98,7 @@ namespace PayTrack.Application.Features.Employee.Commands
                 AttendancePolicyId = null
             };
 
-            await _employeesRepository.AddEmployeeAsync(employee);
+            await _employeesRepository.AddAsync(employee);
 
             // Return employee-specific response
             return new RegisterEmployeeResponseDTO(

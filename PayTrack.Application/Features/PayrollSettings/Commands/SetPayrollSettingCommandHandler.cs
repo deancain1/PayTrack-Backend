@@ -13,14 +13,14 @@ namespace PayTrack.Application.Features.PayrollSettings.Commands
     public class SetPayrollSettingCommandHandler
         : IRequestHandler<SetPayrollSettingCommand, bool>
     {
-        private readonly ICompanyPayrollSettingRepository _repository;
+        private readonly ICompanyPayrollSettingRepository _companyPayrollSettingRepository;
         private readonly ICurrentUserService _currentUserService;
 
         public SetPayrollSettingCommandHandler(
-            ICompanyPayrollSettingRepository repository,
+            ICompanyPayrollSettingRepository companyPayrollSettingRepository,
             ICurrentUserService currentUserService)
         {
-            _repository = repository;
+            _companyPayrollSettingRepository = companyPayrollSettingRepository;
             _currentUserService = currentUserService;
         }
 
@@ -30,7 +30,7 @@ namespace PayTrack.Application.Features.PayrollSettings.Commands
                 _currentUserService.UserId!;
 
             var setting =
-                await _repository.GetByCompanyAdminIdAsync(
+                await _companyPayrollSettingRepository.GetByCompanyAdminIdAsync(
                     companyAdminId);
 
             if (setting == null)
@@ -42,13 +42,14 @@ namespace PayTrack.Application.Features.PayrollSettings.Commands
                     Frequency = request.Frequency
                 };
 
-                await _repository.AddAsync(setting);
+                await _companyPayrollSettingRepository.AddAsync(setting);
             }
             else
             {
                 setting.Frequency = request.Frequency;
 
-                await _repository.UpdateAsync(setting);
+                _companyPayrollSettingRepository.Update(setting);
+                await _companyPayrollSettingRepository.SaveChangesAsync();
             }
 
             return true;

@@ -53,8 +53,8 @@ namespace PayTrack.Application.Features.Notification.Commands
                 request.PayrollReleased;
 
            
-            await _employeeNotificationPreferenceRepository
-                .UpdateAsync(preferences);
+             _employeeNotificationPreferenceRepository.Update(preferences);
+            await _employeeNotificationPreferenceRepository.SaveChangesAsync();
 
             return true;
         }
