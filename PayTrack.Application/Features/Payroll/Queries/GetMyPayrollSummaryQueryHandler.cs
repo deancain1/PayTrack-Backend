@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using PayTrack.Application.DTOs;
-using PayTrack.Application.Interfaces;
+using PayTrack.Application.Interfaces.Repositories;
+using PayTrack.Application.Interfaces.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,8 +30,8 @@ namespace PayTrack.Application.Features.Payroll.Queries
         }
         public async Task<EmployeePayrollSummaryDTO> Handle(GetMyPayrollSummaryQuery request, CancellationToken cancellationToken)
         {
-            var employee = await _employeesRepository.GetCurrentEmployeeAsync(
-                       _currentUserService.UserId);
+            var employee = 
+                       _currentUserService.UserId;
 
             if (employee == null)
                 throw new Exception("Employee not found.");
@@ -43,14 +44,14 @@ namespace PayTrack.Application.Features.Payroll.Queries
             var endDate = DateTime.Now;
 
             var grossEarnings =
-                await _payrollRecordRepository.GetTotalEarningsAsync(
-                    employee.Id,
-                    startDate,
-                    endDate);
+                await _payrollRecordRepository
+                    .GetTotalUnpaidEarningsAsync(
+                        _currentUserService.UserId);
+
 
             var totalAdvanced =
                 await _salaryAdvanceRepository.GetTotalAdvancesAsync(
-                    employee.Id,
+                    _currentUserService.UserId,
                     startDate,
                     endDate);
 

@@ -8,18 +8,15 @@ namespace PayTrack.Application.DTOs
 {
     public record ScanEmployeeForAdvanceDTO
     (
-         Guid EmployeeId,
-
-    string EmployeeNumber,
-
-    string EmployeeName,
+         
+     Guid EmployeeId,
+     string ApplicationUserId,
+     string EmployeeNumber,
+     string EmployeeName,
 
     string Department,
-
     decimal CurrentEarnings,
-
     decimal AlreadyAdvanced,
-
     decimal AvailableAdvance
 
    

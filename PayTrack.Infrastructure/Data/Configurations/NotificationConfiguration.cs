@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Infrastructure.Data.Configurations
 {
-    public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
+    public class NotificationConfiguration : IEntityTypeConfiguration<CompanyAdminNotification>
     {
-        public void Configure(EntityTypeBuilder<Notification> builder)
+        public void Configure(EntityTypeBuilder<CompanyAdminNotification> builder)
         {
             builder.HasKey(x => x.Id);
 

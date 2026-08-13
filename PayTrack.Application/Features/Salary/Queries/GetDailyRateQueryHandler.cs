@@ -1,5 +1,6 @@
 ﻿using MediatR;
-using PayTrack.Application.Interfaces;
+using PayTrack.Application.Interfaces.Repositories;
+using PayTrack.Application.Interfaces.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,7 +24,7 @@ namespace PayTrack.Application.Features.Salary.Queries
         public async Task<decimal> Handle(GetDailyRateQuery request, CancellationToken cancellationToken)
         {
             var employee = await _employeesRepository
-          .GetCurrentEmployeeAsync(_currentUserService.UserId);
+          .GetCurrentEmployeeByApplicationUserIdAsync(_currentUserService.UserId);
 
             if (employee == null)
                 throw new Exception("Employee not found.");
