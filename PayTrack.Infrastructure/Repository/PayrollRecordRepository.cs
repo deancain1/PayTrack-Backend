@@ -1,28 +1,17 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PayTrack.Application.Features.AttendancePolicies.Queries;
-using PayTrack.Application.Interfaces;
+using PayTrack.Application.Interfaces.Repositories;
 using PayTrack.Domain.Entities;
+using PayTrack.Domain.Enums;
 using PayTrack.Infrastructure.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace PayTrack.Infrastructure.Repository
 {
-    public class PayrollRecordRepository : IPayrollRecordRepository
+    public class PayrollRecordRepository : BaseRepository<PayrollRecord>, IPayrollRecordRepository
     {
-        private readonly AppDbContext _context;
-        public PayrollRecordRepository(AppDbContext context)
-        {
-            _context = context;
-        }
-        public async Task AddAsync(PayrollRecord payroll)
-        {
-            await _context.PayrollRecords.AddAsync(payroll);
-            await _context.SaveChangesAsync();
-        }
+        public PayrollRecordRepository(AppDbContext context) : base(context) { }
+
         public async Task<decimal> GetTotalEarningsAsync(Guid employeeId, DateTime periodStart, DateTime periodEnd)
         {
             return await _context.PayrollRecords
@@ -106,6 +95,29 @@ namespace PayTrack.Infrastructure.Repository
 
             return await query.AverageAsync(
                 x => x.AmountEarned);
+        }
+
+        public async Task<decimal> GetTotalUnpaidEarningsAsync(string employeeApplicationUserId)
+        {
+            return await _context.PayrollRecords
+                .Where(x =>
+                    x.ApplicationUserId == employeeApplicationUserId &&
+                     x.Status == PayrollRecordStatus.Unpaid)
+                .SumAsync(x => x.AmountEarned);
+        }
+
+        public async Task MarkRecordsAsPaidAsync(Guid employeeId, DateTime periodStart, DateTime periodEnd)
+        {
+            await _context.PayrollRecords
+                .Where(x =>
+                    x.EmployeeId == employeeId &&
+                    x.Status == PayrollRecordStatus.Unpaid &&
+                    x.CreatedAt.Date >= periodStart.Date &&
+                    x.CreatedAt.Date <= periodEnd.Date)
+                .ExecuteUpdateAsync(setters =>
+                    setters.SetProperty(
+                        x => x.Status,
+                        PayrollRecordStatus.Paid));
         }
     }
 }

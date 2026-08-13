@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PayTrack.Application.Interfaces;
+using PayTrack.Application.Interfaces.Repositories;
 using PayTrack.Domain.Entities;
 using PayTrack.Infrastructure.Data;
 using System;
@@ -10,19 +10,9 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Infrastructure.Repository
 {
-    internal class PayrollBatchRepository : IPayrollBatchRepository
+    internal class PayrollBatchRepository : BaseRepository<PayrollBatch>, IPayrollBatchRepository
     {
-        private readonly AppDbContext _context;
-        public PayrollBatchRepository(AppDbContext context)
-        {
-            _context = context;
-        }
-
-        public async Task<PayrollBatch?> GetByIdAsync(Guid id)
-        {
-            return await _context.PayrollBatches
-                .FirstOrDefaultAsync(x => x.Id == id);
-        }
+        public PayrollBatchRepository(AppDbContext context) : base(context) { }
 
         public async Task<PayrollBatch?> GetByPeriodAsync(
             DateTime periodStart,
@@ -35,16 +25,34 @@ namespace PayTrack.Infrastructure.Repository
                     x.IsActive);
         }
 
-        public async Task AddAsync(PayrollBatch batch)
+        //for overlapping batch check, we need to check if there is any existing batch that overlaps with the given period
+        public async Task<bool> HasOverlappingBatchAsync(DateTime periodStart, DateTime periodEnd, Guid? excludeBatchId)
         {
-            await _context.PayrollBatches.AddAsync(batch);
-            await _context.SaveChangesAsync();
+            return await _context.PayrollBatches
+                .Where(x => x.IsActive)
+                .Where(x => excludeBatchId == null || x.Id != excludeBatchId)
+                .AnyAsync(x =>
+                    x.PeriodStart <= periodEnd &&
+                    x.PeriodEnd >= periodStart);
         }
 
-        public async Task UpdateAsync(PayrollBatch batch)
+        public async Task<PayrollBatch?> GetByIdWithPayrollsAsync(Guid id)
         {
-            _context.PayrollBatches.Update(batch);
-            await _context.SaveChangesAsync();
+            return await _context.PayrollBatches
+                .Include(x => x.Payrolls)
+                .FirstOrDefaultAsync(x => x.Id == id);
+        }
+
+        public async Task<PayrollBatch?> GetActiveBatchAsync(string companyAdminId)
+        {
+            return await _context.PayrollBatches
+                .Include(x => x.Payrolls)
+                    .ThenInclude(x => x.Employee)
+                .Where(x =>
+                    x.IsActive &&
+                    x.Payrolls.Any(p => p.Employee.CompanyAdminId == companyAdminId))
+                .OrderByDescending(x => x.CreatedAt)
+                .FirstOrDefaultAsync();
         }
     }
 
