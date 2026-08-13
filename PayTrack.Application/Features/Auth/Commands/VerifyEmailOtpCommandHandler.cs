@@ -1,14 +1,10 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Identity;
 using PayTrack.Application.DTOs;
-using PayTrack.Application.Interfaces;
+using PayTrack.Application.Interfaces.Repositories;
+using PayTrack.Application.Interfaces.Services;
 using PayTrack.Domain.Entities;
 using PayTrack.Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PayTrack.Application.Features.Auth.Commands
 {
@@ -65,7 +61,8 @@ namespace PayTrack.Application.Features.Auth.Commands
             {
                 otp.FailedAttempts++;
 
-                await _emailOTPRepository.UpdateAsync(otp);
+                 _emailOTPRepository.Update(otp);
+               await  _emailOTPRepository.SaveChangesAsync();
 
                 throw new UnauthorizedAccessException(
                     "Invalid verification code.");
@@ -74,28 +71,30 @@ namespace PayTrack.Application.Features.Auth.Commands
             // Mark OTP as used
             otp.IsUsed = true;
 
-            await _emailOTPRepository.UpdateAsync(otp);
-
+             _emailOTPRepository.Update(otp);
+            await _emailOTPRepository.SaveChangesAsync();
             // Get roles
             var roles = await _userManager.GetRolesAsync(user);
 
-            // Generate tokens
+            // Generate access token
             var accessToken =
                 _tokenService.GenerateAccessToken(user, roles);
 
+            // Generate refresh token
             var refreshToken =
                 await _tokenService.GenerateAndSaveRefreshTokenAsync(user);
 
-            return new AuthResponseDTO
-            {
-                FullName = user.FullName,
-                Email = user.Email,
-                UserId = user.Id,
-                Role = roles.FirstOrDefault(),
-                Token = accessToken,
-                RefreshToken = refreshToken,
-                RequiresTwoFactor = false
-            };
+            // Return authenticated response
+            return new AuthResponseDTO(
+                FullName: user.FullName,
+                PhoneNumber: user.PhoneNumber ?? string.Empty,
+                Email: user.Email ?? string.Empty,
+                Token: accessToken,
+                RefreshToken: refreshToken,
+                UserId: user.Id,
+                Role: roles.FirstOrDefault() ?? string.Empty,
+                RequiresTwoFactor: false
+            );
         }
     }
 }
