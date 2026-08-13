@@ -66,5 +66,14 @@ namespace PayTrack.Api.Controllers
 
         }
 
+        [HttpGet("eligibility")]
+        public async Task<IActionResult> GetEligibility()
+        {
+            var result =
+                await _mediator.Send(
+                    new GetSalaryAdvanceEligibilityQuery());
+
+            return Ok(result);
+        }
     }
 }
