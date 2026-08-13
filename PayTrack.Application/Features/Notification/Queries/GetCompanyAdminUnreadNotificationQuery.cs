@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Application.Features.Notification.Queries
 {
-    public record GetUnreadNotificationQuery : IRequest<int>
+    public record GetCompanyAdminUnreadNotificationQuery : IRequest<int>
     {
     }
 }
