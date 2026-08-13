@@ -9,12 +9,13 @@ namespace PayTrack.Application.DTOs
     public record EmployeeDTO(
       Guid Id,
       string ApplicationUserId,
-      string? FullName,
+      string FullName,
       string? Email,
       string EmployeeNumber,
       string Department,
       string? PhoneNumber,
-      string? ProfilePictureBase64
+      string? ProfilePictureBase64,
+      string? QrCodeBase64
 
   );
 }

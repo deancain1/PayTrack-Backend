@@ -12,12 +12,12 @@ namespace PayTrack.Domain.Entities
         public Guid Id { get; set; }
 
         public string CompanyAdminId { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
+        public string PolicyName { get; set; } = string.Empty;
         public bool EnableLateDeduction { get; set; }
         public LateDeductionType LateDeductionType { get; set; }
         public decimal DeductionValue { get; set; }
         public bool IsDefault { get; set; }
-        public ApplicationUser CompanyAdmin { get; set; } = null!;
+        public ApplicationUser ApplicationUser { get; set; } = null!;
         public ICollection<Employees> Employees { get; set; }
             = new List<Employees>();
     }

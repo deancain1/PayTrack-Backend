@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PayTrack.Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,6 +18,7 @@ namespace PayTrack.Domain.Entities
 
         public decimal AmountEarned { get; set; }
 
+        public PayrollRecordStatus Status { get; set; }
         public DateTime CreatedAt { get; set; }
         public Employees Employee { get; set; }
         public Attendances Attendance { get; set; }

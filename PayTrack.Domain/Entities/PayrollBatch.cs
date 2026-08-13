@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PayTrack.Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,6 +18,17 @@ namespace PayTrack.Domain.Entities
 
         public DateTime CreatedAt { get; set; }
 
-        public ICollection<Payrolls> Payrolls { get; set; }
+        // Payment
+        public PayrollBatchStatus Status { get; set; } = PayrollBatchStatus.Pending;
+
+        public DateTime? PaidAt { get; set; }
+
+        public PaymentMethod? PaymentMethod { get; set; }
+
+        public string? ReferenceNumber { get; set; }
+
+        public string? PaidBy { get; set; }
+
+        public ICollection<Payrolls> Payrolls { get; set; } = [];
     }
 }

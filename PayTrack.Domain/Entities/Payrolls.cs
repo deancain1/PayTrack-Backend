@@ -14,7 +14,13 @@ namespace PayTrack.Domain.Entities
         public Guid PayrollBatchId { get; set; }
         public DateTime PeriodStart { get; set; }
         public DateTime PeriodEnd { get; set; }
+        public decimal MonthlyRateSnapshot { get; set; }
         public decimal TotalAmount { get; set; }
+        public decimal SalaryAdvanceDeduction { get; set; }
+        public decimal SSSDeduction { get; set; }
+        public decimal PhilHealthDeduction { get; set; }
+        public decimal PagIbigDeduction { get; set; }
+        public decimal NetAmount { get; set; }
         public PayrollStatus Status { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? PaidAt { get; set; }

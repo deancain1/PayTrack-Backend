@@ -8,6 +8,6 @@ namespace PayTrack.Application.DTOs
 {
     public record AttendancePolicyLookupDTO(
         Guid Id,
-        string Name
+        string PolicyName
     );
 }

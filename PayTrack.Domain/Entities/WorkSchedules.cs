@@ -26,7 +26,7 @@ namespace PayTrack.Domain.Entities
 
         public string CompanyAdminId { get; set; } = string.Empty;
 
-        public ApplicationUser CompanyAdmin { get; set; }
+        public ApplicationUser ApplicationUser { get; set; }
 
         public ICollection<Employees> Employees { get; set; } = new List<Employees>();
 
