@@ -102,7 +102,7 @@ namespace PayTrack.Application.Features.Attendance.Commands
 
                 await _attendanceRepository.AddAsync(attendance);
 
-                await _mediator.Publish(new NotificationCreatedEvent(
+                await _mediator.Publish(new CompanyAdminNotificationCreatedEvent(
                  Guid.NewGuid(),
                  employee.CompanyAdminId,
                  CompanyAdminNotificationType.TimeIn,
@@ -216,7 +216,7 @@ namespace PayTrack.Application.Features.Attendance.Commands
 
                 await _payrollRecordRepository.AddAsync(payroll);
 
-                await _mediator.Publish(new NotificationCreatedEvent(
+                await _mediator.Publish(new CompanyAdminNotificationCreatedEvent(
                 Guid.NewGuid(),
                 employee.CompanyAdminId,
                 CompanyAdminNotificationType.TimeOut,
