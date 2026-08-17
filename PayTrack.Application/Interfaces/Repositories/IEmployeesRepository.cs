@@ -20,6 +20,7 @@ namespace PayTrack.Application.Interfaces.Repositories
         Task<List<Employees>> GetEmployeesForAbsentAutomationAsync();
         Task<List<Employees>> GetEmployeesWithAssignedScheduleAsync();
         Task<bool> HasEmployeesInDepartmentsAsync(List<Guid> departmentIds);
+        Task<Employees?> GetByIdWithDetailsAsync(Guid id);
 
     }
 }

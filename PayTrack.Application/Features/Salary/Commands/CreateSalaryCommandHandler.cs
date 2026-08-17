@@ -25,7 +25,7 @@ namespace PayTrack.Application.Features.Salary.Commands
 
         public async Task<SalaryDTO> Handle(CreateSalaryCommand request, CancellationToken cancellationToken)
         {
-            var employee = await _employeeRepository.GetByIdAsync(request.EmployeeId);
+            var employee = await _employeeRepository.GetByIdWithDetailsAsync(request.EmployeeId);
 
             if (employee == null)
                 throw new Exception($"Employee '{request.EmployeeId}' not found.");
