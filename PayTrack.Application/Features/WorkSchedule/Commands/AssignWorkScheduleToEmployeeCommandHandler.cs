@@ -28,7 +28,8 @@ namespace PayTrack.Application.Features.WorkSchedule.Commands
             employee.WorkScheduleId = request.WorkScheduleId;
             employee.ScheduleEffectiveDate = request.ScheduleEffectiveDate;
 
-            await _employeesRepository.UpdateAsync(employee);
+             _employeesRepository.Update(employee);
+            await _employeesRepository.SaveChangesAsync();
         }
     }
 }

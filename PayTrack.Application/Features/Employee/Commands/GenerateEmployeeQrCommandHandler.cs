@@ -32,7 +32,8 @@ namespace PayTrack.Application.Features.Employee.Commands
             employee.QrCodeBase64 = _qrCodeService.GenerateQrCodeBase64(
           $"{employee.Id}|{employee.EmployeeNumber}|{employee.ApplicationUserId}");
 
-            await _employeesRepository.UpdateAsync(employee);
+             _employeesRepository.Update(employee);
+            await _employeesRepository.SaveChangesAsync();
 
             return new GenerateQrResponseDTO(
                 employee.Id,
