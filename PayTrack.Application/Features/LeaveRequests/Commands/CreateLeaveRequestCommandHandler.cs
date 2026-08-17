@@ -4,20 +4,20 @@ using PayTrack.Application.Interfaces.Repositories;
 using PayTrack.Application.Interfaces.Services;
 using PayTrack.Domain.Entities;
 using PayTrack.Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PayTrack.Application.Features.LeaveRequests.Commands
 {
-    public class CreateLeaveRequestCommandHandler : IRequestHandler<CreateLeaveRequestCommand, LeaveRequestDTO>
+    public class CreateLeaveRequestCommandHandler
+        : IRequestHandler<CreateLeaveRequestCommand, LeaveRequestDTO>
     {
         private readonly ILeaveRequestRepository _leaveRequestRepository;
         private readonly IEmployeesRepository _employeesRepository;
         private readonly ICurrentUserService _currentUserService;
-        public CreateLeaveRequestCommandHandler(ILeaveRequestRepository leaveRequestRepository, IEmployeesRepository employeesRepository, ICurrentUserService currentUserService)
+
+        public CreateLeaveRequestCommandHandler(
+            ILeaveRequestRepository leaveRequestRepository,
+            IEmployeesRepository employeesRepository,
+            ICurrentUserService currentUserService)
         {
             _leaveRequestRepository = leaveRequestRepository;
             _employeesRepository = employeesRepository;
@@ -48,7 +48,7 @@ namespace PayTrack.Application.Features.LeaveRequests.Commands
 
             var userId = _currentUserService.UserId;
 
-            if (userId == string.Empty)
+            if (string.IsNullOrEmpty(userId))
             {
                 throw new UnauthorizedAccessException(
                     "User is not authenticated.");
@@ -84,6 +84,47 @@ namespace PayTrack.Application.Features.LeaveRequests.Commands
             var totalDays =
                 (endDate - startDate).Days + 1;
 
+            // SAVE ATTACHMENT
+
+            string? attachmentUrl = null;
+
+            if (request.Attachment != null &&
+                request.Attachment.Length > 0)
+            {
+                var uploadsFolder = Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "wwwroot",
+                    "uploads",
+                    "leaves"
+                );
+
+                Directory.CreateDirectory(uploadsFolder);
+
+                var extension =
+                    Path.GetExtension(
+                        request.Attachment.FileName);
+
+                var fileName =
+                    $"{Guid.NewGuid()}{extension}";
+
+                var filePath =
+                    Path.Combine(
+                        uploadsFolder,
+                        fileName);
+
+                using var stream =
+                    new FileStream(
+                        filePath,
+                        FileMode.Create);
+
+                await request.Attachment.CopyToAsync(
+                    stream,
+                    cancellationToken);
+
+                attachmentUrl =
+                    $"/uploads/leaves/{fileName}";
+            }
+
             var leaveRequest = new LeaveRequest
             {
                 Id = Guid.NewGuid(),
@@ -100,11 +141,11 @@ namespace PayTrack.Application.Features.LeaveRequests.Commands
 
                 Reason = request.Reason.Trim(),
 
-                AttachmentUrl = request.AttachmentUrl,
+                AttachmentUrl = attachmentUrl,
 
                 Status = LeaveStatus.Pending,
 
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             };
 
             await _leaveRequestRepository.AddAsync(
@@ -114,29 +155,29 @@ namespace PayTrack.Application.Features.LeaveRequests.Commands
                 $"{employee.ApplicationUser.FullName}";
 
             return new LeaveRequestDTO(
-     leaveRequest.Id,
-     leaveRequest.EmployeeId,
+                leaveRequest.Id,
+                leaveRequest.EmployeeId,
 
-     employeeName,
+                employeeName,
 
-     leaveRequest.Employee.EmployeeNumber,
+                leaveRequest.Employee.EmployeeNumber,
 
-     leaveRequest.Employee.Department != null
-         ? leaveRequest.Employee.Department.DepartmentName
-         : null,
+                leaveRequest.Employee.Department != null
+                    ? leaveRequest.Employee.Department.DepartmentName
+                    : null,
 
-     leaveRequest.LeaveType.ToString(),
-     leaveRequest.StartDate,
-     leaveRequest.EndDate,
-     leaveRequest.TotalDays,
-     leaveRequest.Reason,
-     leaveRequest.AttachmentUrl,
-     leaveRequest.Status.ToString(),
-     leaveRequest.AdminRemarks,
-     leaveRequest.ReviewedBy,
-     leaveRequest.ReviewedAt,
-     leaveRequest.CreatedAt
- );
+                leaveRequest.LeaveType.ToString(),
+                leaveRequest.StartDate,
+                leaveRequest.EndDate,
+                leaveRequest.TotalDays,
+                leaveRequest.Reason,
+                leaveRequest.AttachmentUrl,
+                leaveRequest.Status.ToString(),
+                leaveRequest.AdminRemarks,
+                leaveRequest.ReviewedBy,
+                leaveRequest.ReviewedAt,
+                leaveRequest.CreatedAt
+            );
         }
     }
 }

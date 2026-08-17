@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Http;
 using PayTrack.Application.DTOs;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,6 @@ namespace PayTrack.Application.Features.LeaveRequests.Commands
       DateTime StartDate,
       DateTime EndDate,
       string Reason,
-      string? AttachmentUrl
+      IFormFile? Attachment
   ) : IRequest<LeaveRequestDTO>;
 }
