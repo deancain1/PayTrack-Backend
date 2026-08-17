@@ -1,15 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PayTrack.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PayTrack.Infrastructure.Data.Configurations
 {
-    public class LeaveRequestConfiguration : IEntityTypeConfiguration<LeaveRequest>
+    public class LeaveRequestConfiguration
+        : IEntityTypeConfiguration<LeaveRequest>
     {
         public void Configure(EntityTypeBuilder<LeaveRequest> builder)
         {
@@ -42,12 +38,26 @@ namespace PayTrack.Infrastructure.Data.Configurations
             builder.Property(x => x.AdminRemarks)
                 .HasMaxLength(1000);
 
+            builder.Property(x => x.CompanyAdminId)
+                .HasMaxLength(450);
+
+            builder.Property(x => x.ReviewedBy)
+                .HasMaxLength(256);
+
             builder.Property(x => x.CreatedAt)
                 .IsRequired();
 
+            // Employee relationship
             builder.HasOne(x => x.Employee)
                 .WithMany()
                 .HasForeignKey(x => x.EmployeeId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Company Admin relationship
+            builder.HasOne(x => x.CompanyAdmin)
+                .WithMany()
+                .HasForeignKey(x => x.CompanyAdminId)
+                .HasPrincipalKey(x => x.Id)
                 .OnDelete(DeleteBehavior.NoAction);
         }
     }

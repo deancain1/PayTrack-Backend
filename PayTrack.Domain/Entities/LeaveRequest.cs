@@ -29,7 +29,7 @@ namespace PayTrack.Domain.Entities
         public string? AdminRemarks { get; set; }
 
         public string? ReviewedBy { get; set; }
-
+        public string? CompanyAdminId { get; set; }
         public DateTime? ReviewedAt { get; set; }
 
         public DateTime CreatedAt { get; set; }
@@ -37,5 +37,6 @@ namespace PayTrack.Domain.Entities
         public DateTime? UpdatedAt { get; set; }
 
         public Employees Employee { get; set; } = null!;
+        public ApplicationUser? CompanyAdmin { get; set; }
     }
 }
