@@ -119,5 +119,14 @@ namespace PayTrack.Api.Controllers
                 success = result
             });
         }
+
+        [HttpGet("summary")]
+        public async Task<IActionResult> GetLeaveRequestSummary()
+        {
+            var result = await _mediator.Send(
+                new GetLeaveRequestSummaryQuery());
+
+            return Ok(result);
+        }
     }
 }

@@ -14,7 +14,7 @@ namespace PayTrack.Application.Interfaces.Repositories
         IQueryable<LeaveRequest> GetLeaveRequestsByCompanyAdmin(string companyAdminId);
         Task<LeaveRequest?> GetLeavesWithEmployeeByIdAsync(Guid id);
         Task<bool> HasOverlappingLeaveAsync(Guid employeeId, DateTime startDate, DateTime endDate);
-
+        Task<(int Total, int Approved, int Rejected)>GetLeaveRequestCountsAsync(string companyAdminId);
 
     }
 }

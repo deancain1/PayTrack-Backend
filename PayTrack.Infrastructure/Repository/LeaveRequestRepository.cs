@@ -58,5 +58,20 @@ namespace PayTrack.Infrastructure.Repository
                    .ThenInclude(x => x.Department)
                .FirstOrDefaultAsync(x => x.Id == id);
         }
+        public async Task<(int Total, int Approved, int Rejected)>GetLeaveRequestCountsAsync(string companyAdminId)
+        {
+            var query = _context.LeaveRequests
+                .Where(x => x.CompanyAdminId == companyAdminId);
+
+            var total = await query.CountAsync();
+
+            var approved = await query.CountAsync(
+                x => x.Status == LeaveStatus.Approved);
+
+            var rejected = await query.CountAsync(
+                x => x.Status == LeaveStatus.Rejected);
+
+            return (total, approved, rejected);
+        }
     }
 }
