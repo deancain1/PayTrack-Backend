@@ -23,10 +23,9 @@ namespace PayTrack.Api.Controllers
         // Employee
         [HttpPost("request")]
         public async Task<IActionResult> CreateRequest(
-            [FromBody] CreateLeaveRequestCommand command)
+            [FromForm] CreateLeaveRequestCommand command)
         {
-            var result = await _mediator.Send(
-                command);
+            var result = await _mediator.Send(command);
 
             return Ok(result);
         }
@@ -106,14 +105,13 @@ namespace PayTrack.Api.Controllers
         }
 
         [HttpPut("{id}/reject")]
-        public async Task<IActionResult> Reject(
-            Guid id,
-            [FromBody] string remarks)
+        public async Task<IActionResult> Reject(Guid id, [FromBody] RejectLeaveRequestCommand command)
         {
             var result = await _mediator.Send(
-                new RejectLeaveRequestCommand(
-                    id,
-                    remarks));
+                command with
+                {
+                    LeaveRequestId = id
+                });
 
             return Ok(new
             {
