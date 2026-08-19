@@ -9,6 +9,7 @@ namespace PayTrack.Application.Features.LeaveRequests.Commands
 {
     public record ApproveLeaveRequestCommand(
          Guid LeaveRequestId,
+         bool IsPaid,
          string? Remarks
      ) : IRequest<bool>;
 }

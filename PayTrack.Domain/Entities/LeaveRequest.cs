@@ -25,7 +25,7 @@ namespace PayTrack.Domain.Entities
         public string? AttachmentUrl { get; set; }
 
         public LeaveStatus Status { get; set; } = LeaveStatus.Pending;
-
+        public bool IsPaid { get; set; }
         public string? AdminRemarks { get; set; }
 
         public string? ReviewedBy { get; set; }

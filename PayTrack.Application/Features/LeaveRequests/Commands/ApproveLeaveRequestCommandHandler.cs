@@ -90,7 +90,8 @@ namespace PayTrack.Application.Features.LeaveRequests.Commands
             }
 
             leaveRequest.Status = LeaveStatus.Approved;
-           
+            leaveRequest.IsPaid = request.IsPaid;
+
             leaveRequest.ReviewedBy = companyAdmin.FullName;
             leaveRequest.CompanyAdminId = companyAdminId;
 

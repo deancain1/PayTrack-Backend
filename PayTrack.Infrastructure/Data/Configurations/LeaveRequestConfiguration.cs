@@ -35,6 +35,10 @@ namespace PayTrack.Infrastructure.Data.Configurations
             builder.Property(x => x.Status)
                 .IsRequired();
 
+            builder.Property(x => x.IsPaid)
+              .IsRequired()
+              .HasDefaultValue(false);
+
             builder.Property(x => x.AdminRemarks)
                 .HasMaxLength(1000);
 
