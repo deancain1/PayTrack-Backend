@@ -33,7 +33,8 @@ namespace PayTrack.Application.Features.WorkSchedule.Commands
             workSchedule.RequiredHours = request.RequiredHours;
             workSchedule.GracePeriodMinutes = request.GracePeriodMinutes;
             workSchedule.AbsentCutoffTime = request.AbsentCutoffTime;
-             _workScheduleRepository.Update(workSchedule);
+            workSchedule.WorkingDays = request.WorkingDays;
+            _workScheduleRepository.Update(workSchedule);
             await _workScheduleRepository.SaveChangesAsync();
             return new WorkSchedulesDTO(
                 workSchedule.Id,
@@ -43,7 +44,8 @@ namespace PayTrack.Application.Features.WorkSchedule.Commands
                 workSchedule.EndTime,
                 workSchedule.RequiredHours,
                 workSchedule.GracePeriodMinutes,
-                workSchedule.AbsentCutoffTime
+                workSchedule.AbsentCutoffTime,
+                workSchedule.WorkingDays
             );
         }
     }

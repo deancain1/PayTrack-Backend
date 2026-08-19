@@ -41,6 +41,7 @@ public class CreateWorkScheduleCommandHandler
             RequiredHours = request.RequiredHours,
             GracePeriodMinutes = request.GracePeriodMinutes,
             AbsentCutoffTime = request.AbsentCutoffTime,
+            WorkingDays = request.WorkingDays,
             CompanyAdminId =_currentUser.UserId
         };
 
@@ -54,7 +55,8 @@ public class CreateWorkScheduleCommandHandler
                 schedule.EndTime,
                 schedule.RequiredHours,
                 schedule.GracePeriodMinutes,
-                schedule.AbsentCutoffTime
+                schedule.AbsentCutoffTime,
+                schedule.WorkingDays
             );
     }
 }

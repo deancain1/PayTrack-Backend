@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PayTrack.Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,6 +15,7 @@ namespace PayTrack.Application.DTOs
      TimeSpan EndTime,
      int RequiredHours,
      int GracePeriodMinutes,
-     TimeSpan AbsentCutoffTime
+     TimeSpan AbsentCutoffTime,
+     WorkingDay WorkingDays
  );
 }

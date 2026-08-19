@@ -32,7 +32,8 @@ namespace PayTrack.Application.Features.WorkSchedule.Queries
                x.EndTime,
                x.RequiredHours,
                x.GracePeriodMinutes,
-               x.AbsentCutoffTime
+               x.AbsentCutoffTime,
+               x.WorkingDays
            ))
            .ToListAsync(cancellationToken);
         }

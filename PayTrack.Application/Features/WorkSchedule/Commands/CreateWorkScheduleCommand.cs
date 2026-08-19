@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using PayTrack.Application.DTOs;
+using PayTrack.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +17,7 @@ namespace PayTrack.Application.Features.WorkSchedule.Commands
         TimeSpan EndTime,
         int RequiredHours,
         int GracePeriodMinutes,
-        TimeSpan AbsentCutoffTime
+        TimeSpan AbsentCutoffTime,
+        WorkingDay WorkingDays
     ) : IRequest<WorkSchedulesDTO>;
 }

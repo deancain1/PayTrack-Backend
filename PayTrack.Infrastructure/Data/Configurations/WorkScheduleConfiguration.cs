@@ -17,6 +17,9 @@ namespace PayTrack.Infrastructure.Data.Configurations
                 .WithMany()
                 .HasForeignKey(ws => ws.CompanyAdminId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+                builder.Property(x => x.WorkingDays)
+               .HasConversion<int>();
         }
     }
 }
