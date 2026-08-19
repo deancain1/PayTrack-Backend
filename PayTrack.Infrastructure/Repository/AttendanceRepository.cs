@@ -27,7 +27,8 @@ namespace PayTrack.Infrastructure.Repository
             return _context.Attendances
                 .Include(a => a.Employee)
                     .ThenInclude(e => e.ApplicationUser)
-                .Where(a => a.Employee.CompanyAdminId == companyAdminId);
+                .Where(a => a.Employee.CompanyAdminId == companyAdminId)
+                .OrderByDescending(a => a.TimeIn);
         }
 
         public Task<Attendances?> GetTodayAttendanceAsync(Guid employeeId)
