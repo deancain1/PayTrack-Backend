@@ -14,27 +14,18 @@ namespace PayTrack.Infrastructure.Repository
     {
         public PayrollBatchRepository(AppDbContext context) : base(context) { }
 
-        public async Task<PayrollBatch?> GetByPeriodAsync(
-            DateTime periodStart,
-            DateTime periodEnd)
+        public async Task<PayrollBatch?> GetOverlappingActiveBatchAsync(
+     DateTime periodStart,
+     DateTime periodEnd)
         {
             return await _context.PayrollBatches
                 .FirstOrDefaultAsync(x =>
-                    x.PeriodStart.Date == periodStart.Date &&
-                    x.PeriodEnd.Date == periodEnd.Date &&
-                    x.IsActive);
-        }
-
-        //for overlapping batch check, we need to check if there is any existing batch that overlaps with the given period
-        public async Task<bool> HasOverlappingBatchAsync(DateTime periodStart, DateTime periodEnd, Guid? excludeBatchId)
-        {
-            return await _context.PayrollBatches
-                .Where(x => x.IsActive)
-                .Where(x => excludeBatchId == null || x.Id != excludeBatchId)
-                .AnyAsync(x =>
+                    x.IsActive &&
                     x.PeriodStart <= periodEnd &&
                     x.PeriodEnd >= periodStart);
         }
+
+
 
         public async Task<PayrollBatch?> GetByIdWithPayrollsAsync(Guid id)
         {

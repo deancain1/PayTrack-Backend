@@ -52,79 +52,95 @@ namespace PayTrack.Application.Features.Payroll.Commands
             _publisher = publisher;
         }
 
-        public async Task<GeneratePayrollResult> Handle(
-            GeneratePayrollCommand request,
-            CancellationToken cancellationToken)
+        public async Task<GeneratePayrollResult> Handle(GeneratePayrollCommand request, CancellationToken cancellationToken)
         {
-            if (request.PeriodStart > request.PeriodEnd)
+
+
+            if (request.PeriodStart.Date > request.PeriodEnd.Date)
             {
                 throw new Exception(
                     "Payroll start date cannot be later than payroll end date.");
             }
 
-            // STEP 1: Check Existing Same Period
-            var existingBatch = await _payrollBatchRepository.GetByPeriodAsync(
-                request.PeriodStart,
-                request.PeriodEnd);
+            var periodStart = request.PeriodStart.Date;
+            var periodEnd = request.PeriodEnd.Date;
+
+            // STEP 2: CHECK FOR SKIPPED PREVIOUS ATTENDANCE
+
+
+            var hasSkippedAttendance =
+                await _payrollRecordRepository
+                    .HasUnpaidAttendanceBeforePeriodAsync(
+                        periodStart);
+
+            if (hasSkippedAttendance)
+            {
+                throw new Exception(
+                    "Cannot generate payroll. An employee has previous attendance with unpaid earnings. Please process the previous attendance first.");
+            }
+
+
+            // STEP 3: FIND EXISTING OVERLAPPING ACTIVE PAYROLL
+
+            var existingBatch =
+                await _payrollBatchRepository
+                    .GetOverlappingActiveBatchAsync(
+                        periodStart,
+                        periodEnd);
+
+            // STEP 4: DEACTIVATE EXISTING OVERLAPPING BATCH
 
             if (existingBatch != null)
             {
                 existingBatch.IsActive = false;
-                 _payrollBatchRepository.Update(existingBatch);
+
+                _payrollBatchRepository.Update(existingBatch);
+
                 await _payrollBatchRepository.SaveChangesAsync();
             }
 
-            // STEP 2: Prevent Overlapping Payroll
-            var hasOverlap = await _payrollBatchRepository.HasOverlappingBatchAsync(
-                request.PeriodStart,
-                request.PeriodEnd,
-                existingBatch?.Id);
+            // STEP 5: CREATE NEW PAYROLL BATCH
 
-            if (hasOverlap)
-            {
-                throw new Exception(
-                    "Payroll period overlaps with an existing payroll.");
-            }
-
-            // STEP 3: Prevent Skipping Unpaid Attendance
-            var hasUnpaidAttendance =
-                await _payrollRecordRepository.HasUnpaidAttendanceBeforePeriodAsync(
-                    request.PeriodStart);
-
-            if (hasUnpaidAttendance)
-            {
-                throw new Exception(
-                    "Cannot generate payroll. There are unpaid attendance records before this payroll period.");
-            }
-
-            // STEP 4: Create Payroll Batch
             var batch = new PayrollBatch
             {
                 Id = Guid.NewGuid(),
-                PeriodStart = request.PeriodStart.Date,
-                PeriodEnd = request.PeriodEnd.Date,
+                PeriodStart = periodStart,
+                PeriodEnd = periodEnd,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };
 
             await _payrollBatchRepository.AddAsync(batch);
 
-            // STEP 5: Get Employees
+            // STEP 6: GET EMPLOYEES
+
             List<Employees> employees;
 
-            if (request.EmployeeIds != null && request.EmployeeIds.Any())
+            if (request.EmployeeIds != null &&
+                request.EmployeeIds.Any())
             {
-                employees = await _employeesRepository.GetByIdsAsync(request.EmployeeIds);
+                employees =
+                    await _employeesRepository
+                        .GetByIdsAsync(request.EmployeeIds);
             }
             else
             {
-                employees = await _employeesRepository.GetAllAsync();
+                employees =
+                    await _employeesRepository
+                        .GetAllAsync();
             }
 
-            var companyAdminId = _currentUserService.UserId;
+
+            // STEP 7: GET COMPANY PAYROLL SETTINGS
+
+
+            var companyAdminId =
+                _currentUserService.UserId;
 
             var payrollSetting =
-                await _companyPayrollSettingRepository.GetByCompanyAdminIdAsync(companyAdminId);
+                await _companyPayrollSettingRepository
+                    .GetByCompanyAdminIdAsync(
+                        companyAdminId);
 
             if (payrollSetting == null)
             {
@@ -132,15 +148,24 @@ namespace PayTrack.Application.Features.Payroll.Commands
                     "Payroll settings have not been configured.");
             }
 
-            var payrollFrequency = payrollSetting.Frequency;
+            var payrollFrequency =
+                payrollSetting.Frequency;
 
-            // STEP 6: Generate Payroll
-            var employeeResults = new List<EmployeePayrollDTO>();
+            // STEP 8: GENERATE PAYROLL FOR EACH EMPLOYEE
+
+            var employeeResults =
+                new List<EmployeePayrollDTO>();
 
             foreach (var employee in employees)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
+
+
                 var employeeSalary =
-                    await _salaryRepository.GetByEmployeeIdAsync(employee.Id);
+                    await _salaryRepository
+                        .GetByEmployeeIdAsync(
+                            employee.Id);
 
                 if (employeeSalary == null)
                 {
@@ -148,37 +173,50 @@ namespace PayTrack.Application.Features.Payroll.Commands
                         $"No salary assigned to {employee.ApplicationUser.FullName}");
                 }
 
-                var monthlyRate = employeeSalary.MonthlyRate;
+                var monthlyRate =
+                    employeeSalary.MonthlyRate;
+
 
                 var totalAmount =
-                    await _payrollRecordRepository.GetTotalEarningsAsync(
-                        employee.Id,
-                        request.PeriodStart,
-                        request.PeriodEnd);
+                    await _payrollRecordRepository
+                        .GetTotalEarningsAsync(
+                            employee.Id,
+                            periodStart,
+                            periodEnd);
+
 
                 if (totalAmount <= 0)
                 {
-                    throw new Exception("There is no amount to compute");
+                    continue;
                 }
 
+
+
+
                 var salaryAdvanceDeduction =
-                    await _salaryAdvanceRepository.GetTotalUndeductedAdvancesAsync(
-                        employee.Id);
+                    await _salaryAdvanceRepository
+                        .GetTotalUndeductedAdvancesAsync(
+                            employee.Id);
 
                 var philHealthDeduction =
-                    await _philHealthService.ComputeEmployeeContributionAsync(
-                        monthlyRate,
-                        payrollFrequency);
+                    await _philHealthService
+                        .ComputeEmployeeContributionAsync(
+                            monthlyRate,
+                            payrollFrequency);
 
                 var pagIbigDeduction =
-                    await _pagIbigService.ComputeEmployeeContributionAsync(
-                        monthlyRate,
-                        payrollFrequency);
+                    await _pagIbigService
+                        .ComputeEmployeeContributionAsync(
+                            monthlyRate,
+                            payrollFrequency);
+
 
                 var sssDeduction =
-                    await _sssService.ComputeEmployeeContributionAsync(
-                        monthlyRate,
-                        payrollFrequency);
+                    await _sssService
+                        .ComputeEmployeeContributionAsync(
+                            monthlyRate,
+                            payrollFrequency);
+
 
                 var netAmount =
                     totalAmount
@@ -192,13 +230,14 @@ namespace PayTrack.Application.Features.Payroll.Commands
                     netAmount = 0;
                 }
 
+
                 var payroll = new Payrolls
                 {
                     Id = Guid.NewGuid(),
                     EmployeeId = employee.Id,
                     PayrollBatchId = batch.Id,
-                    PeriodStart = request.PeriodStart.Date,
-                    PeriodEnd = request.PeriodEnd.Date,
+                    PeriodStart = periodStart,
+                    PeriodEnd = periodEnd,
                     TotalAmount = totalAmount,
                     SalaryAdvanceDeduction = salaryAdvanceDeduction,
                     PhilHealthDeduction = philHealthDeduction,
@@ -209,18 +248,23 @@ namespace PayTrack.Application.Features.Payroll.Commands
                     CreatedAt = DateTime.UtcNow
                 };
 
-                await _payrollRepository.AddAsync(payroll);
+                await _payrollRepository
+                    .AddAsync(payroll);
 
-                await _publisher.Publish(
-                new EmployeeNotificationCreatedEvent(
-                Guid.NewGuid(),
-                employee.ApplicationUserId,
-                EmployeeNotificationType.PayrollGenerated,
-                "Payroll Generated",
-                $"Your payroll for {request.PeriodStart:MMM dd, yyyy} - {request.PeriodEnd:MMM dd, yyyy} has been generated."
-                ),
-                cancellationToken
-                );
+                var dailyRecords =
+                    await _payrollRecordRepository
+                        .GetUnassignedPayrollRecordsAsync(
+                            employee.Id,
+                            periodStart,
+                            periodEnd);
+
+                foreach (var record in dailyRecords)
+                {
+                    record.PayrollId = payroll.Id;
+
+                    _payrollRecordRepository.Update(record);
+                }
+
 
                 employeeResults.Add(
                     new EmployeePayrollDTO(
@@ -234,11 +278,61 @@ namespace PayTrack.Application.Features.Payroll.Commands
                         netAmount));
             }
 
-            // STEP 7: Return Result
+
+
+            if (!employeeResults.Any())
+            {
+                batch.IsActive = false;
+
+                _payrollBatchRepository.Update(batch);
+
+                await _payrollBatchRepository
+                    .SaveChangesAsync();
+
+                throw new Exception(
+                    "No employees have payable earnings for this payroll period.");
+            }
+
+
+            await _payrollBatchRepository
+                .SaveChangesAsync();
+
+
+            foreach (var employee in employees)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var payrollWasGenerated =
+                    employeeResults.Any(
+                        x => x.EmployeeId == employee.Id);
+
+                if (!payrollWasGenerated)
+                {
+                    continue;
+                }
+
+                await _publisher.Publish(
+                    new EmployeeNotificationCreatedEvent(
+                        Guid.NewGuid(),
+                        employee.ApplicationUserId,
+                        EmployeeNotificationType.PayrollGenerated,
+                        "Payroll Generated",
+                        $"Your payroll for {periodStart:MMM dd, yyyy} - {periodEnd:MMM dd, yyyy} has been generated."
+                    ),
+                    cancellationToken);
+            }
+
+
             return new GeneratePayrollResult(
-                GrandTotal: employeeResults.Sum(x => x.NetAmount),
-                EmployeeCount: employeeResults.Count,
-                Employees: employeeResults);
+                GrandTotal:
+                    employeeResults.Sum(
+                        x => x.NetAmount),
+
+                EmployeeCount:
+                    employeeResults.Count,
+
+                Employees:
+                    employeeResults);
         }
     }
 }

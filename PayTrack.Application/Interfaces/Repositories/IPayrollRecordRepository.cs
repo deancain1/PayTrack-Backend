@@ -15,6 +15,7 @@ namespace PayTrack.Application.Interfaces.Repositories
         IQueryable<PayrollRecord> GetPayrollRecordByCompanyAdminsync(string companyAdminId);
         Task<decimal> GetTotalEarningsByEmployeeAsync(Guid employeeId);
         Task<bool> HasUnpaidAttendanceBeforePeriodAsync(DateTime periodStart);
+        Task<List<PayrollRecord>> GetUnassignedPayrollRecordsAsync(Guid employeeId, DateTime periodStart, DateTime periodEnd);
         Task<decimal> GetTotalPayrollTodayAsync(string companyAdminId);
 
         Task<decimal> GetAverageDailyPayoutAsync(string companyAdminId);

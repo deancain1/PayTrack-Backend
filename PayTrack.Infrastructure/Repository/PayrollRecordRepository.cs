@@ -48,16 +48,27 @@ namespace PayTrack.Infrastructure.Repository
                 .AsQueryable();
         }
 
-        public async Task<bool> HasUnpaidAttendanceBeforePeriodAsync(DateTime periodStart)
+        public async Task<bool> HasUnpaidAttendanceBeforePeriodAsync(
+     DateTime periodStart)
         {
-            return await _context.Attendances
-                .Where(a => a.Date < periodStart)
-                .AnyAsync(a =>
-                    !_context.PayrollRecords
-                    .Any(p => p.AttendanceId == a.Id)
-                    );
+            return await _context.PayrollRecords
+                .Include(r => r.Attendance)
+                .Where(r => r.Attendance.Date < periodStart)
+                .Where(r => r.AmountEarned > 0)
+                .AnyAsync(r => r.PayrollId == null);
         }
 
+        public async Task<List<PayrollRecord>> GetUnassignedPayrollRecordsAsync(Guid employeeId, DateTime periodStart, DateTime periodEnd)
+        {
+            return await _context.PayrollRecords
+                .Include(r => r.Attendance)
+                .Where(r => r.EmployeeId == employeeId)
+                .Where(r => r.Attendance.Date >= periodStart)
+                .Where(r => r.Attendance.Date <= periodEnd)
+                .Where(r => r.AmountEarned > 0)
+                .Where(r => r.PayrollId == null)
+                .ToListAsync();
+        }
         public IQueryable<PayrollRecord> GetPayrollRecordByCompanyAdminsync(string companyAdminId)
         {
             return _context.PayrollRecords
