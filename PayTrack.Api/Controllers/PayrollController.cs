@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using PayTrack.Application.DTOs;
 using PayTrack.Application.Features.Payroll.Commands;
 using PayTrack.Application.Features.Payroll.Queries;
 
@@ -37,6 +38,16 @@ namespace PayTrack.Api.Controllers
         {
             var result = await _mediator.Send(
                 new GetMonthlyPayrollExpensesQuery(),
+                cancellationToken);
+
+            return Ok(result);
+        }
+        [HttpGet("my-payrolls")]
+        public async Task<ActionResult<List<EmployeePayslipDTO>>> GetMyPayrolls(
+           CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(
+                new GetMyPayrollsQuery(),
                 cancellationToken);
 
             return Ok(result);

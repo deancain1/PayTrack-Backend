@@ -14,5 +14,6 @@ namespace PayTrack.Application.Interfaces.Repositories
         Task<bool> ExistsAsync(Guid employeeId, DateTime periodStart, DateTime periodEnd);
         Task<bool> HasGeneratedPayrollForDateAsync(Guid employeeId, DateTime requestDate);
         Task<List<Payrolls>> GetPayrollsByCompanyAndYearAsync(string companyAdminId, int year);
+        Task<List<Payrolls>> GetEmployeePayrollsAsync(Guid employeeId);
     }
 }

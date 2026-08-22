@@ -42,5 +42,16 @@ namespace PayTrack.Infrastructure.Repository
                 requestDate >= p.PeriodStart &&
                 requestDate <= p.PeriodEnd);
         }
+        public async Task<List<Payrolls>> GetEmployeePayrollsAsync(
+           Guid employeeId)
+        {
+            return await _context.Payrolls
+                .Include(x => x.Employee)
+                .Where(x =>
+                    x.EmployeeId == employeeId &&
+                    x.Status != PayrollStatus.Pending)
+                .OrderByDescending(x => x.PeriodEnd)
+                .ToListAsync();
+        }
     }
 }
