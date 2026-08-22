@@ -9,6 +9,8 @@ namespace PayTrack.Application.DTOs
     public record EmployeePayrollDTO(
      Guid EmployeeId,
      string EmployeeName,
+     decimal RegularAmount,
+     decimal OvertimeAmount,
      decimal TotalAmount,
      decimal SalaryAdvance,
      decimal PhilHealthDeduction,
