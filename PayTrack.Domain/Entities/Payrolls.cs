@@ -1,9 +1,4 @@
 ﻿using PayTrack.Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PayTrack.Domain.Entities
 {
@@ -15,6 +10,8 @@ namespace PayTrack.Domain.Entities
         public DateTime PeriodStart { get; set; }
         public DateTime PeriodEnd { get; set; }
         public decimal MonthlyRateSnapshot { get; set; }
+        public decimal RegularAmount { get; set; }
+        public decimal OvertimeAmount { get; set; }
         public decimal TotalAmount { get; set; }
         public decimal SalaryAdvanceDeduction { get; set; }
         public decimal SSSDeduction { get; set; }
@@ -23,8 +20,9 @@ namespace PayTrack.Domain.Entities
         public decimal NetAmount { get; set; }
         public PayrollStatus Status { get; set; }
         public DateTime CreatedAt { get; set; }
+        public DateTime? ReleasedAt { get; set; }
         public DateTime? PaidAt { get; set; }
         public Employees Employee { get; set; } = null!;
-        public PayrollBatch PayrollBatch { get; set; }
+        public PayrollBatch PayrollBatch { get; set; } = null!;
     }
 }

@@ -17,9 +17,9 @@ namespace PayTrack.Domain.Entities
         public bool IsActive { get; set; } = true;
 
         public DateTime CreatedAt { get; set; }
-
-        // Payment
         public PayrollBatchStatus Status { get; set; } = PayrollBatchStatus.Pending;
+        public DateTime? ReleasedAt { get; set; }
+        public string? ReleasedBy { get; set; }
 
         public DateTime? PaidAt { get; set; }
 
