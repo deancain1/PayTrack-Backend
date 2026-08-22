@@ -17,6 +17,20 @@ namespace PayTrack.Api.Controllers
             _mediator = mediator;
         }
 
+        [HttpPut("{Id}/release")]
+        public async Task<IActionResult> ReleasePayroll(Guid Id,CancellationToken cancellationToken)
+        {
+            var command =
+                new ReleasePayrollBatchCommand(Id);
+
+            var result =
+                await _mediator.Send(
+                    command,
+                    cancellationToken);
+
+            return Ok(result);
+        }
+
         [HttpPut("{id:guid}/pay")]
         public async Task<IActionResult> PayBatch(Guid id, [FromBody] PayPayrollBatchCommand request)
         {
