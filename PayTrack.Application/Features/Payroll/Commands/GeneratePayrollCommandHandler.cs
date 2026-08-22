@@ -22,6 +22,7 @@ namespace PayTrack.Application.Features.Payroll.Commands
         private readonly IPhilHealthService _philHealthService;
         private readonly IPagIbigService _pagIbigService;
         private readonly ISSSService _sssService;
+        private readonly IOvertimeRepository _overtimeRepository;
         private readonly IPublisher _publisher;
 
         public GeneratePayrollCommandHandler(
@@ -36,6 +37,7 @@ namespace PayTrack.Application.Features.Payroll.Commands
             IPhilHealthService philHealthService,
             IPagIbigService pagIbigService,
             ISSSService sssService,
+            IOvertimeRepository overtimeRepository,
             IPublisher publisher)
         {
             _employeesRepository = employeesRepository;
@@ -49,25 +51,25 @@ namespace PayTrack.Application.Features.Payroll.Commands
             _philHealthService = philHealthService;
             _pagIbigService = pagIbigService;
             _sssService = sssService;
+            _overtimeRepository = overtimeRepository;
             _publisher = publisher;
         }
 
-        public async Task<GeneratePayrollResult> Handle(GeneratePayrollCommand request, CancellationToken cancellationToken)
+        public async Task<GeneratePayrollResult> Handle(GeneratePayrollCommand request,
+            CancellationToken cancellationToken)
         {
-
+           
 
             if (request.PeriodStart.Date > request.PeriodEnd.Date)
             {
-                throw new Exception(
+                throw new InvalidOperationException(
                     "Payroll start date cannot be later than payroll end date.");
             }
 
             var periodStart = request.PeriodStart.Date;
             var periodEnd = request.PeriodEnd.Date;
 
-            // STEP 2: CHECK FOR SKIPPED PREVIOUS ATTENDANCE
-
-
+     
             var hasSkippedAttendance =
                 await _payrollRecordRepository
                     .HasUnpaidAttendanceBeforePeriodAsync(
@@ -75,12 +77,9 @@ namespace PayTrack.Application.Features.Payroll.Commands
 
             if (hasSkippedAttendance)
             {
-                throw new Exception(
+                throw new InvalidOperationException(
                     "Cannot generate payroll. An employee has previous attendance with unpaid earnings. Please process the previous attendance first.");
             }
-
-
-            // STEP 3: FIND EXISTING OVERLAPPING ACTIVE PAYROLL
 
             var existingBatch =
                 await _payrollBatchRepository
@@ -88,31 +87,41 @@ namespace PayTrack.Application.Features.Payroll.Commands
                         periodStart,
                         periodEnd);
 
-            // STEP 4: DEACTIVATE EXISTING OVERLAPPING BATCH
-
+       
             if (existingBatch != null)
             {
                 existingBatch.IsActive = false;
 
-                _payrollBatchRepository.Update(existingBatch);
+                _payrollBatchRepository.Update(
+                    existingBatch);
 
-                await _payrollBatchRepository.SaveChangesAsync();
+                await _payrollBatchRepository
+                    .SaveChangesAsync();
             }
 
-            // STEP 5: CREATE NEW PAYROLL BATCH
+
 
             var batch = new PayrollBatch
             {
                 Id = Guid.NewGuid(),
-                PeriodStart = periodStart,
-                PeriodEnd = periodEnd,
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow
+
+                PeriodStart =
+                    periodStart,
+
+                PeriodEnd =
+                    periodEnd,
+
+                IsActive =
+                    true,
+
+                CreatedAt =
+                    DateTime.UtcNow
             };
 
-            await _payrollBatchRepository.AddAsync(batch);
+            await _payrollBatchRepository
+                .AddAsync(batch);
 
-            // STEP 6: GET EMPLOYEES
+         
 
             List<Employees> employees;
 
@@ -121,7 +130,8 @@ namespace PayTrack.Application.Features.Payroll.Commands
             {
                 employees =
                     await _employeesRepository
-                        .GetByIdsAsync(request.EmployeeIds);
+                        .GetByIdsAsync(
+                            request.EmployeeIds);
             }
             else
             {
@@ -130,12 +140,16 @@ namespace PayTrack.Application.Features.Payroll.Commands
                         .GetAllAsync();
             }
 
-
-            // STEP 7: GET COMPANY PAYROLL SETTINGS
-
+       
 
             var companyAdminId =
                 _currentUserService.UserId;
+
+            if (string.IsNullOrWhiteSpace(companyAdminId))
+            {
+                throw new UnauthorizedAccessException(
+                    "User is not authenticated.");
+            }
 
             var payrollSetting =
                 await _companyPayrollSettingRepository
@@ -144,14 +158,14 @@ namespace PayTrack.Application.Features.Payroll.Commands
 
             if (payrollSetting == null)
             {
-                throw new Exception(
+                throw new InvalidOperationException(
                     "Payroll settings have not been configured.");
             }
 
             var payrollFrequency =
                 payrollSetting.Frequency;
 
-            // STEP 8: GENERATE PAYROLL FOR EACH EMPLOYEE
+        
 
             var employeeResults =
                 new List<EmployeePayrollDTO>();
@@ -160,7 +174,7 @@ namespace PayTrack.Application.Features.Payroll.Commands
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-
+         
 
                 var employeeSalary =
                     await _salaryRepository
@@ -169,7 +183,7 @@ namespace PayTrack.Application.Features.Payroll.Commands
 
                 if (employeeSalary == null)
                 {
-                    throw new Exception(
+                    throw new InvalidOperationException(
                         $"No salary assigned to {employee.ApplicationUser.FullName}");
                 }
 
@@ -177,26 +191,63 @@ namespace PayTrack.Application.Features.Payroll.Commands
                     employeeSalary.MonthlyRate;
 
 
-                var totalAmount =
+                var regularAmount =
                     await _payrollRecordRepository
                         .GetTotalEarningsAsync(
                             employee.Id,
                             periodStart,
                             periodEnd);
 
+                regularAmount =
+                    Math.Round(
+                        regularAmount,
+                        2);
+
+              
+
+                var completedOvertimes =
+                    await _overtimeRepository
+                        .GetCompletedOvertimesForPayrollAsync(
+                            employee.Id,
+                            periodStart,
+                            periodEnd);
+
+                var overtimeAmount =
+                    completedOvertimes.Sum(
+                        x => x.OvertimePay);
+
+                overtimeAmount =
+                    Math.Round(
+                        overtimeAmount,
+                        2);
+
+            
+
+                var totalAmount =
+                    Math.Round(
+                        regularAmount +
+                        overtimeAmount,
+                        2);
+
+             
 
                 if (totalAmount <= 0)
                 {
                     continue;
                 }
 
-
-
+               
 
                 var salaryAdvanceDeduction =
                     await _salaryAdvanceRepository
                         .GetTotalUndeductedAdvancesAsync(
                             employee.Id);
+
+                salaryAdvanceDeduction =
+                    Math.Round(
+                        salaryAdvanceDeduction,
+                        2);
+
 
                 var philHealthDeduction =
                     await _philHealthService
@@ -204,11 +255,22 @@ namespace PayTrack.Application.Features.Payroll.Commands
                             monthlyRate,
                             payrollFrequency);
 
+                philHealthDeduction =
+                    Math.Round(
+                        philHealthDeduction,
+                        2);
+
+            
                 var pagIbigDeduction =
                     await _pagIbigService
                         .ComputeEmployeeContributionAsync(
                             monthlyRate,
                             payrollFrequency);
+
+                pagIbigDeduction =
+                    Math.Round(
+                        pagIbigDeduction,
+                        2);
 
 
                 var sssDeduction =
@@ -217,6 +279,10 @@ namespace PayTrack.Application.Features.Payroll.Commands
                             monthlyRate,
                             payrollFrequency);
 
+                sssDeduction =
+                    Math.Round(
+                        sssDeduction,
+                        2);
 
                 var netAmount =
                     totalAmount
@@ -230,26 +296,59 @@ namespace PayTrack.Application.Features.Payroll.Commands
                     netAmount = 0;
                 }
 
+                netAmount =
+                    Math.Round(
+                        netAmount,
+                        2);
 
-                var payroll = new Payrolls
-                {
-                    Id = Guid.NewGuid(),
-                    EmployeeId = employee.Id,
-                    PayrollBatchId = batch.Id,
-                    PeriodStart = periodStart,
-                    PeriodEnd = periodEnd,
-                    TotalAmount = totalAmount,
-                    SalaryAdvanceDeduction = salaryAdvanceDeduction,
-                    PhilHealthDeduction = philHealthDeduction,
-                    PagIbigDeduction = pagIbigDeduction,
-                    SSSDeduction = sssDeduction,
-                    NetAmount = netAmount,
-                    Status = PayrollStatus.Pending,
-                    CreatedAt = DateTime.UtcNow
-                };
+            
+                var payroll =
+                    new Payrolls
+                    {
+                        Id =
+                            Guid.NewGuid(),
+
+                        EmployeeId =
+                            employee.Id,
+
+                        PayrollBatchId =
+                            batch.Id,
+
+                        PeriodStart =
+                            periodStart,
+
+                        PeriodEnd =
+                            periodEnd,
+
+                        TotalAmount =
+                            totalAmount,
+
+                        SalaryAdvanceDeduction =
+                            salaryAdvanceDeduction,
+
+                        PhilHealthDeduction =
+                            philHealthDeduction,
+
+                        PagIbigDeduction =
+                            pagIbigDeduction,
+
+                        SSSDeduction =
+                            sssDeduction,
+
+                        NetAmount =
+                            netAmount,
+
+                        Status =
+                            PayrollStatus.Pending,
+
+                        CreatedAt =
+                            DateTime.UtcNow
+                    };
 
                 await _payrollRepository
                     .AddAsync(payroll);
+
+           
 
                 var dailyRecords =
                     await _payrollRecordRepository
@@ -260,36 +359,73 @@ namespace PayTrack.Application.Features.Payroll.Commands
 
                 foreach (var record in dailyRecords)
                 {
-                    record.PayrollId = payroll.Id;
+                    record.PayrollId =
+                        payroll.Id;
 
-                    _payrollRecordRepository.Update(record);
+                    _payrollRecordRepository
+                        .Update(record);
                 }
 
+                // This prevents the same OT from being included
+                // in another payroll generation.
+               
+                foreach (var overtime in completedOvertimes)
+                {
+                    overtime.PayrollId =
+                        payroll.Id;
 
+                    _overtimeRepository
+                        .Update(overtime);
+                }
+
+             
                 employeeResults.Add(
                     new EmployeePayrollDTO(
-                        employee.Id,
-                        employee.ApplicationUser.FullName,
-                        totalAmount,
-                        salaryAdvanceDeduction,
-                        philHealthDeduction,
-                        pagIbigDeduction,
-                        sssDeduction,
-                        netAmount));
+                        EmployeeId:
+                            employee.Id,
+
+                        EmployeeName:
+                            employee.ApplicationUser.FullName,
+
+                        RegularAmount:
+                            regularAmount,
+
+                        OvertimeAmount:
+                            overtimeAmount,
+
+                        TotalAmount:
+                            totalAmount,
+
+                        SalaryAdvance:
+                            salaryAdvanceDeduction,
+
+                        PhilHealthDeduction:
+                            philHealthDeduction,
+
+                        PagIbigDeduction:
+                            pagIbigDeduction,
+
+                        SssDeduction:
+                            sssDeduction,
+
+                        NetAmount:
+                            netAmount
+                    ));
             }
 
-
+         
 
             if (!employeeResults.Any())
             {
                 batch.IsActive = false;
 
-                _payrollBatchRepository.Update(batch);
+                _payrollBatchRepository
+                    .Update(batch);
 
                 await _payrollBatchRepository
                     .SaveChangesAsync();
 
-                throw new Exception(
+                throw new InvalidOperationException(
                     "No employees have payable earnings for this payroll period.");
             }
 
@@ -304,7 +440,9 @@ namespace PayTrack.Application.Features.Payroll.Commands
 
                 var payrollWasGenerated =
                     employeeResults.Any(
-                        x => x.EmployeeId == employee.Id);
+                        x =>
+                            x.EmployeeId ==
+                            employee.Id);
 
                 if (!payrollWasGenerated)
                 {
