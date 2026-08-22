@@ -9,6 +9,7 @@ namespace PayTrack.Domain.Enums
     public enum PayrollBatchStatus
     {
         Pending = 1,
-        Paid = 2
+        Released = 2,
+        Paid = 3
     }
 }
