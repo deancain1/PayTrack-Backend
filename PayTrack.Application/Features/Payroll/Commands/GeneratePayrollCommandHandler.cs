@@ -320,6 +320,12 @@ namespace PayTrack.Application.Features.Payroll.Commands
                         PeriodEnd =
                             periodEnd,
 
+                        RegularAmount = 
+                        regularAmount,
+
+                        OvertimeAmount
+                        = overtimeAmount,
+
                         TotalAmount =
                             totalAmount,
 
