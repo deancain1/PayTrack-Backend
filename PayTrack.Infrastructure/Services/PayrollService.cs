@@ -24,10 +24,7 @@ namespace PayTrack.Infrastructure.Services
      
         // REGULAR PAY
        
-        public decimal Calculate(
-            EmployeeSalary salary,
-            Attendances attendance,
-            WorkSchedules schedule)
+        public decimal Calculate(EmployeeSalary salary, Attendances attendance, WorkSchedules schedule)
         {
             decimal earned = 0;
 
@@ -102,10 +99,7 @@ namespace PayTrack.Infrastructure.Services
     
         // CURRENT EARNINGS
 
-        public async Task<decimal> CalculateCurrentEarningsAsync(
-            Guid employeeId,
-            DateTime startDate,
-            DateTime endDate)
+        public async Task<decimal> CalculateCurrentEarningsAsync(Guid employeeId, DateTime startDate, DateTime endDate)
         {
             var employee =
                 await _employeesRepository
@@ -152,9 +146,7 @@ namespace PayTrack.Infrastructure.Services
      
         // NORMAL HOURLY RATE
 
-        public decimal CalculateHourlyRate(
-            EmployeeSalary salary,
-            WorkSchedules schedule)
+        public decimal CalculateHourlyRate(EmployeeSalary salary, WorkSchedules schedule)
         {
             if (schedule.RequiredHours <= 0)
             {
@@ -212,10 +204,7 @@ namespace PayTrack.Infrastructure.Services
         // OVERTIME RATE
   
 
-        public decimal CalculateOvertimeRate(
-            EmployeeSalary salary,
-            WorkSchedules schedule,
-            decimal overtimeMultiplier)
+        public decimal CalculateOvertimeRate(EmployeeSalary salary, WorkSchedules schedule, decimal overtimeMultiplier)
         {
             if (overtimeMultiplier <= 0)
             {
@@ -236,11 +225,7 @@ namespace PayTrack.Infrastructure.Services
 
        
         // OVERTIME PAY
-        public decimal CalculateOvertimePay(
-            EmployeeSalary salary,
-            WorkSchedules schedule,
-            decimal actualHours,
-            decimal overtimeMultiplier)
+        public decimal CalculateOvertimePay(EmployeeSalary salary, WorkSchedules schedule,decimal actualHours, decimal overtimeMultiplier)
         {
             if (actualHours <= 0)
                 return 0;
@@ -255,6 +240,41 @@ namespace PayTrack.Infrastructure.Services
                 overtimeRate *
                 actualHours,
                 2);
+        }
+        public decimal CalculatePaidLeave(EmployeeSalary salary, WorkSchedules schedule, int paidLeaveDays)
+        {
+            if (paidLeaveDays <= 0)
+                return 0m;
+
+            var dailyRate = CalculateDailyRate(
+                salary,
+                schedule);
+
+            return Math.Round(
+                dailyRate * paidLeaveDays,
+                2);
+        }
+        // calculating daily rate based on policy 
+        public decimal CalculateDailyRate(EmployeeSalary salary, WorkSchedules schedule)
+        {
+            return salary.Policy switch
+            {
+                PayrollPolicy.Hourly =>
+                    Math.Round(
+                        salary.Rate * schedule.RequiredHours,
+                        2),
+
+                PayrollPolicy.FullDay =>
+                    salary.Rate,
+
+                PayrollPolicy.ProRated =>
+                    salary.Rate,
+
+                PayrollPolicy.HalfDay =>
+                    salary.Rate / 2m,
+
+                _ => 0m
+            };
         }
     }
 }

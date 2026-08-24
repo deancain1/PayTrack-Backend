@@ -73,5 +73,18 @@ namespace PayTrack.Infrastructure.Repository
 
             return (total, approved, rejected);
         }
+
+        public async Task<List<LeaveRequest>> GetApprovedPaidLeaveAsync(Guid employeeId, DateTime startDate, DateTime endDate)
+        {
+
+            return await _context.LeaveRequests
+             .Where(x =>
+               x.EmployeeId == employeeId &&
+               x.Status == LeaveStatus.Approved &&
+               x.IsPaid &&
+               x.StartDate <= endDate &&
+               x.EndDate >= startDate)
+             .ToListAsync();
+        }
     }
 }

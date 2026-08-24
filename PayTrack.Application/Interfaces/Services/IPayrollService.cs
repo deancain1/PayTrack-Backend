@@ -25,5 +25,10 @@ namespace PayTrack.Application.Interfaces.Services
             WorkSchedules schedule,
             decimal actualHours,
             decimal overtimeMultiplier);
+
+        decimal CalculatePaidLeave(
+         EmployeeSalary salary,
+         WorkSchedules schedule,
+         int paidLeaveDays);
     }
 }

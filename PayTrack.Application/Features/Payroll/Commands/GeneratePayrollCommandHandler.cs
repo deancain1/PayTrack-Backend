@@ -23,6 +23,8 @@ namespace PayTrack.Application.Features.Payroll.Commands
         private readonly IPagIbigService _pagIbigService;
         private readonly ISSSService _sssService;
         private readonly IOvertimeRepository _overtimeRepository;
+        private readonly ILeaveRequestRepository _leaveRequestRepository;
+        private readonly IPayrollService _payrollService;
         private readonly IPublisher _publisher;
 
         public GeneratePayrollCommandHandler(
@@ -38,6 +40,8 @@ namespace PayTrack.Application.Features.Payroll.Commands
             IPagIbigService pagIbigService,
             ISSSService sssService,
             IOvertimeRepository overtimeRepository,
+            ILeaveRequestRepository leaveRequestRepository,
+            IPayrollService payrollService,
             IPublisher publisher)
         {
             _employeesRepository = employeesRepository;
@@ -52,6 +56,8 @@ namespace PayTrack.Application.Features.Payroll.Commands
             _pagIbigService = pagIbigService;
             _sssService = sssService;
             _overtimeRepository = overtimeRepository;
+            _leaveRequestRepository = leaveRequestRepository;
+            _payrollService = payrollService;
             _publisher = publisher;
         }
 
@@ -187,6 +193,14 @@ namespace PayTrack.Application.Features.Payroll.Commands
                         $"No salary assigned to {employee.ApplicationUser.FullName}");
                 }
 
+                var schedule = employee.WorkSchedule;
+
+                if (schedule == null)
+                {
+                    throw new InvalidOperationException(
+                        $"No work schedule assigned to {employee.ApplicationUser.FullName}");
+                }
+
                 var monthlyRate =
                     employeeSalary.MonthlyRate;
 
@@ -198,12 +212,64 @@ namespace PayTrack.Application.Features.Payroll.Commands
                             periodStart,
                             periodEnd);
 
-                regularAmount =
-                    Math.Round(
-                        regularAmount,
-                        2);
+                regularAmount = Math.Round(
+                    regularAmount,
+                    2);
 
-              
+
+                // ============================================================
+                // PAID LEAVE
+                // ============================================================
+
+                var paidLeaves =
+                   await _leaveRequestRepository
+                       .GetApprovedPaidLeaveAsync(
+                           employee.Id,
+                           periodStart,
+                           periodEnd);
+
+                var paidLeaveDays = 0;
+
+                foreach (var leave in paidLeaves)
+                {
+                    var leaveStart =
+                        leave.StartDate.Date < periodStart.Date
+                            ? periodStart.Date
+                            : leave.StartDate.Date;
+
+                    var leaveEnd =
+                        leave.EndDate.Date > periodEnd.Date
+                            ? periodEnd.Date
+                            : leave.EndDate.Date;
+
+                    if (leaveEnd >= leaveStart)
+                    {
+                        paidLeaveDays +=
+                            (leaveEnd - leaveStart).Days + 1;
+                    }
+                }
+
+                // Calculate paid leave using the employee's
+                // salary policy and work schedule.
+                //
+                // Example:
+                // Hourly Rate = 500
+                // Required Hours = 8
+                // Daily Rate = 500 * 8 = 4,000
+                //
+                // 2 paid leave days = 4,000 * 2 = 8,000
+
+                var paidLeaveAmount =
+                    _payrollService.CalculatePaidLeave(
+                        employeeSalary,
+                        schedule,
+                        paidLeaveDays);
+
+                paidLeaveAmount =
+                    Math.Round(
+                        paidLeaveAmount,
+                        2);
+                // OVERTIME
 
                 var completedOvertimes =
                     await _overtimeRepository
@@ -221,15 +287,17 @@ namespace PayTrack.Application.Features.Payroll.Commands
                         overtimeAmount,
                         2);
 
-            
+
+
 
                 var totalAmount =
                     Math.Round(
                         regularAmount +
+                        paidLeaveAmount +
                         overtimeAmount,
                         2);
 
-             
+
 
                 if (totalAmount <= 0)
                 {
@@ -323,8 +391,11 @@ namespace PayTrack.Application.Features.Payroll.Commands
                         RegularAmount = 
                         regularAmount,
 
-                        OvertimeAmount
-                        = overtimeAmount,
+                        OvertimeAmount =
+                        overtimeAmount,
+
+                        PaidLeaveAmount = 
+                        paidLeaveAmount,
 
                         TotalAmount =
                             totalAmount,
@@ -398,6 +469,9 @@ namespace PayTrack.Application.Features.Payroll.Commands
 
                         OvertimeAmount:
                             overtimeAmount,
+
+                        PaidLeaveAmount:
+                           paidLeaveAmount,
 
                         TotalAmount:
                             totalAmount,
