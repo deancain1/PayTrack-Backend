@@ -336,5 +336,103 @@ namespace PayTrack.Infrastructure.Services
 
             await smtp.DisconnectAsync(true);
         }
+
+        public async Task SendTimeOutReminderEmailAsync(string email, string fullName, TimeSpan scheduledEndTime, TimeSpan? overtimeEndTime)
+        {
+            var message = new MimeMessage();
+
+            message.From.Add(new MailboxAddress(
+                "PayTrack System",
+                _configuration["EmailSettings:Email"]
+            ));
+
+            message.To.Add(MailboxAddress.Parse(email));
+
+            message.Subject = "Reminder: Please Time Out";
+
+            var effectiveEndTime =
+                overtimeEndTime ?? scheduledEndTime;
+
+            var endTimeText = DateTime.Today
+                .Add(effectiveEndTime)
+                .ToString("h:mm tt");
+
+            var overtimeSection = overtimeEndTime.HasValue
+                ? $@"
+            <div style='
+                background:#fff3cd;
+                padding:15px;
+                border-radius:8px;
+                margin:20px 0;'>
+
+                <p>
+                    <strong>Overtime:</strong>
+                    You have approved overtime scheduled until
+                    <strong>{endTimeText}</strong>.
+                </p>
+
+            </div>"
+                : $@"
+            <div style='
+                background:#f5f5f5;
+                padding:15px;
+                border-radius:8px;
+                margin:20px 0;'>
+
+                <p>
+                    <strong>Scheduled End Time:</strong>
+                    {endTimeText}
+                </p>
+
+            </div>";
+
+            message.Body = new TextPart("html")
+            {
+                Text = $@"
+            <div style='
+                font-family: Arial, sans-serif;
+                max-width: 600px;
+                margin: auto;
+                padding: 20px;
+                color: #333;'>
+
+                <h2 style='color:#661F1F;'>
+                    Time Out Reminder
+                </h2>
+
+                <p>
+                    Hello <strong>{fullName}</strong>,
+                </p>
+
+                <p>
+                    This is a friendly reminder that you have not yet
+                    recorded your <strong>Time Out</strong> for today.
+                </p>
+
+                {overtimeSection}
+
+                <p>
+                    Please remember to time out when you have finished
+                    your work for today so your attendance and working
+                    hours can be recorded accurately.
+                </p>
+
+                <p>
+                    If you have already timed out, please disregard
+                    this email.
+                </p>
+
+                <br/>
+
+                <p>
+                    Regards,<br/>
+                    <strong>PayTrack Team</strong>
+                </p>
+
+            </div>"
+            };
+
+            await SendEmailAsync(message);
+        }
     }
 }

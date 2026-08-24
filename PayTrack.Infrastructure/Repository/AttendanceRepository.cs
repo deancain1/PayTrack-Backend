@@ -33,7 +33,7 @@ namespace PayTrack.Infrastructure.Repository
 
         public Task<Attendances?> GetTodayAttendanceAsync(Guid employeeId)
         {
-           var today = DateTime.UtcNow.Date;
+           var today = DateTime.Now.Date;
             return _context.Attendances
                 .FirstOrDefaultAsync(x =>
                  x.EmployeeId == employeeId &&

@@ -61,6 +61,7 @@ namespace PayTrack.Infrastructure.Repository
         {
             return await _context.Employees
                 .Where(x => ids.Contains(x.Id))
+                 .Include(x => x.WorkSchedule)
                 .Include(x => x.ApplicationUser)
                 .Include(x => x.Salary)
                 .ToListAsync();
@@ -69,6 +70,7 @@ namespace PayTrack.Infrastructure.Repository
         public async Task<List<Employees>> GetAllAsync()
         {
             return await _context.Employees
+                .Include (x => x.WorkSchedule)
                 .Include(e => e.ApplicationUser)
                 .ToListAsync();
         }

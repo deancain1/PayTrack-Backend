@@ -15,6 +15,8 @@ namespace PayTrack.Domain.Entities
         public DateTime? TimeIn { get; set; }
         public DateTime? TimeOut { get; set; }
         public decimal HoursWorked { get; set; }
+
+        public DateTime? TimeOutReminderSentAt { get; set; }
         public string? TimeInPhoto { get; set; }
         public string? TimeOutPhoto { get; set; }
         public bool IsLate { get; set; }
