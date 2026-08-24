@@ -12,6 +12,7 @@ namespace PayTrack.Domain.Entities
         public decimal MonthlyRateSnapshot { get; set; }
         public decimal RegularAmount { get; set; }
         public decimal OvertimeAmount { get; set; }
+        public decimal PaidLeaveAmount { get; set; }
         public decimal TotalAmount { get; set; }
         public decimal SalaryAdvanceDeduction { get; set; }
         public decimal SSSDeduction { get; set; }

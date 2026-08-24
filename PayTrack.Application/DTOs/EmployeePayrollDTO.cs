@@ -11,6 +11,7 @@ namespace PayTrack.Application.DTOs
      string EmployeeName,
      decimal RegularAmount,
      decimal OvertimeAmount,
+     decimal PaidLeaveAmount,
      decimal TotalAmount,
      decimal SalaryAdvance,
      decimal PhilHealthDeduction,
