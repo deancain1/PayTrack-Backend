@@ -111,5 +111,15 @@ namespace PayTrack.Infrastructure.Repository
                     x.PayrollRecordId == null)
                 .ToListAsync();
         }
+        public async Task<OvertimeRequest?> GetAcceptedOvertimeAsync(Guid employeeId, DateTime date)
+        {
+            return await _context.OvertimeRequests
+                .Where(x =>
+                    x.EmployeeId == employeeId &&
+                    x.Date.Date == date.Date &&
+                    x.Status == OvertimeStatus.Accepted)
+                .OrderByDescending(x => x.EndTime)
+                .FirstOrDefaultAsync();
+        }
     }
 }

@@ -40,6 +40,18 @@ namespace PayTrack.Infrastructure.Data.Configurations
                 .HasPrecision(18, 2)
                 .IsRequired();
 
+            builder.Property(x => x.RegularAmount)
+               .HasPrecision(18, 2)
+               .IsRequired();
+
+            builder.Property(x => x.OvertimeAmount)
+                .HasPrecision(18, 2)
+                .IsRequired();
+
+            builder.Property(x => x.PaidLeaveAmount)
+                .HasPrecision(18, 2)
+                .IsRequired();
+
             builder.Property(x => x.TotalAmount)
                 .HasPrecision(18, 2)
                 .IsRequired();

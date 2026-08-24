@@ -18,6 +18,7 @@ namespace PayTrack.Application.Interfaces.Repositories
         IQueryable<OvertimeRequest> GetOvertimeQueryByCompanyAdmin( string companyAdminId);
         Task<OvertimeRequest?> GetActiveOvertimeForEmployeeAsync(Guid employeeId,DateTime date);
         Task<List<OvertimeRequest>> GetCompletedOvertimesForPayrollAsync(Guid employeeId,DateTime startDate,DateTime endDate);
+        Task<OvertimeRequest?> GetAcceptedOvertimeAsync(Guid employeeId, DateTime date);
     }
 }
 
