@@ -12,6 +12,7 @@ namespace PayTrack.Application.DTOs
       string FullName,
       string? Email,
       string EmployeeNumber,
+      Guid DepartmentId,
       string Department,
       string? PhoneNumber,
       string? ProfilePictureBase64,

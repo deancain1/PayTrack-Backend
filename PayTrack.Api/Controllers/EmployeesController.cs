@@ -58,6 +58,41 @@ namespace PayTrack.Api.Controllers
 
             return Ok(employee);
         }
+        [HttpPut("{id:guid}")]
+        public async Task<IActionResult> UpdateEmployee( Guid id, [FromBody] UpdateEmployeeCommand command, CancellationToken cancellationToken)
+        {
+           
+            if (id != command.Id)
+            {
+                return BadRequest(new
+                {
+                    message = "Employee ID does not match the request."
+                });
+            }
 
+
+            try
+            {
+                var result = await _mediator.Send(
+                    command,
+                    cancellationToken);
+
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new
+                {
+                    message = ex.Message
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
+        }
     }
 }
