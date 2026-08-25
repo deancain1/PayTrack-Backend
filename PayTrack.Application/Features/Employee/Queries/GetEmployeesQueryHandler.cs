@@ -70,6 +70,7 @@ namespace PayTrack.Application.Features.Employee.Queries
                     e.ApplicationUser.FullName,
                     e.ApplicationUser.Email,
                     e.EmployeeNumber,
+                    e.DepartmentId,
                     e.Department != null ?e.Department.DepartmentName : "Unassigned",
                     e.ApplicationUser.PhoneNumber,
                     e.ApplicationUser.ProfilePicture != null

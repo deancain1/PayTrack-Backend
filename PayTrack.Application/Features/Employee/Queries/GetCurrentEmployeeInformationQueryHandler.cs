@@ -31,6 +31,7 @@ namespace PayTrack.Application.Features.Employee.Queries
                 e.ApplicationUser.FullName,
                 e.ApplicationUser?.Email,
                 e.EmployeeNumber,
+                e.DepartmentId,
                 e.Department?.DepartmentName ?? string.Empty,
                 e.ApplicationUser?.PhoneNumber,
                 e.ApplicationUser?.ProfilePicture != null
