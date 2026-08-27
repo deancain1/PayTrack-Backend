@@ -22,6 +22,13 @@ namespace PayTrack.Infrastructure.Repository
             await _context.Attendances.AddAsync(attendance);
             await _context.SaveChangesAsync();
         }
+        public IQueryable<Attendances> GetAttendancesByEmployeeId(Guid employeeId)
+        {
+            return _context.Attendances
+                  .AsNoTracking()
+                  .Where(lr => lr.EmployeeId == employeeId);
+        }
+ 
         public IQueryable<Attendances> GetAttendancesByCompanyAdminQuery(string companyAdminId)
         {
             return _context.Attendances
@@ -176,7 +183,7 @@ namespace PayTrack.Infrastructure.Repository
                     x.TimeOut == null);
         }
 
-     
+        
     }
     
 }
