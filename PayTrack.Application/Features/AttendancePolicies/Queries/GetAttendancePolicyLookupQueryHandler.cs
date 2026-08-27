@@ -22,7 +22,7 @@ namespace PayTrack.Application.Features.AttendancePolicies.Queries
         public async  Task<List<AttendancePolicyLookupDTO>> Handle(GetAttendancePolicyLookupQuery request, CancellationToken cancellationToken)
         {
             var companyAdminId = _currentUserService.UserId; 
-            var policies = await _attendancePolicyRepository.GetAllByCompanyAsync(companyAdminId);
+            var policies = await _attendancePolicyRepository.GetAllByCompanyAdminAsync(companyAdminId);
 
             return policies
                 .Select(x => new AttendancePolicyLookupDTO(

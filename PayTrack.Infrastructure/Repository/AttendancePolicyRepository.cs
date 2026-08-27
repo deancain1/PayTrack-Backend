@@ -14,11 +14,19 @@ namespace PayTrack.Infrastructure.Repository
     public class AttendancePolicyRepository : BaseRepository<AttendancePolicy>, IAttendancePolicyRepository
     {
         public AttendancePolicyRepository(AppDbContext context) : base(context) { }
-        public async Task<List<AttendancePolicy>> GetAllByCompanyAsync(string companyAdminId)
+
+        public async  Task<List<AttendancePolicy>> GetAllByCompanyAdminAsync(string companyAdminId)
         {
             return await _context.AttendancePolicies
-                .Where(x => x.CompanyAdminId == companyAdminId)
-                .ToListAsync();
+              .Where(x => x.CompanyAdminId == companyAdminId)
+              .ToListAsync();
+        }
+
+        public IQueryable<AttendancePolicy> GetAttendancePoliciesByCompanyAdmin(string companyAdminId)
+        {
+            return _context.AttendancePolicies
+              .Where(x => x.CompanyAdminId == companyAdminId)
+              .AsQueryable();
         }
 
         public async Task<AttendancePolicy?> GetDefaultPolicyAsync(string companyAdminId)

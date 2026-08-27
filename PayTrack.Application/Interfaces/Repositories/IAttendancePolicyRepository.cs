@@ -9,10 +9,10 @@ namespace PayTrack.Application.Interfaces.Repositories
 {
     public interface IAttendancePolicyRepository : IBaseRepository<AttendancePolicy>
     {
-        Task<List<AttendancePolicy>> GetAllByCompanyAsync(string companyAdminId);
+        Task<List<AttendancePolicy>> GetAllByCompanyAdminAsync(string companyAdminId);
         Task<AttendancePolicy?> GetDefaultPolicyAsync(string companyAdminId);
+      
 
-       
     }
 }
 

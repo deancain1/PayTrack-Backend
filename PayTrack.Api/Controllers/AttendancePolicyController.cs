@@ -18,15 +18,7 @@ namespace PayTrack.API.Controllers
             _mediator = mediator;
         }
 
-   
-        [HttpGet("{companyAdminId}")]
-        public async Task<IActionResult> GetAll(string companyAdminId)
-        {
-            var result = await _mediator.Send(
-                new GetAttendancePoliciesQuery(companyAdminId));
 
-            return Ok(result);
-        }
 
 
         [HttpGet("details/{id:guid}")]
