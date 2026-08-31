@@ -89,6 +89,14 @@ namespace PayTrack.Infrastructure.Repository
                     companyAdminId
                 );
         }
+        public IQueryable<OvertimeRequest> GetOvertimeQueryByEmployee(string employeeApplicationUserId)
+        {
+            return _context.OvertimeRequests
+                .Include(e => e.Employee)
+                .Where(e => e.Employee.ApplicationUserId == employeeApplicationUserId &&
+                 e.Source == OvertimeSource.CompanyAdmin)
+                .AsQueryable();
+        }
         public async Task<OvertimeRequest?> GetActiveOvertimeForEmployeeAsync(Guid employeeId, DateTime date)
         {
             return await _context.OvertimeRequests
@@ -121,5 +129,7 @@ namespace PayTrack.Infrastructure.Repository
                 .OrderByDescending(x => x.EndTime)
                 .FirstOrDefaultAsync();
         }
+
+
     }
 }

@@ -72,6 +72,7 @@ namespace PayTrack.Api.Controllers
 
 
         //Employee
+
         [HttpPost("employee")]
         public async Task<IActionResult> CreateByEmployee(
             [FromBody] CreateEmployeeOvertimeCommand command)
@@ -85,12 +86,20 @@ namespace PayTrack.Api.Controllers
             });
         }
 
+        [HttpGet("employee")]
+        public async Task<IActionResult> GetEmployeeOvertime([FromQuery] GetOvertimeByEmployeeQuery query)
+        {
+            var result = await _mediator.Send(query);
+
+            return Ok(result);
+        }
+
         [HttpPost("{id}/respond")]
         public async Task<IActionResult> Respond(
             Guid id,
             [FromBody] RespondToOvertimeCommand command)
         {
-            if (id != command.OvertimeId)
+            if (id != command.Id)
             {
                 return BadRequest(
                     "Overtime ID does not match.");

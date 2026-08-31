@@ -16,6 +16,7 @@ namespace PayTrack.Application.Interfaces.Repositories
         Task<List<OvertimeRequest>> GetByEmployeeAndPeriodAsync(Guid employeeId, DateTime periodStart, DateTime periodEnd);
         Task<bool> HasOverlapAsync(Guid employeeId, DateTime date, TimeSpan startTime, TimeSpan endTime, Guid? excludeId);
         IQueryable<OvertimeRequest> GetOvertimeQueryByCompanyAdmin( string companyAdminId);
+        IQueryable<OvertimeRequest> GetOvertimeQueryByEmployee(string employeeApplicationUserId);
         Task<OvertimeRequest?> GetActiveOvertimeForEmployeeAsync(Guid employeeId,DateTime date);
         Task<List<OvertimeRequest>> GetCompletedOvertimesForPayrollAsync(Guid employeeId,DateTime startDate,DateTime endDate);
         Task<OvertimeRequest?> GetAcceptedOvertimeAsync(Guid employeeId, DateTime date);

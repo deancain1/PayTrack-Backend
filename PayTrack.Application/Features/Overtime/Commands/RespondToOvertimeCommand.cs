@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace PayTrack.Application.Features.Overtime.Commands
 {
     public record RespondToOvertimeCommand(
-       Guid OvertimeId,
+       Guid Id,
        bool Accept,
        string? Remarks
    ) : IRequest;

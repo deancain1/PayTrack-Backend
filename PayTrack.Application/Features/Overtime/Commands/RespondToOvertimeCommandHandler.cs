@@ -40,7 +40,7 @@ namespace PayTrack.Application.Features.Overtime.Commands
 
             var overtime =
                 await _overtimeRepository.GetByIdWithApplicationUserAsync(
-                    request.OvertimeId);
+                    request.Id);
 
             if (overtime == null)
             {
