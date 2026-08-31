@@ -47,9 +47,23 @@ namespace PayTrack.Infrastructure.Repository
                 .Where(e => e.ApplicationUserId == employeeApplicationUserId)
                 .AsQueryable();
         }
+        public IQueryable<PayrollRecord> GetPayrollRecordByCompanyAdminsync(string companyAdminId)
+        {
+            return _context.PayrollRecords
+                .Include(e => e.ApplicationUser)
+                .Where(e => e.Employee.CompanyAdminId == companyAdminId)
+                .AsQueryable();
+        }
 
-        public async Task<bool> HasUnpaidAttendanceBeforePeriodAsync(
-     DateTime periodStart)
+        public async Task<List<PayrollRecord>> GetPayrollRecordsByMonthAsync(int month, int year)
+        {
+            return await _context.PayrollRecords
+                .Where(x => x.CreatedAt.Month == month &&
+                x.CreatedAt.Year == year)
+                .ToListAsync();
+        }
+
+        public async Task<bool> HasUnpaidAttendanceBeforePeriodAsync(DateTime periodStart)
         {
             return await _context.PayrollRecords
                 .Include(r => r.Attendance)
@@ -69,14 +83,7 @@ namespace PayTrack.Infrastructure.Repository
                 .Where(r => r.PayrollId == null)
                 .ToListAsync();
         }
-        public IQueryable<PayrollRecord> GetPayrollRecordByCompanyAdminsync(string companyAdminId)
-        {
-            return _context.PayrollRecords
-                .Include(e => e.ApplicationUser)
-                .Where(e => e.Employee.CompanyAdminId == companyAdminId)
-                .AsQueryable();
-        }
-
+      
         public async Task<decimal> GetTotalPayrollTodayAsync(string companyAdminId)
         {
             var today = DateTime.UtcNow.Date;
@@ -130,5 +137,7 @@ namespace PayTrack.Infrastructure.Repository
                         x => x.Status,
                         PayrollRecordStatus.Paid));
         }
+
+   
     }
 }

@@ -8,6 +8,6 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Application.Features.PayrollRecords.Queries
 {
-    public record GetPayrollRecordSummaryQuery : IRequest<PayrollRecordSummaryDTO>;
+    public record GetPayrollRecordSummaryQuery(int Month, int Year) : IRequest<PayrollRecordSummaryDTO>;
     
 }

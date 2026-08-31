@@ -13,6 +13,7 @@ namespace PayTrack.Application.Interfaces.Repositories
         IQueryable<PayrollRecord> Query();
         IQueryable<PayrollRecord> GetPayrollRecordByEmployeeAsync(string employeeApplicationUserId);
         IQueryable<PayrollRecord> GetPayrollRecordByCompanyAdminsync(string companyAdminId);
+        Task<List<PayrollRecord>> GetPayrollRecordsByMonthAsync(int month, int year);
         Task<decimal> GetTotalEarningsByEmployeeAsync(Guid employeeId);
         Task<bool> HasUnpaidAttendanceBeforePeriodAsync(DateTime periodStart);
         Task<List<PayrollRecord>> GetUnassignedPayrollRecordsAsync(Guid employeeId, DateTime periodStart, DateTime periodEnd);

@@ -48,10 +48,14 @@ namespace PayTrack.Api.Controllers
         }
 
         [HttpGet("payroll-record-summary")]
-        public async Task<ActionResult> GetDashboardSummary()
+        public async Task<IActionResult> GetPayrollRecordsSummary([FromQuery] int month, [FromQuery] int year)
         {
-            var result = await _mediator.Send(
-                new GetPayrollRecordSummaryQuery());
+            var query = new GetPayrollRecordSummaryQuery(
+                month,
+                year
+            );
+
+            var result = await _mediator.Send(query);
 
             return Ok(result);
         }

@@ -7,8 +7,7 @@ using System.Threading.Tasks;
 namespace PayTrack.Application.DTOs
 {
     public record PayrollRecordSummaryDTO(
-     decimal TotalPayrollToday,
-     decimal AverageDailyPayout,
-     int ActiveTracked
+     decimal TotalPayroll,
+    decimal TotalHours
  );
 }

@@ -38,6 +38,16 @@ namespace PayTrack.Infrastructure.Repository
                 .OrderByDescending(a => a.TimeIn);
         }
 
+        public async Task<List<Attendances>> GetAttendanceByMonthAsync(int month, int year)
+        {
+            return await _context.Attendances
+                .Where(x =>
+                    x.TimeIn.HasValue &&
+                    x.TimeIn.Value.Month == month &&
+                    x.TimeIn.Value.Year == year)
+                .ToListAsync();
+        }
+
         public Task<Attendances?> GetTodayAttendanceAsync(Guid employeeId)
         {
            var today = DateTime.Now.Date;

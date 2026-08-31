@@ -12,6 +12,7 @@ namespace PayTrack.Application.Interfaces.Repositories
         Task AddAsync(Attendances attendance);
         IQueryable<Attendances> GetAttendancesByEmployeeId(Guid employeeId);
         IQueryable<Attendances> GetAttendancesByCompanyAdminQuery(string companyAdminId);
+        Task<List<Attendances>> GetAttendanceByMonthAsync(int month, int year);
         Task<Attendances?> GetTodayAttendanceAsync(Guid employeeId);
         Task<(int Present, int Late, int Absent)> GetAttendanceSummaryAsync(string companyAdminId, int month, int year);
         Task UpdateAsync(Attendances attendance);

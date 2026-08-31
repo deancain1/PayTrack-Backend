@@ -1,55 +1,48 @@
 ﻿using MediatR;
 using PayTrack.Application.DTOs;
+using PayTrack.Application.Features.PayrollRecords.Queries;
 using PayTrack.Application.Interfaces.Repositories;
-using PayTrack.Application.Interfaces.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace PayTrack.Application.Features.PayrollRecords.Queries
+namespace PayTrack.Application.Features.Payroll.Queries;
+
+public class GetPayrollRecordSummaryQueryHandler
+    : IRequestHandler<GetPayrollRecordSummaryQuery, PayrollRecordSummaryDTO>
 {
-    internal class GetPayrollRecordSummaryQueryHandler : IRequestHandler<GetPayrollRecordSummaryQuery, PayrollRecordSummaryDTO>
+    private readonly IPayrollRecordRepository _payrollRecordRepository;
+    private readonly IAttendanceRepository _attendanceRepository;
+
+    public GetPayrollRecordSummaryQueryHandler(
+        IPayrollRecordRepository payrollRecordRepository,
+        IAttendanceRepository attendanceRepository)
     {
-        private readonly IPayrollRecordRepository _payrollRepository;
-        private readonly IAttendanceRepository _attendanceRepository;
-        private readonly ICurrentUserService _currentUser;
+        _payrollRecordRepository = payrollRecordRepository;
+        _attendanceRepository = attendanceRepository;
+    }
 
-        public GetPayrollRecordSummaryQueryHandler(
-            IPayrollRecordRepository payrollRepository,
-            IAttendanceRepository attendanceRepository,
-            ICurrentUserService currentUser)
-        {
-            _payrollRepository = payrollRepository;
-            _attendanceRepository = attendanceRepository;
-            _currentUser = currentUser;
-        }
+    public async Task<PayrollRecordSummaryDTO> Handle(GetPayrollRecordSummaryQuery request, CancellationToken cancellationToken)
+    {
+        // Get payroll records for selected month/year
+        var payrollRecords =
+            await _payrollRecordRepository.GetPayrollRecordsByMonthAsync(
+                request.Month,
+                request.Year);
 
-        public async Task<PayrollRecordSummaryDTO> Handle(
-            GetPayrollRecordSummaryQuery request,
-            CancellationToken cancellationToken)
-        {
-            var companyAdminId = _currentUser.UserId!;
+        var attendances =
+            await _attendanceRepository.GetAttendanceByMonthAsync(
+                request.Month,
+                request.Year);
 
-            var totalPayroll=
-              await  _payrollRepository.GetTotalPayrollTodayAsync(
-                    companyAdminId);
+        decimal totalPayroll = payrollRecords.Sum(x =>
+            x.AmountEarned
+        );
 
-            var averageDailyPayout =
-                await _payrollRepository.GetAverageDailyPayoutAsync(
-                    companyAdminId);
+        decimal totalHours = attendances.Sum(x =>
+            x.HoursWorked
+        );
 
-            var activeTracked =
-                await _attendanceRepository.GetActiveTrackedAsync(
-                    companyAdminId);
-
-          
-            return new PayrollRecordSummaryDTO(
-             totalPayroll,
-             averageDailyPayout,
-             activeTracked
-            );
-        }
+        return new PayrollRecordSummaryDTO(
+            Math.Round(totalPayroll, 2),
+            Math.Round(totalHours, 2)
+        );
     }
 }
