@@ -33,20 +33,12 @@ namespace PayTrack.Api.Controllers
 
         }
         [HttpGet("payroll-records-by-company-admin")]
-        public async Task<ActionResult<PagedResult<PayrollRecordDTO>>> GetPayrollRecordByCompanyAdminAsync([FromQuery] string? search, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 7)
+        public async Task<IActionResult> GetPayrollRecordByCompanyAdminAsync([FromQuery] GetPayrollRecordsByCompanyAdminQuery query)
         {
-            var query = new GetPayrollRecordsByCompanyAdminQuery
-            {
-                Search = search,
-                PageNumber = pageNumber,
-                PageSize = pageSize
-            };
-
             var result = await _mediator.Send(query);
-
             return Ok(result);
-
         }
+
         [HttpGet("total-earnings")]
         public async Task<IActionResult> GetTotalEarnings()
         {

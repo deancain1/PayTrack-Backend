@@ -8,6 +8,12 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Application.Features.PayrollRecords.Queries
 {
-    public record GetPayrollRecordsByCompanyAdminQuery(int PageNumber = 1, int? PageSize = null, string? Search = null) : IRequest<PagedResult<PayrollRecordDTO>>;
-   
+    public record GetPayrollRecordsByCompanyAdminQuery(
+         int PageNumber,
+         int? PageSize,
+         string? Search,
+         int? Month,
+         int? Year
+     ) : IRequest<PagedResult<PayrollRecordDTO>>;
+
 }
