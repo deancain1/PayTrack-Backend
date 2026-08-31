@@ -35,9 +35,20 @@ namespace PayTrack.Application.Features.Attendance.Queries
             {
                 var term = request.Search.Trim();
 
-                query = query.Where(e =>
-                    EF.Functions.Like(e.ApplicationUser.FullName, $"%{term}%") ||
-                    EF.Functions.Like(e.ApplicationUser.Email!, $"%{term}%"));
+                query = query.Where(a =>
+                    EF.Functions.Like(
+                        a.Employee.ApplicationUser.FullName,
+                        $"%{term}%"
+                    ) ||
+                    EF.Functions.Like(
+                        a.Employee.ApplicationUser.Email!,
+                        $"%{term}%"
+                    ) ||
+                    EF.Functions.Like(
+                        a.Employee.EmployeeNumber,
+                        $"%{term}%"
+                    )
+                );
             }
 
             // Total Count
