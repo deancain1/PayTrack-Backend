@@ -1,11 +1,15 @@
 ﻿using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PayTrack.Application.DTOs;
 using PayTrack.Application.Features.Auth.Commands;
 using PayTrack.Application.Features.Auth.Queries;
 using PayTrack.Application.Features.Employee.Commands;
+using System.Security.Claims;
 
 namespace PayTrack.Api.Controllers
 {
@@ -42,6 +46,132 @@ namespace PayTrack.Api.Controllers
         {
             var result = await _mediator.Send(command);
             return Ok(result);
+        }
+
+        [HttpGet("google")]
+        public IActionResult Google(
+            [FromQuery] string mode)
+        {
+            var properties =
+                new AuthenticationProperties
+                {
+                    RedirectUri =
+                        $"/api/Auth/google-callback?mode={mode}"
+                };
+
+            return Challenge(
+                properties,
+                GoogleDefaults.AuthenticationScheme
+            );
+        }
+
+        [HttpGet("google-callback")]
+        public async Task<IActionResult> GoogleCallback(
+      [FromQuery] string mode)
+        {
+            var result =
+                await HttpContext.AuthenticateAsync(
+                    GoogleDefaults.AuthenticationScheme
+                );
+
+            if (!result.Succeeded)
+            {
+                return Redirect(
+                    "http://localhost:4200/auth?googleError=true"
+                );
+            }
+
+            var principal = result.Principal;
+
+            var email =
+                principal.FindFirst(
+                    ClaimTypes.Email
+                )?.Value;
+
+            var fullName =
+                principal.FindFirst(
+                    ClaimTypes.Name
+                )?.Value;
+
+            var providerKey =
+                principal.FindFirst(
+                    ClaimTypes.NameIdentifier
+                )?.Value;
+
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return Redirect(
+                    "http://localhost:4200/auth?googleError=true"
+                );
+            }
+
+            // ==========================================
+            // REGISTER
+            // ==========================================
+
+            if (mode == "register")
+            {
+                var redirectUrl =
+                    "http://localhost:4200/auth" +
+                    "?googleRegister=true" +
+                    $"&fullName={Uri.EscapeDataString(
+                        fullName ?? "")}" +
+                    $"&email={Uri.EscapeDataString(
+                        email)}" +
+                    $"&providerKey={Uri.EscapeDataString(
+                        providerKey ?? "")}";
+
+                return Redirect(redirectUrl);
+            }
+
+            // ==========================================
+            // LOGIN
+            // ==========================================
+
+            if (mode == "login")
+            {
+                try
+                {
+                    var response =
+                        await _mediator.Send(
+                            new GoogleLoginCommand(
+                                Provider: "Google",
+                                ProviderKey: providerKey!,
+                                Email: email,
+                                FullName: fullName ?? ""
+                            )
+                        );
+
+                    var redirectUrl =
+                        "http://localhost:4200/auth" +
+                        "?googleLogin=true" +
+                        $"&token={Uri.EscapeDataString(
+                            response.Token)}" +
+                        $"&refreshToken={Uri.EscapeDataString(
+                            response.RefreshToken)}" +
+                        $"&userId={Uri.EscapeDataString(
+                            response.UserId)}" +
+                        $"&role={Uri.EscapeDataString(
+                            response.Role)}";
+
+                    return Redirect(redirectUrl);
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    return Redirect(
+                        "http://localhost:4200/auth" +
+                        "?googleError=true" +
+                        "&message=" +
+                        Uri.EscapeDataString(
+                            "Google account is not registered. Please register first."
+                        )
+                    );
+                }
+            }
+
+            return Redirect(
+                "http://localhost:4200/auth"
+            );
         }
 
         [HttpGet("verify-email")]

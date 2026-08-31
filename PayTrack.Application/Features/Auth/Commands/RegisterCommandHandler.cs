@@ -8,7 +8,9 @@ using PayTrack.Domain.Entities;
 namespace PayTrack.Application.Features.Auth.Commands
 {
     public class RegisterCommandHandler
-        : IRequestHandler<RegisterCommand, RegisterCompanyAdminResponseDTO>
+        : IRequestHandler<
+            RegisterCommand,
+            RegisterCompanyAdminResponseDTO>
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
@@ -17,7 +19,8 @@ namespace PayTrack.Application.Features.Auth.Commands
 
         public RegisterCommandHandler(
             UserManager<ApplicationUser> userManager,
-            RoleManager<IdentityRole> roleManager, ICompanyDetailsRepository companyDetailsRepository,
+            RoleManager<IdentityRole> roleManager,
+            ICompanyDetailsRepository companyDetailsRepository,
             IEmailService emailService)
         {
             _userManager = userManager;
@@ -30,80 +33,170 @@ namespace PayTrack.Application.Features.Auth.Commands
             RegisterCommand request,
             CancellationToken cancellationToken)
         {
-            // Generate verification token
+            // Generate email verification token
             var token = Guid.NewGuid().ToString();
 
-            // Create user
             var user = new ApplicationUser
             {
                 FullName = request.FullName,
                 Email = request.Email,
-               
+
                 PhoneNumber = request.PhoneNumber,
                 UserName = request.Email,
                 Role = request.Role,
 
-                // Email verification
-                IsEmailVerified = false,
-                EmailVerificationToken = token
+                IsEmailVerified = request.IsGoogleUser,
+
+                EmailVerificationToken =
+                    request.IsGoogleUser
+                        ? null
+                        : token,
+
+                EmailConfirmed =
+                    request.IsGoogleUser
             };
 
-            // Save user
-            var result = await _userManager.CreateAsync(
-                user,
-                request.Password
-            );
+            IdentityResult result;
 
-            // Validation errors
+            if (request.IsGoogleUser)
+            {
+                // Google user does not have a password
+                result = await _userManager.CreateAsync(user);
+            }
+            else
+            {
+                // Normal registration requires password
+
+                if (string.IsNullOrWhiteSpace(request.Password))
+                {
+                    throw new Exception(
+                        "Password is required."
+                    );
+                }
+
+                result = await _userManager.CreateAsync(
+                    user,
+                    request.Password
+                );
+            }
+
             if (!result.Succeeded)
             {
                 throw new Exception(
                     string.Join(
                         ", ",
-                        result.Errors.Select(e => e.Description)
+                        result.Errors.Select(
+                            e => e.Description
+                        )
                     )
                 );
             }
 
-            // Create role if not exists
-            if (!await _roleManager.RoleExistsAsync(request.Role))
+            if (!await _roleManager.RoleExistsAsync(
+                request.Role))
             {
                 await _roleManager.CreateAsync(
                     new IdentityRole(request.Role)
                 );
             }
 
-            // Assign role
-            await _userManager.AddToRoleAsync(
-                user,
-                request.Role
-            );
+            var roleResult =
+                await _userManager.AddToRoleAsync(
+                    user,
+                    request.Role
+                );
+
+            if (!roleResult.Succeeded)
+            {
+                throw new Exception(
+                    string.Join(
+                        ", ",
+                        roleResult.Errors.Select(
+                            e => e.Description
+                        )
+                    )
+                );
+            }
+
+
+            if (request.IsGoogleUser)
+            {
+                if (
+                    string.IsNullOrWhiteSpace(
+                        request.GoogleProviderKey
+                    )
+                )
+                {
+                    throw new Exception(
+                        "Google provider key is required."
+                    );
+                }
+
+                var googleLogin =
+                    new UserLoginInfo(
+                        loginProvider: "Google",
+                        providerKey:
+                            request.GoogleProviderKey,
+                        displayName: "Google"
+                    );
+
+                var googleResult =
+                    await _userManager.AddLoginAsync(
+                        user,
+                        googleLogin
+                    );
+
+                if (!googleResult.Succeeded)
+                {
+                    throw new Exception(
+                        string.Join(
+                            ", ",
+                            googleResult.Errors.Select(
+                                e => e.Description
+                            )
+                        )
+                    );
+                }
+            }
 
             var company = new CompanyDetails
             {
                 Id = Guid.NewGuid(),
-                CompanyName = request.CompanyName,
-                BusinessType = request.BusinessType,
-                CompanyAdminId = user.Id
+
+                CompanyName =
+                    request.CompanyName,
+
+                BusinessType =
+                    request.BusinessType,
+
+                CompanyAdminId =
+                    user.Id
             };
 
-            await _companyDetailsRepository.AddAsync(company);
-
-            // Send verification email
-            //await _emailService.SendVerificationEmailAsync(
-            //    user.Email!,
-            //    token
-            //);
+            await _companyDetailsRepository.AddAsync(
+                company
+            );
 
 
-            // Return response
+
+
+            if (!request.IsGoogleUser)
+            {
+
+                await _emailService.SendVerificationEmailAsync(
+                    user.Email!,
+                    token
+                );
+            }
+
+
             return new RegisterCompanyAdminResponseDTO(
                 FullName: user.FullName,
                 PhoneNumber: user.PhoneNumber ?? string.Empty,
                 Email: user.Email ?? string.Empty,
                 UserId: user.Id,
                 Role: user.Role,
-                CompanyId: Guid.Empty
+                CompanyId: company.Id
             );
         }
     }

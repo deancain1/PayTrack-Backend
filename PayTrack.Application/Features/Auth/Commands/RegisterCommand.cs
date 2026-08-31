@@ -15,7 +15,9 @@ namespace PayTrack.Application.Features.Auth.Commands
         string Email,
         string? PhoneNumber,
         string Password,
-        string Role
+        string Role,
+        bool IsGoogleUser = false,
+        string? GoogleProviderKey = null
     ) : IRequest<RegisterCompanyAdminResponseDTO>;
 
 }
