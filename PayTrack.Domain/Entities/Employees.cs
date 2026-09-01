@@ -17,7 +17,7 @@ namespace PayTrack.Domain.Entities
         public string ApplicationUserId { get; set; }
         public string CompanyAdminId { get; set; }
         public Guid? WorkScheduleId { get; set; }
-        public DateTime? ScheduleEffectiveDate { get; set; }
+        public DateOnly? ScheduleEffectiveDate { get; set; }
         public string? QrCodeBase64 { get; set; }
         public ApplicationUser ApplicationUser { get; set; } = null!;
         public EmployeeSalary Salary { get; set; }
