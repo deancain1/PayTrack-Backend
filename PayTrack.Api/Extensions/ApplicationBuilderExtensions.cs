@@ -13,9 +13,12 @@
                     c.RoutePrefix = string.Empty;
                 });
             }
+
+            app.UseCors();  
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseStaticFiles();
             app.MapControllers();
             return app;
         }
