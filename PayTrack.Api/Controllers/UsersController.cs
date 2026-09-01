@@ -16,16 +16,6 @@ namespace PayTrack.Api.Controllers
             _mediator = mediator;
         }
 
-        [HttpGet("by-role/{roleName}")]
-        public async Task<IActionResult> GetUsersByRole([FromRoute] string roleName, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 5, [FromQuery] string? search = null)
-        {
-            var result = await _mediator.Send(
-                new GetUserByRoleQuery(roleName, pageNumber, pageSize, search)
-            );
-
-            return Ok(result);
-        }
-
         [HttpGet("current")]
         public async Task<IActionResult> GetCurrentUser()
         {
