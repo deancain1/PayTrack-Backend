@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -54,39 +55,61 @@ namespace PayTrack.Api.Extensions
             return services;
         }
         public static IServiceCollection AddJwtAuthentication(
-            this IServiceCollection services,
-            IConfiguration configuration)
+     this IServiceCollection services,
+     IConfiguration configuration)
         {
             services.AddAuthentication(options =>
             {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultAuthenticateScheme =
+                    JwtBearerDefaults.AuthenticationScheme;
+
+                options.DefaultChallengeScheme =
+                    JwtBearerDefaults.AuthenticationScheme;
             })
+
+            // JWT AUTHENTICATION
+
             .AddJwtBearer(options =>
             {
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = configuration["Jwt:Issuer"],
-                    ValidAudience = configuration["Jwt:Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(configuration["Jwt:Key"])),
-                    ClockSkew = TimeSpan.Zero
-                };
+                options.TokenValidationParameters =
+                    new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
 
-                //  FOR SIGNALR
+                        ValidIssuer =
+                            configuration["Jwt:Issuer"],
+
+                        ValidAudience =
+                            configuration["Jwt:Audience"],
+
+                        IssuerSigningKey =
+                            new SymmetricSecurityKey(
+                                Encoding.UTF8.GetBytes(
+                                    configuration["Jwt:Key"]!
+                                )
+                            ),
+
+                        ClockSkew = TimeSpan.Zero
+                    };
+    
+                // SIGNALR
+
                 options.Events = new JwtBearerEvents
                 {
                     OnMessageReceived = context =>
                     {
-                        var accessToken = context.Request.Query["access_token"];
-                        var path = context.HttpContext.Request.Path;
+                        var accessToken =
+                            context.Request.Query["access_token"];
+
+                        var path =
+                            context.HttpContext.Request.Path;
 
                         if (!string.IsNullOrEmpty(accessToken) &&
-                            path.StartsWithSegments("/notificationHub"))
+                            path.StartsWithSegments(
+                                "/notificationHub"))
                         {
                             context.Token = accessToken;
                         }
@@ -94,7 +117,31 @@ namespace PayTrack.Api.Extensions
                         return Task.CompletedTask;
                     }
                 };
-            });
+            })
+
+            // GOOGLE AUTHENTICATION
+
+            .AddGoogle(
+                GoogleDefaults.AuthenticationScheme,
+                options =>
+                {
+                    options.ClientId =
+                        configuration[
+                            "Authentication:Google:ClientId"
+                        ]!;
+
+                    options.ClientSecret =
+                        configuration[
+                            "Authentication:Google:ClientSecret"
+                        ]!;
+
+                    options.CallbackPath =
+                        "/signin-google";
+
+                    options.SignInScheme =
+                        IdentityConstants.ExternalScheme;
+                }
+            );
 
             return services;
         }
