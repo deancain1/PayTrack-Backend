@@ -18,7 +18,7 @@ namespace PayTrack.Application.Features.WorkSchedule.Commands
         public async Task Handle(AssignWorkScheduleToEmployeeCommand request, CancellationToken cancellationToken)
         {
             var employee = await _employeesRepository
-                 .GetByIdAsync(request.EmployeeId);
+                .GetByIdAsync(request.EmployeeId);
 
             if (employee == null)
             {
@@ -28,7 +28,7 @@ namespace PayTrack.Application.Features.WorkSchedule.Commands
             employee.WorkScheduleId = request.WorkScheduleId;
             employee.ScheduleEffectiveDate = request.ScheduleEffectiveDate;
 
-             _employeesRepository.Update(employee);
+            _employeesRepository.Update(employee);
             await _employeesRepository.SaveChangesAsync();
         }
     }

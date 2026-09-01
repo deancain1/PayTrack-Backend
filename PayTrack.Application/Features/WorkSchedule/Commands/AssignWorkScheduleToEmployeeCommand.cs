@@ -11,6 +11,6 @@ namespace PayTrack.Application.Features.WorkSchedule.Commands
     (
         Guid EmployeeId,
         Guid WorkScheduleId,
-        DateTime ScheduleEffectiveDate
+        DateOnly ScheduleEffectiveDate
     ) : IRequest;
 }
