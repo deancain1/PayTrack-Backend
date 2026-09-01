@@ -27,7 +27,7 @@ namespace PayTrack.Infrastructure.Data.Configurations
                 .HasDefaultValue(false);
 
             builder.Property(x => x.CreatedAt)
-                .HasDefaultValueSql("GETUTCDATE()");
+                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
         }
     }
 }

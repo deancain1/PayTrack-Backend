@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PayTrack.Domain.Entities;
+using PayTrack.Domain.Enums;
 
 namespace PayTrack.Infrastructure.Data.Configurations
 {
@@ -11,53 +12,84 @@ namespace PayTrack.Infrastructure.Data.Configurations
         {
             builder.ToTable("LeaveRequests");
 
+
             builder.HasKey(x => x.Id);
 
-            builder.Property(x => x.LeaveType)
+
+            builder.Property(x => x.EmployeeId)
                 .IsRequired();
+
+
+            builder.Property(x => x.LeaveType)
+                .IsRequired()
+                .HasConversion<int>();
+
 
             builder.Property(x => x.StartDate)
-                .IsRequired();
+                .IsRequired()
+                .HasColumnType("timestamp without time zone");
+
 
             builder.Property(x => x.EndDate)
-                .IsRequired();
+                .IsRequired()
+                .HasColumnType("timestamp without time zone");
 
+ 
             builder.Property(x => x.TotalDays)
                 .IsRequired();
+
 
             builder.Property(x => x.Reason)
                 .HasMaxLength(1000)
                 .IsRequired();
 
+
             builder.Property(x => x.AttachmentUrl)
-                .HasMaxLength(500);
+                .HasMaxLength(500)
+                .IsRequired(false);
+
 
             builder.Property(x => x.Status)
-                .IsRequired();
+                .IsRequired()
+                .HasConversion<int>()
+                .HasDefaultValue(LeaveStatus.Pending);
+
 
             builder.Property(x => x.IsPaid)
-              .IsRequired()
-              .HasDefaultValue(false);
+                .IsRequired()
+                .HasDefaultValue(false);
+
 
             builder.Property(x => x.AdminRemarks)
-                .HasMaxLength(1000);
+                .HasMaxLength(1000)
+                .IsRequired(false);
 
-            builder.Property(x => x.CompanyAdminId)
-                .HasMaxLength(450);
 
             builder.Property(x => x.ReviewedBy)
-                .HasMaxLength(256);
+                .HasMaxLength(256)
+                .IsRequired(false);
+
+            builder.Property(x => x.CompanyAdminId)
+                .HasMaxLength(450)
+                .IsRequired(false);
+
+            builder.Property(x => x.ReviewedAt)
+                .IsRequired(false)
+                .HasColumnType("timestamp without time zone");
 
             builder.Property(x => x.CreatedAt)
-                .IsRequired();
+                .IsRequired()
+                .HasColumnType("timestamp without time zone");
 
-            // Employee relationship
+            builder.Property(x => x.UpdatedAt)
+                .IsRequired(false)
+                .HasColumnType("timestamp without time zone");
+
             builder.HasOne(x => x.Employee)
                 .WithMany()
                 .HasForeignKey(x => x.EmployeeId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            // Company Admin relationship
             builder.HasOne(x => x.CompanyAdmin)
                 .WithMany()
                 .HasForeignKey(x => x.CompanyAdminId)
