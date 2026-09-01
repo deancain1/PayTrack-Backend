@@ -28,7 +28,7 @@ namespace PayTrack.Infrastructure.Repository
                   .AsNoTracking()
                   .Where(lr => lr.EmployeeId == employeeId);
         }
- 
+
         public IQueryable<Attendances> GetAttendancesByCompanyAdminQuery(string companyAdminId)
         {
             return _context.Attendances
@@ -50,7 +50,7 @@ namespace PayTrack.Infrastructure.Repository
 
         public Task<Attendances?> GetTodayAttendanceAsync(Guid employeeId)
         {
-           var today = DateTime.Now.Date;
+            var today = DateTime.Now.Date;
             return _context.Attendances
                 .FirstOrDefaultAsync(x =>
                  x.EmployeeId == employeeId &&
@@ -67,7 +67,7 @@ namespace PayTrack.Infrastructure.Repository
                      .ThenInclude(e => e.Department)
                 .Where(a =>
                     a.Date.Date == today &&
-                    a.Employee.  CompanyAdminId == companyAdminId && a.TimeIn != null)
+                    a.Employee.CompanyAdminId == companyAdminId && a.TimeIn != null)
                 .OrderByDescending(a => a.TimeIn)
                 .ToListAsync();
         }
@@ -150,29 +150,7 @@ namespace PayTrack.Infrastructure.Repository
                 x.Date == today);
         }
 
-        public async Task<List<Employees>> GetEmployeesMissingTimeInReminderAsync()
-        {
-            var today = DateTime.Today;
-            var now = DateTime.Now.TimeOfDay;
 
-            return await _context.Employees
-                .Include(e => e.ApplicationUser)
-                .Include(e => e.WorkSchedule)
-                .Where(e =>
-                    e.WorkScheduleId != null &&
-                    e.WorkSchedule != null &&
-                    e.ScheduleEffectiveDate != null &&
-                    e.ScheduleEffectiveDate.Value.Date <= today)
-                .Where(e =>
-                    now >= e.WorkSchedule!.StartTime
-                        .Add(TimeSpan.FromMinutes(e.WorkSchedule.GracePeriodMinutes)))
-                .Where(e =>
-                    !_context.Attendances.Any(a =>
-                        a.EmployeeId == e.Id &&
-                        a.Date.Date == today &&
-                        a.TimeIn != null))
-                .ToListAsync();
-        }
 
         public async Task<List<Attendances>> GetByEmployeeAndDateRangeAsync(Guid employeeId, DateTime startDate,DateTime endDate)
         {
@@ -193,7 +171,7 @@ namespace PayTrack.Infrastructure.Repository
                     x.TimeOut == null);
         }
 
-        
+
     }
-    
+
 }

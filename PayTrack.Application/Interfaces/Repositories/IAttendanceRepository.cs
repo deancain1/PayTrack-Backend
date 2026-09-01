@@ -24,7 +24,6 @@ namespace PayTrack.Application.Interfaces.Repositories
         Task<int> GetAbsentTodayCountAsync(string companyAdminId);
 
         Task<bool> AttendanceExistsTodayAsync(Guid employeeId);
-        Task<List<Employees>> GetEmployeesMissingTimeInReminderAsync();
         Task<List<Attendances>> GetByEmployeeAndDateRangeAsync(Guid employeeId, DateTime startDate, DateTime endDate);
 
         Task<int> GetActiveTrackedAsync(string companyAdminId);
