@@ -22,9 +22,17 @@ namespace PayTrack.Infrastructure.Data
         public DbSet<WorkSchedules> WorkSchedules => Set<WorkSchedules>();
         public DbSet<AttendancePolicy> AttendancePolicies => Set<AttendancePolicy>();
         public DbSet<SalaryAdvances> SalaryAdvances => Set<SalaryAdvances>();
-        public DbSet<Notification> Notifications => Set<Notification>();
         public DbSet<EmailOTP> EmailOTPs => Set<EmailOTP>();
         public DbSet<CompanyPayrollSetting> CompanyPayrollSettings => Set<CompanyPayrollSetting>();
+        public DbSet<EmployeeNotificationPreference> EmployeeNotificationPreferences => Set<EmployeeNotificationPreference>();
+        public DbSet<LeaveRequest> LeaveRequests => Set<LeaveRequest>();
+        public DbSet<OvertimeRequest> OvertimeRequests => Set<OvertimeRequest>();
+
+        //Company Details
+        public DbSet<CompanyDetails> CompanyDetails => Set<CompanyDetails>();
+        //notifications
+        public DbSet<CompanyAdminNotification> Notifications => Set<CompanyAdminNotification>();
+        public DbSet<EmployeeNotification> EmployeeNotifications => Set<EmployeeNotification>();
 
         //taxes
         public DbSet<SSSContribution> SSSContributions => Set<SSSContribution>();

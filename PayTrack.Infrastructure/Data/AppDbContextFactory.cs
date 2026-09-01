@@ -13,7 +13,7 @@ namespace PayTrack.Infrastructure.Data
         public AppDbContext CreateDbContext(string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
-            var connectionString = "Server=localhost;Database=PayTrackDb;Trusted_Connection=True;TrustServerCertificate=true;";
+            var connectionString = "";
             optionsBuilder.UseSqlServer(connectionString);
             return new AppDbContext(optionsBuilder.Options);
         }
