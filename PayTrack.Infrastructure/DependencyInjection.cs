@@ -18,7 +18,6 @@ namespace PayTrack.Infrastructure
             services.AddScoped<ICurrentUserService, CurrentUserService>();
             services.AddScoped<IQrCodeService, QRCodeService>();
             services.AddScoped<IAttendanceRepository, AttendanceRepository>();
-            services.AddScoped<IPhotoStorageService, PhotoStorageService>();
             services.AddScoped<ISalaryRepository, SalaryRepository>();
             services.AddScoped<IPayrollRepository, PayrollRepository>();
             services.AddScoped<IPayrollService, PayrollService>();
