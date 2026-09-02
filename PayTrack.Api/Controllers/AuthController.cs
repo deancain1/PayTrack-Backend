@@ -69,13 +69,7 @@ namespace PayTrack.Api.Controllers
         public async Task<IActionResult> GoogleCallback(
             [FromQuery] string mode)
         {
-            // Get frontend URL from configuration.
-            //
-            // Local:
-            // http://localhost:4200
-            //
-            // Production:
-            // https://pay-track-frontend-chi.vercel.app
+            
             var frontendUrl =
                 _configuration["Frontend:Url"];
 
