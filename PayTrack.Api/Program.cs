@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.HttpOverrides;
 using PayTrack.Api.Extensions;
 using PayTrack.Infrastructure.Hubs;
 
@@ -21,11 +22,15 @@ builder.Services.AddControllers();
 
 builder.Services.AddOpenApi();
 builder.Services.AddSignalR();
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor |
+        ForwardedHeaders.XForwardedProto;
+});
 var app = builder.Build();
-//using (var scope = app.Services.CreateScope())
-//{
-//    await RoleSeeder.SeedRolesAsync(scope.ServiceProvider);
-//}
+app.UseForwardedHeaders();
+
 app.UseApplicationPipeline();
 app.MapHub<NotificationHub>("/notificationHub");
 app.Run();
