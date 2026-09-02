@@ -14,7 +14,7 @@ namespace PayTrack.Application.Features.Auth.Commands
         string? BusinessType,
         string Email,
         string? PhoneNumber,
-        string Password,
+        string? Password,
         string Role,
         bool IsGoogleUser = false,
         string? GoogleProviderKey = null
