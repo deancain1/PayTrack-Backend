@@ -14,9 +14,7 @@ namespace PayTrack.Application.Mappings
     {
         public MappingProfile()
         {
-            CreateMap<ApplicationUser, UserDTO>()
-           .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.Id))
-           .ForMember(dest => dest.Roles, opt => opt.Ignore()).ReverseMap();
+          
 
             CreateMap<CreateDepartmentCommand, Departments>()
            .ForMember(dest => dest.ApplicationUserId, opt => opt.Ignore());
