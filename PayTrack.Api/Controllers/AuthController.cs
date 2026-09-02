@@ -18,9 +18,11 @@ namespace PayTrack.Api.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IMediator _mediator;
-        public AuthController(IMediator mediator)
+        private readonly IConfiguration _configuration;
+        public AuthController(IMediator mediator, IConfiguration configuration)
         {
             _mediator = mediator;
+            _configuration = configuration;
         }
 
         [HttpPost("register")]
@@ -49,15 +51,12 @@ namespace PayTrack.Api.Controllers
         }
 
         [HttpGet("google")]
-        public IActionResult Google(
-            [FromQuery] string mode)
+        public IActionResult Google([FromQuery] string mode)
         {
-            var properties =
-                new AuthenticationProperties
-                {
-                    RedirectUri =
-                        $"/api/Auth/google-callback?mode={mode}"
-                };
+            var properties = new AuthenticationProperties
+            {
+                RedirectUri = $"/api/Auth/google-callback?mode={mode}"
+            };
 
             return Challenge(
                 properties,
@@ -65,10 +64,29 @@ namespace PayTrack.Api.Controllers
             );
         }
 
+
         [HttpGet("google-callback")]
         public async Task<IActionResult> GoogleCallback(
-      [FromQuery] string mode)
+            [FromQuery] string mode)
         {
+            // Get frontend URL from configuration.
+            //
+            // Local:
+            // http://localhost:4200
+            //
+            // Production:
+            // https://pay-track-frontend-chi.vercel.app
+            var frontendUrl =
+                _configuration["Frontend:Url"];
+
+            if (string.IsNullOrWhiteSpace(frontendUrl))
+            {
+                return BadRequest(
+                    "Frontend URL is not configured."
+                );
+            }
+
+            // Authenticate the Google response
             var result =
                 await HttpContext.AuthenticateAsync(
                     GoogleDefaults.AuthenticationScheme
@@ -77,42 +95,44 @@ namespace PayTrack.Api.Controllers
             if (!result.Succeeded)
             {
                 return Redirect(
-                    "http://localhost:4200/auth?googleError=true"
+                    $"{frontendUrl}/auth?googleError=true"
                 );
             }
 
             var principal = result.Principal;
 
+           
             var email =
                 principal.FindFirst(
                     ClaimTypes.Email
                 )?.Value;
 
+            
             var fullName =
                 principal.FindFirst(
                     ClaimTypes.Name
                 )?.Value;
 
+        
             var providerKey =
                 principal.FindFirst(
                     ClaimTypes.NameIdentifier
                 )?.Value;
 
+
             if (string.IsNullOrWhiteSpace(email))
             {
                 return Redirect(
-                    "http://localhost:4200/auth?googleError=true"
+                    $"{frontendUrl}/auth?googleError=true"
                 );
             }
 
-            // ==========================================
             // REGISTER
-            // ==========================================
 
             if (mode == "register")
             {
                 var redirectUrl =
-                    "http://localhost:4200/auth" +
+                    $"{frontendUrl}/auth" +
                     "?googleRegister=true" +
                     $"&fullName={Uri.EscapeDataString(
                         fullName ?? "")}" +
@@ -124,9 +144,7 @@ namespace PayTrack.Api.Controllers
                 return Redirect(redirectUrl);
             }
 
-            // ==========================================
             // LOGIN
-            // ==========================================
 
             if (mode == "login")
             {
@@ -143,7 +161,7 @@ namespace PayTrack.Api.Controllers
                         );
 
                     var redirectUrl =
-                        "http://localhost:4200/auth" +
+                        $"{frontendUrl}/auth" +
                         "?googleLogin=true" +
                         $"&token={Uri.EscapeDataString(
                             response.Token)}" +
@@ -159,7 +177,7 @@ namespace PayTrack.Api.Controllers
                 catch (UnauthorizedAccessException)
                 {
                     return Redirect(
-                        "http://localhost:4200/auth" +
+                        $"{frontendUrl}/auth" +
                         "?googleError=true" +
                         "&message=" +
                         Uri.EscapeDataString(
@@ -169,10 +187,14 @@ namespace PayTrack.Api.Controllers
                 }
             }
 
+            // INVALID MODE
+
+
             return Redirect(
-                "http://localhost:4200/auth"
+                $"{frontendUrl}/auth"
             );
         }
+    
 
         [HttpGet("verify-email")]
         public async Task<IActionResult> VerifyEmail(
