@@ -12,6 +12,7 @@ namespace PayTrack.Application.DTOs
      string Email,
      string Role,
      string? Department,
-     string? ProfilePictureBase64
+     string? ProfilePictureBase64,
+     bool IsGoogleUser 
  );
 }

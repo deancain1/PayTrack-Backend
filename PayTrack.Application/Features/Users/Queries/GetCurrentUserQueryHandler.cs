@@ -45,9 +45,10 @@ namespace PayTrack.Application.Features.Users.Queries
             roles.FirstOrDefault() ?? "",
             department,
             user.ProfilePicture != null
-             ? $"data:image/png;base64,{Convert.ToBase64String(user.ProfilePicture)}"
-             : null
-            ); 
+            ? $"data:image/png;base64,{Convert.ToBase64String(user.ProfilePicture)}"
+            : null,
+            user.IsGoogleUser
+ );
 
         }
     }

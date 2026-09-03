@@ -16,7 +16,7 @@ namespace PayTrack.Domain.Entities
         public string? RefreshToken { get; set; }
         public DateTime? RefreshTokenExpiryTime { get; set; }
         public byte[]? ProfilePicture { get; set; }
-        
+        public bool IsGoogleUser { get; set; }
         public Employees? Employee { get; set; }
         public bool IsActive { get; set; } = true;
         public ICollection<Departments> Departments { get; set; }
