@@ -28,7 +28,7 @@ namespace PayTrack.Infrastructure.Services
             message.Subject = "Verify Your Email Address";
 
             var verificationLink =
-                $"https://localhost:7221/api/auth/verify-email?token={token}";
+                $"https://paytrack-backend-1-i20d.onrender.com/api/auth/verify-email?token={token}";
 
             message.Body = new TextPart("html")
             {
@@ -310,10 +310,7 @@ namespace PayTrack.Infrastructure.Services
             await SendEmailAsync(message);
         }
 
-
-        // =========================================================
         // COMMON SMTP METHOD
-        // =========================================================
 
         private async Task SendEmailAsync(MimeMessage message)
         {
