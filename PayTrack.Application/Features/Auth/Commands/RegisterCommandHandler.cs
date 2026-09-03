@@ -44,7 +44,7 @@ namespace PayTrack.Application.Features.Auth.Commands
                 PhoneNumber = request.PhoneNumber,
                 UserName = request.Email,
                 Role = request.Role,
-
+                IsGoogleUser = request.IsGoogleUser,
                 IsEmailVerified = request.IsGoogleUser,
 
                 EmailVerificationToken =
