@@ -15,7 +15,8 @@ namespace PayTrack.Infrastructure.Data.Configurations
         {
             builder.HasOne(d => d.ApplicationUser)
                 .WithMany(u => u.Departments)
-                .HasForeignKey(d => d.ApplicationUserId);
+                .HasForeignKey(d => d.ApplicationUserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

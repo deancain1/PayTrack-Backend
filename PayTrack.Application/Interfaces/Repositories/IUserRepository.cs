@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Application.Interfaces.Repositories
 {
-    public interface IUserRepository
+    public interface IUserRepository: IBaseRepository<ApplicationUser>
     {
         Task DeactivateUserAsync(ApplicationUser user);
         Task ReactivateUserAsync(ApplicationUser user);

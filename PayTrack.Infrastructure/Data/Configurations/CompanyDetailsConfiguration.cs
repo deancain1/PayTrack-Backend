@@ -27,7 +27,7 @@ namespace PayTrack.Infrastructure.Data.Configurations
             builder.HasOne(x => x.ApplicatonUser)
                 .WithOne(x => x.CompanyDetails)
                 .HasForeignKey<CompanyDetails>(x => x.CompanyAdminId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

@@ -251,5 +251,15 @@ namespace PayTrack.Api.Controllers
 
             return Ok(result);
         }
+        [HttpDelete("account")]
+        public async Task<IActionResult> DeleteAccount(CancellationToken cancellationToken)
+        {
+            await _mediator.Send(
+                new DeleteAccountCommand(),
+                cancellationToken
+            );
+
+            return NoContent();
+        }
     }
 }

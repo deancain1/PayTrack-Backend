@@ -58,19 +58,19 @@ namespace PayTrack.Infrastructure.Data.Configurations
             builder.HasOne(sa => sa.Employee)
                 .WithMany()
                 .HasForeignKey(sa => sa.EmployeeId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             // ApplicationUser relationship
             builder.HasOne(sa => sa.ApplicationUser)
                 .WithMany()
                 .HasForeignKey(sa => sa.ApplicationUserId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Payroll relationship
             builder.HasOne(sa => sa.Payroll)
                 .WithMany()
                 .HasForeignKey(sa => sa.PayrollId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.Cascade);
 
            
             builder.HasIndex(sa => sa.EmployeeId);

@@ -15,12 +15,13 @@ namespace PayTrack.Infrastructure.Data.Configurations
         {
             builder.HasOne(e => e.ApplicationUser)
                 .WithOne(u => u.Employee)
-                .HasForeignKey<Employees>(e => e.ApplicationUserId);
+                .HasForeignKey<Employees>(e => e.ApplicationUserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasOne(e => e.Department)
                 .WithMany(d => d.Employees)
                 .HasForeignKey(e => e.DepartmentId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasOne(e => e.WorkSchedule)
                 .WithMany(ws => ws.Employees)

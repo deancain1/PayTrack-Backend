@@ -9,14 +9,10 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Infrastructure.Repository
 {
-    public class UserRepository : IUserRepository
+    public class UserRepository : BaseRepository<ApplicationUser>, IUserRepository
     {
-        private readonly AppDbContext _context;
+        public UserRepository(AppDbContext context) : base(context) { }
 
-        public UserRepository(AppDbContext context)
-        {
-            _context = context;
-        }
 
         public async Task DeactivateUserAsync(ApplicationUser user)
         {

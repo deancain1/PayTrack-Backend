@@ -16,7 +16,7 @@ namespace PayTrack.Infrastructure.Data.Configurations
             builder.HasOne(ap => ap.ApplicationUser)
                 .WithMany()
                 .HasForeignKey(ap => ap.CompanyAdminId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.Property(ap => ap.DeductionValue)
                 .HasColumnType("decimal(18,2)");

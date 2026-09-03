@@ -109,7 +109,7 @@ namespace PayTrack.Infrastructure.Data.Configurations
             builder.HasOne(x => x.Employee)
                 .WithMany()
                 .HasForeignKey(x => x.EmployeeId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
        
             builder.HasOne(x => x.PayrollBatch)

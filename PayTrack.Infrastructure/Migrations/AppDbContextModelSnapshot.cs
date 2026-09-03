@@ -1260,7 +1260,7 @@ namespace PayTrack.Infrastructure.Migrations
                     b.HasOne("PayTrack.Domain.Entities.ApplicationUser", "ApplicationUser")
                         .WithMany()
                         .HasForeignKey("CompanyAdminId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("ApplicationUser");
@@ -1288,7 +1288,7 @@ namespace PayTrack.Infrastructure.Migrations
                     b.HasOne("PayTrack.Domain.Entities.ApplicationUser", "ApplicatonUser")
                         .WithOne("CompanyDetails")
                         .HasForeignKey("PayTrack.Domain.Entities.CompanyDetails", "CompanyAdminId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("ApplicatonUser");
@@ -1343,7 +1343,7 @@ namespace PayTrack.Infrastructure.Migrations
                     b.HasOne("PayTrack.Domain.Entities.Departments", "Department")
                         .WithMany("Employees")
                         .HasForeignKey("DepartmentId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("PayTrack.Domain.Entities.WorkSchedules", "WorkSchedule")
@@ -1365,12 +1365,12 @@ namespace PayTrack.Infrastructure.Migrations
                     b.HasOne("PayTrack.Domain.Entities.ApplicationUser", "CompanyAdmin")
                         .WithMany()
                         .HasForeignKey("CompanyAdminId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("PayTrack.Domain.Entities.Employees", "Employee")
                         .WithMany()
                         .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("CompanyAdmin");
@@ -1408,7 +1408,7 @@ namespace PayTrack.Infrastructure.Migrations
                     b.HasOne("PayTrack.Domain.Entities.ApplicationUser", "ApplicationUser")
                         .WithMany()
                         .HasForeignKey("ApplicationUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("PayTrack.Domain.Entities.Attendances", "Attendance")
@@ -1442,7 +1442,7 @@ namespace PayTrack.Infrastructure.Migrations
                     b.HasOne("PayTrack.Domain.Entities.Employees", "Employee")
                         .WithMany()
                         .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("PayTrack.Domain.Entities.PayrollBatch", "PayrollBatch")
@@ -1461,19 +1461,19 @@ namespace PayTrack.Infrastructure.Migrations
                     b.HasOne("PayTrack.Domain.Entities.ApplicationUser", "ApplicationUser")
                         .WithMany()
                         .HasForeignKey("ApplicationUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("PayTrack.Domain.Entities.Employees", "Employee")
                         .WithMany()
                         .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("PayTrack.Domain.Entities.Payrolls", "Payroll")
                         .WithMany()
                         .HasForeignKey("PayrollId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("ApplicationUser");
 
@@ -1487,7 +1487,7 @@ namespace PayTrack.Infrastructure.Migrations
                     b.HasOne("PayTrack.Domain.Entities.ApplicationUser", "ApplicationUser")
                         .WithMany()
                         .HasForeignKey("CompanyAdminId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("ApplicationUser");

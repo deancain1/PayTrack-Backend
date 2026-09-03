@@ -88,13 +88,13 @@ namespace PayTrack.Infrastructure.Data.Configurations
             builder.HasOne(x => x.Employee)
                 .WithMany()
                 .HasForeignKey(x => x.EmployeeId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasOne(x => x.CompanyAdmin)
                 .WithMany()
                 .HasForeignKey(x => x.CompanyAdminId)
                 .HasPrincipalKey(x => x.Id)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
