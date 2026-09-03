@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using PayTrack.Application.DTOs;
 using PayTrack.Application.Interfaces.Repositories;
+using PayTrack.Application.Interfaces.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,17 +14,19 @@ namespace PayTrack.Application.Features.Department.Queries
     public class GetDepartmentsQueryHandler : IRequestHandler<GetDepartmentsQuery, PagedResult<DepartmentDTO>>
     {
         private readonly IDepartmentRepository _departmentRepository;
+        private readonly ICurrentUserService _currentUserService;
         private const int DefaultPageSize = 7;
         private const int MaxPageSize = 20;
 
-        public GetDepartmentsQueryHandler(IDepartmentRepository departmentRepository)
+        public GetDepartmentsQueryHandler(IDepartmentRepository departmentRepository, ICurrentUserService currentUserService)
         {
             _departmentRepository = departmentRepository;
+            _currentUserService = currentUserService;
         }
 
         public async Task<PagedResult<DepartmentDTO>> Handle(GetDepartmentsQuery request, CancellationToken cancellationToken)
         {
-            var query = _departmentRepository.GetDepartmentsQuery();
+            var query = _departmentRepository.GetDepartmentsByCompanyAdminQuery(_currentUserService.UserId);
 
             // 🔍 Search
             if (!string.IsNullOrWhiteSpace(request.Search))
