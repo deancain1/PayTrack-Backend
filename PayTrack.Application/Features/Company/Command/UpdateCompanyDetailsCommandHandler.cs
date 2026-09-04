@@ -33,7 +33,7 @@ namespace PayTrack.Application.Features.Company.Command
 
             var companyDetails =
                 await _companyDetailsRepository
-                    .GetCompanyDetailsByCompanyAdminIdAsync(
+                    .GetCompanyDetailsByCompanyAdminAsync(
                         companyAdminId);
 
             if (companyDetails == null)

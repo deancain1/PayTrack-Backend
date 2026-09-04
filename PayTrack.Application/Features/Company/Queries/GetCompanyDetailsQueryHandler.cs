@@ -24,7 +24,7 @@ namespace PayTrack.Application.Features.Company.Queries
 
         public async Task<CompanyDetailsDTO> Handle(GetCompanyDetailsQuery request, CancellationToken cancellationToken)
         {
-            var companyDetails = await _companyDetailsRepository.GetCompanyDetailsByCompanyAdminIdAsync(
+            var companyDetails = await _companyDetailsRepository.GetCompanyDetailsByCompanyAdminAsync(
                 _currentUserService.UserId);
 
             if (companyDetails == null)
