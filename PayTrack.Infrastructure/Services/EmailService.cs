@@ -431,9 +431,9 @@ namespace PayTrack.Infrastructure.Services
                 Console.WriteLine("Connecting to Gmail SMTP...");
 
                 await smtp.ConnectAsync(
-                    host,
-                    port,
-                    MailKit.Security.SecureSocketOptions.StartTls
+                host,
+                465,
+                 MailKit.Security.SecureSocketOptions.SslOnConnect
                 );
 
                 Console.WriteLine("SMTP connection successful.");
