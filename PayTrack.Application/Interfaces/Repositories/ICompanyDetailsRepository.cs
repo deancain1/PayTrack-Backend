@@ -10,6 +10,6 @@ namespace PayTrack.Application.Interfaces.Repositories
     public interface ICompanyDetailsRepository : IBaseRepository<CompanyDetails>
     {
        
-        Task<CompanyDetails?> GetCompanyDetailsByCompanyAdminIdAsync(string companyAdminId);
+        Task<CompanyDetails?> GetCompanyDetailsByCompanyAdminAsync(string companyAdminId);
     }
 }

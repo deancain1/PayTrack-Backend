@@ -29,9 +29,7 @@ namespace PayTrack.Application.Features.Auth.Commands
             _emailService = emailService;
         }
 
-        public async Task<RegisterCompanyAdminResponseDTO> Handle(
-            RegisterCommand request,
-            CancellationToken cancellationToken)
+        public async Task<RegisterCompanyAdminResponseDTO> Handle(RegisterCommand request, CancellationToken cancellationToken)
         {
             // Generate email verification token
             var token = Guid.NewGuid().ToString();
@@ -40,7 +38,6 @@ namespace PayTrack.Application.Features.Auth.Commands
             {
                 FullName = request.FullName,
                 Email = request.Email,
-
                 PhoneNumber = request.PhoneNumber,
                 UserName = request.Email,
                 Role = request.Role,
@@ -66,7 +63,6 @@ namespace PayTrack.Application.Features.Auth.Commands
             else
             {
                 // Normal registration requires password
-
                 if (string.IsNullOrWhiteSpace(request.Password))
                 {
                     throw new Exception(
@@ -92,14 +88,15 @@ namespace PayTrack.Application.Features.Auth.Commands
                 );
             }
 
-            if (!await _roleManager.RoleExistsAsync(
-                request.Role))
+            // Create role if it does not exist
+            if (!await _roleManager.RoleExistsAsync(request.Role))
             {
                 await _roleManager.CreateAsync(
                     new IdentityRole(request.Role)
                 );
             }
 
+            // Assign role to user
             var roleResult =
                 await _userManager.AddToRoleAsync(
                     user,
@@ -118,14 +115,11 @@ namespace PayTrack.Application.Features.Auth.Commands
                 );
             }
 
-
+            // Add Google login provider
             if (request.IsGoogleUser)
             {
-                if (
-                    string.IsNullOrWhiteSpace(
-                        request.GoogleProviderKey
-                    )
-                )
+                if (string.IsNullOrWhiteSpace(
+                    request.GoogleProviderKey))
                 {
                     throw new Exception(
                         "Google provider key is required."
@@ -159,6 +153,7 @@ namespace PayTrack.Application.Features.Auth.Commands
                 }
             }
 
+            // Create company details
             var company = new CompanyDetails
             {
                 Id = Guid.NewGuid(),
@@ -177,18 +172,14 @@ namespace PayTrack.Application.Features.Auth.Commands
                 company
             );
 
-
-
-
+            // Send verification email
             if (!request.IsGoogleUser)
             {
-
                 await _emailService.SendVerificationEmailAsync(
                     user.Email!,
                     token
                 );
             }
-
 
             return new RegisterCompanyAdminResponseDTO(
                 FullName: user.FullName,

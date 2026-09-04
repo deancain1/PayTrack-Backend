@@ -1,15 +1,12 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using PayTrack.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PayTrack.Application.Features.Auth.Commands
 {
-    public class VerifyEmailCommandHandler: IRequestHandler<VerifyEmailCommand, string>
+    public class VerifyEmailCommandHandler
+        : IRequestHandler<VerifyEmailCommand, string>
     {
         private readonly UserManager<ApplicationUser> _userManager;
 
@@ -19,23 +16,34 @@ namespace PayTrack.Application.Features.Auth.Commands
             _userManager = userManager;
         }
 
-        public async Task<string> Handle(
-            VerifyEmailCommand request,
-            CancellationToken cancellationToken)
+        public async Task<string> Handle(VerifyEmailCommand request, CancellationToken cancellationToken)
         {
-            var user = _userManager.Users
-                .FirstOrDefault(x =>
-                    x.EmailVerificationToken == request.Token);
+          
+            var user = await _userManager.Users
+                .SingleOrDefaultAsync(
+                    x => x.EmailVerificationToken == request.Token,
+                    cancellationToken);
 
+           
             if (user == null)
             {
-                throw new Exception("Invalid token");
+                throw new Exception("Invalid or expired verification token.");
             }
 
+           
             user.IsEmailVerified = true;
+
+           
             user.EmailVerificationToken = null;
 
-            await _userManager.UpdateAsync(user);
+            
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+            {
+                throw new Exception(
+                    string.Join(", ", result.Errors.Select(e => e.Description)));
+            }
 
             return "Email verified successfully";
         }

@@ -77,6 +77,89 @@ namespace PayTrack.Infrastructure.Services
             await SendEmailAsync(message);
         }
 
+        public async Task SendEmployeeVerificationEmailAsync(string email,string fullName,string companyName, string token)
+        {
+            var message = new MimeMessage();
+
+            message.From.Add(new MailboxAddress(
+                "PayTrack System",
+                _configuration["EmailSettings:Email"]
+            ));
+
+            message.To.Add(
+                MailboxAddress.Parse(email)
+            );
+
+            message.Subject =
+                $"Welcome to {companyName} - Verify Your PayTrack Account";
+
+            var verificationLink =
+                $"https://paytrack-backend-1-i20d.onrender.com/api/auth/verify-email?token={Uri.EscapeDataString(token)}";
+
+            message.Body = new TextPart("html")
+            {
+                Text = $@"
+            <div style='
+                font-family: Arial, sans-serif;
+                max-width: 600px;
+                margin: auto;
+                padding: 20px;
+                color: #333;'>
+
+                <h2 style='color:#661F1F;'>
+                    Welcome to {companyName}!
+                </h2>
+
+                <p>
+                    Hello <strong>{fullName}</strong>,
+                </p>
+
+                <p>
+                    You have been registered as an employee of
+                    <strong>{companyName}</strong> on PayTrack.
+                </p>
+
+                <p>
+                    To activate your PayTrack account, please verify
+                    your email address by clicking the button below.
+                </p>
+
+                <div style='margin:30px 0;'>
+                    <a href='{verificationLink}'
+                       style='
+                           display:inline-block;
+                           padding:12px 24px;
+                           background:#661F1F;
+                           color:#fff;
+                           text-decoration:none;
+                           border-radius:5px;
+                           font-weight:bold;'>
+                        Verify Email
+                    </a>
+                </div>
+
+                <p>
+                    After verifying your email, you will be able to
+                    access your PayTrack employee account.
+                </p>
+
+                <p>
+                    If you did not expect this account, please contact
+                    your company administrator.
+                </p>
+
+                <br/>
+
+                <p>
+                    Regards,<br/>
+                    <strong>PayTrack Team</strong>
+                </p>
+
+            </div>"
+            };
+
+            await SendEmailAsync(message);
+        }
         public async Task SendLoginOtpEmailAsync(string email, string fullName, string otp)
         {
             var message = new MimeMessage();

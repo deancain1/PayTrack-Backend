@@ -15,7 +15,7 @@ namespace PayTrack.Infrastructure.Repository
         public CompanyDetailsRepository(AppDbContext context) : base(context) { }
 
       
-        public async Task<CompanyDetails?> GetCompanyDetailsByCompanyAdminIdAsync(string companyAdminId)
+        public async Task<CompanyDetails?> GetCompanyDetailsByCompanyAdminAsync(string companyAdminId)
         {
             return await _context.CompanyDetails
                 .Include(c => c.ApplicatonUser)

@@ -35,45 +35,57 @@ namespace PayTrack.Application.Features.Auth.Commands
             _userRepository = userRepository;
         }
 
-        public async Task<AuthResponseDTO> Handle(
-            LoginCommand request,
-            CancellationToken cancellationToken)
+        public async Task<AuthResponseDTO> Handle(LoginCommand request, CancellationToken cancellationToken)
         {
-            // 1. Find user
-            var user = await _userManager.FindByEmailAsync(request.Email);
+           
+            var user = await _userManager.FindByEmailAsync(
+                request.Email
+            );
 
             if (user == null)
             {
                 throw new UnauthorizedAccessException(
-                    "Invalid credentials.");
+                    "Invalid credentials."
+                );
             }
 
-            // 2. Validate password
+          
             var result = await _signInManager.CheckPasswordSignInAsync(
                 user,
                 request.Password,
-                lockoutOnFailure: false);
+                lockoutOnFailure: false
+            );
 
             if (!result.Succeeded)
             {
                 throw new UnauthorizedAccessException(
-                    "Invalid credentials.");
+                    "Invalid credentials."
+                );
             }
 
-            // 3. Two-Factor Authentication
+          
+            if (!user.IsEmailVerified)
+            {
+                throw new UnauthorizedAccessException(
+                    "Please verify your email address before logging in."
+                );
+            }
+
+          
             if (user.TwoFactorEnabled)
             {
-                // Invalidate previous unused login OTPs
+
                 await _emailOTPRepository.InvalidatePreviousOtpsAsync(
                     user.Id,
-                    EmailOTPPurpose.Login);
+                    EmailOTPPurpose.Login
+                );
 
-                // Generate secure 6-digit OTP
+              
                 string otpCode = RandomNumberGenerator
                     .GetInt32(100000, 1000000)
                     .ToString();
 
-                // Save OTP
+             
                 var otp = new EmailOTP
                 {
                     ApplicationUserId = user.Id,
@@ -86,13 +98,14 @@ namespace PayTrack.Application.Features.Auth.Commands
 
                 await _emailOTPRepository.AddAsync(otp);
 
-                // Send OTP email
+               
                 await _emailService.SendLoginOtpEmailAsync(
                     user.Email!,
                     user.FullName,
-                    otpCode);
+                    otpCode
+                );
 
-                // Do not generate JWT yet
+               
                 return new AuthResponseDTO(
                     FullName: user.FullName,
                     PhoneNumber: user.PhoneNumber ?? string.Empty,
@@ -105,25 +118,28 @@ namespace PayTrack.Application.Features.Auth.Commands
                 );
             }
 
-            // 4. Sign in
+           
             await _signInManager.SignInAsync(
                 user,
-                isPersistent: false);
+                isPersistent: false
+            );
 
-            // 5. Get roles
+           
             var roles = await _userManager.GetRolesAsync(user);
 
-            // 6. Generate access token
+            
             var accessToken = _tokenService.GenerateAccessToken(
                 user,
-                roles);
+                roles
+            );
 
-            // 7. Generate refresh token
+           
             var refreshToken =
                 await _tokenService.GenerateAndSaveRefreshTokenAsync(
-                    user);
+                    user
+                );
 
-            // 8. Return authenticated response
+           
             return new AuthResponseDTO(
                 FullName: user.FullName,
                 PhoneNumber: user.PhoneNumber ?? string.Empty,

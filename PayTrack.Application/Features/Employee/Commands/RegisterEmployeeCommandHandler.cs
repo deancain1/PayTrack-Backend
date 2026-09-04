@@ -13,22 +13,23 @@ namespace PayTrack.Application.Features.Employee.Commands
         private readonly IEmployeesRepository _employeesRepository;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ICurrentUserService _currentUserService;
+        private readonly ICompanyDetailsRepository _companyDetailsRepository;
 
         public RegisterEmployeeCommandHandler(
             UserManager<ApplicationUser> userManager,
             IEmployeesRepository employeesRepository,
             RoleManager<IdentityRole> roleManager,
-            ICurrentUserService currentUserService)
+            ICurrentUserService currentUserService,
+            ICompanyDetailsRepository companyDetailsRepository)
         {
             _userManager = userManager;
             _employeesRepository = employeesRepository;
             _roleManager = roleManager;
             _currentUserService = currentUserService;
+            _companyDetailsRepository = companyDetailsRepository;
         }
 
-        public async Task<RegisterEmployeeResponseDTO> Handle(
-            RegisterEmployeeCommand request,
-            CancellationToken cancellationToken)
+        public async Task<RegisterEmployeeResponseDTO> Handle(RegisterEmployeeCommand request, CancellationToken cancellationToken)
         {
             byte[]? profileBytes = null;
 
@@ -41,6 +42,27 @@ namespace PayTrack.Application.Features.Employee.Commands
 
                 profileBytes = Convert.FromBase64String(base64);
             }
+
+            var companyAdminId = _currentUserService.UserId;
+
+            if (string.IsNullOrEmpty(companyAdminId))
+            {
+                throw new Exception(
+                    "Unable to identify the current Company Admin.");
+            }
+
+            // Get company details of the current Company Admin
+            var companyDetails =
+                await _companyDetailsRepository
+                    .GetCompanyDetailsByCompanyAdminAsync(companyAdminId);
+
+            if (companyDetails == null)
+            {
+                throw new Exception(
+                    "Company details not found.");
+            }
+
+            var companyName = companyDetails.CompanyName;
 
             // Employee role is controlled by the backend
             const string employeeRole = "Employee";
