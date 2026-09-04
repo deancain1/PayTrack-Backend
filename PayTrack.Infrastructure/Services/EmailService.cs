@@ -40,7 +40,7 @@ namespace PayTrack.Infrastructure.Services
                         padding: 20px;
                         color: #333;'>
 
-                        <h2 style='color:#661F1F;'>
+                        <h2 style='color:#661F1F;'>Fse
                             Email Verification
                         </h2>
 
@@ -395,26 +395,77 @@ namespace PayTrack.Infrastructure.Services
 
         // COMMON SMTP METHOD
 
+        // COMMON SMTP METHOD
+
         private async Task SendEmailAsync(MimeMessage message)
         {
             using var smtp = new SmtpClient();
 
-            await smtp.ConnectAsync(
-                _configuration["EmailSettings:Host"],
-                int.Parse(
-                    _configuration["EmailSettings:Port"]!
-                ),
-                MailKit.Security.SecureSocketOptions.StartTls
-            );
+            try
+            {
+                var host = _configuration["EmailSettings:Host"];
+                var portValue = _configuration["EmailSettings:Port"];
+                var email = _configuration["EmailSettings:Email"];
+                var password = _configuration["EmailSettings:Password"];
 
-            await smtp.AuthenticateAsync(
-                _configuration["EmailSettings:Email"],
-                _configuration["EmailSettings:Password"]
-            );
+                Console.WriteLine("========== EMAIL DEBUG ==========");
+                Console.WriteLine($"SMTP Host: {host}");
+                Console.WriteLine($"SMTP Port: {portValue}");
+                Console.WriteLine($"SMTP Email: {email}");
+                Console.WriteLine(
+                    $"SMTP Password Configured: {!string.IsNullOrWhiteSpace(password)}"
+                );
 
-            await smtp.SendAsync(message);
+                if (string.IsNullOrWhiteSpace(host))
+                    throw new Exception("EmailSettings:Host is missing.");
 
-            await smtp.DisconnectAsync(true);
+                if (!int.TryParse(portValue, out var port))
+                    throw new Exception("EmailSettings:Port is missing or invalid.");
+
+                if (string.IsNullOrWhiteSpace(email))
+                    throw new Exception("EmailSettings:Email is missing.");
+
+                if (string.IsNullOrWhiteSpace(password))
+                    throw new Exception("EmailSettings:Password is missing.");
+
+                Console.WriteLine("Connecting to Gmail SMTP...");
+
+                await smtp.ConnectAsync(
+                    host,
+                    port,
+                    MailKit.Security.SecureSocketOptions.StartTls
+                );
+
+                Console.WriteLine("SMTP connection successful.");
+
+                Console.WriteLine("Authenticating with Gmail...");
+
+                await smtp.AuthenticateAsync(
+                    email,
+                    password
+                );
+
+                Console.WriteLine("SMTP authentication successful.");
+
+                Console.WriteLine("Sending email...");
+
+                await smtp.SendAsync(message);
+
+                Console.WriteLine("Email sent successfully.");
+
+                await smtp.DisconnectAsync(true);
+
+                Console.WriteLine("SMTP disconnected.");
+                Console.WriteLine("=================================");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("========== EMAIL ERROR ==========");
+                Console.WriteLine(ex.ToString());
+                Console.WriteLine("=================================");
+
+                throw;
+            }
         }
 
         public async Task SendTimeOutReminderEmailAsync(string email, string fullName, TimeSpan scheduledEndTime, TimeSpan? overtimeEndTime)
