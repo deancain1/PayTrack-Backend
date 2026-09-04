@@ -40,7 +40,7 @@ namespace PayTrack.Infrastructure.Services
                         padding: 20px;
                         color: #333;'>
 
-                        <h2 style='color:#661F1F;'>Fse
+                        <h2 style='color:#661F1F;'>
                             Email Verification
                         </h2>
 
@@ -432,7 +432,7 @@ namespace PayTrack.Infrastructure.Services
 
                 await smtp.ConnectAsync(
                 host,
-                465,
+                port,
                  MailKit.Security.SecureSocketOptions.SslOnConnect
                 );
 
