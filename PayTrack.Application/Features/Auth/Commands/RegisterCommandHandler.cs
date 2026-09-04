@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using PayTrack.Application.DTOs;
 using PayTrack.Application.Interfaces.Repositories;
 using PayTrack.Application.Interfaces.Services;
@@ -16,17 +17,20 @@ namespace PayTrack.Application.Features.Auth.Commands
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ICompanyDetailsRepository _companyDetailsRepository;
         private readonly IEmailService _emailService;
+        private readonly ILogger<RegisterCommandHandler> _logger;
 
         public RegisterCommandHandler(
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
             ICompanyDetailsRepository companyDetailsRepository,
-            IEmailService emailService)
+            IEmailService emailService,
+            ILogger<RegisterCommandHandler> logger)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _companyDetailsRepository = companyDetailsRepository;
             _emailService = emailService;
+            _logger = logger;
         }
 
         public async Task<RegisterCompanyAdminResponseDTO> Handle(RegisterCommand request, CancellationToken cancellationToken)
@@ -55,19 +59,18 @@ namespace PayTrack.Application.Features.Auth.Commands
 
             IdentityResult result;
 
+          
             if (request.IsGoogleUser)
             {
-                // Google user does not have a password
+               
                 result = await _userManager.CreateAsync(user);
             }
             else
             {
-                // Normal registration requires password
+               
                 if (string.IsNullOrWhiteSpace(request.Password))
                 {
-                    throw new Exception(
-                        "Password is required."
-                    );
+                    throw new Exception("Password is required.");
                 }
 
                 result = await _userManager.CreateAsync(
@@ -76,27 +79,39 @@ namespace PayTrack.Application.Features.Auth.Commands
                 );
             }
 
+          
             if (!result.Succeeded)
             {
                 throw new Exception(
                     string.Join(
                         ", ",
-                        result.Errors.Select(
-                            e => e.Description
-                        )
+                        result.Errors.Select(e => e.Description)
                     )
                 );
             }
 
-            // Create role if it does not exist
+            
             if (!await _roleManager.RoleExistsAsync(request.Role))
             {
-                await _roleManager.CreateAsync(
-                    new IdentityRole(request.Role)
-                );
+                var createRoleResult =
+                    await _roleManager.CreateAsync(
+                        new IdentityRole(request.Role)
+                    );
+
+                if (!createRoleResult.Succeeded)
+                {
+                    throw new Exception(
+                        string.Join(
+                            ", ",
+                            createRoleResult.Errors.Select(
+                                e => e.Description
+                            )
+                        )
+                    );
+                }
             }
 
-            // Assign role to user
+          
             var roleResult =
                 await _userManager.AddToRoleAsync(
                     user,
@@ -129,8 +144,7 @@ namespace PayTrack.Application.Features.Auth.Commands
                 var googleLogin =
                     new UserLoginInfo(
                         loginProvider: "Google",
-                        providerKey:
-                            request.GoogleProviderKey,
+                        providerKey: request.GoogleProviderKey,
                         displayName: "Google"
                     );
 
@@ -153,7 +167,7 @@ namespace PayTrack.Application.Features.Auth.Commands
                 }
             }
 
-            // Create company details
+
             var company = new CompanyDetails
             {
                 Id = Guid.NewGuid(),
@@ -172,15 +186,33 @@ namespace PayTrack.Application.Features.Auth.Commands
                 company
             );
 
-            // Send verification email
+
             if (!request.IsGoogleUser)
             {
-                await _emailService.SendVerificationEmailAsync(
-                    user.Email!,
-                    token
-                );
+                try
+                {
+                    await _emailService.SendVerificationEmailAsync(
+                        user.Email!,
+                        token
+                    );
+
+                    _logger.LogInformation(
+                        "Verification email sent successfully to {Email}",
+                        user.Email
+                    );
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        "Failed to send verification email to {Email}",
+                        user.Email
+                    );
+
+                }
             }
 
+            // Return successful registration response
             return new RegisterCompanyAdminResponseDTO(
                 FullName: user.FullName,
                 PhoneNumber: user.PhoneNumber ?? string.Empty,
