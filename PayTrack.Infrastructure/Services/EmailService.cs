@@ -1,6 +1,7 @@
-﻿using MailKit.Net.Smtp;
+﻿using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.Configuration;
-using MimeKit;
+using Microsoft.Extensions.Logging;
 using PayTrack.Application.Interfaces.Services;
 
 namespace PayTrack.Infrastructure.Services
@@ -8,350 +9,409 @@ namespace PayTrack.Infrastructure.Services
     public class EmailService : IEmailService
     {
         private readonly IConfiguration _configuration;
+        private readonly HttpClient _httpClient;
+        private readonly ILogger<EmailService> _logger;
 
-        public EmailService(IConfiguration configuration)
+        public EmailService(
+            IConfiguration configuration,
+            HttpClient httpClient,
+            ILogger<EmailService> logger)
         {
             _configuration = configuration;
+            _httpClient = httpClient;
+            _logger = logger;
         }
 
-        public async Task SendVerificationEmailAsync(string email, string token)
+
+        public async Task SendVerificationEmailAsync(
+            string email,
+            string token)
         {
-            var message = new MimeMessage();
-
-            message.From.Add(new MailboxAddress(
-                "PayTrack System",
-                _configuration["EmailSettings:Email"]
-            ));
-
-            message.To.Add(MailboxAddress.Parse(email));
-
-            message.Subject = "Verify Your Email Address";
-
-            var verificationLink =
-                $"https://paytrack-backend-1-i20d.onrender.com/api/auth/verify-email?token={token}";
-
-            message.Body = new TextPart("html")
-            {
-                Text = $@"
-                    <div style='
-                        font-family: Arial, sans-serif;
-                        max-width: 600px;
-                        margin: auto;
-                        padding: 20px;
-                        color: #333;'>
-
-                        <h2 style='color:#661F1F;'>
-                            Email Verification
-                        </h2>
-
-                        <p>
-                            Click the button below to verify your
-                            PayTrack account.
-                        </p>
-
-                        <a href='{verificationLink}'
-                           style='display:inline-block;
-                                  padding:10px 20px;
-                                  background:#661F1F;
-                                  color:#fff;
-                                  text-decoration:none;
-                                  border-radius:5px;'>
-                            Verify Email
-                        </a>
-
-                        <p>
-                            If you did not create an account,
-                            you can ignore this email.
-                        </p>
-
-                        <br/>
-
-                        <p>
-                            Regards,<br/>
-                            <strong>PayTrack Team</strong>
-                        </p>
-
-                    </div>"
-            };
-
-            await SendEmailAsync(message);
-        }
-
-        public async Task SendEmployeeVerificationEmailAsync(string email,string fullName,string companyName, string token)
-        {
-            var message = new MimeMessage();
-
-            message.From.Add(new MailboxAddress(
-                "PayTrack System",
-                _configuration["EmailSettings:Email"]
-            ));
-
-            message.To.Add(
-                MailboxAddress.Parse(email)
-            );
-
-            message.Subject =
-                $"Welcome to {companyName} - Verify Your PayTrack Account";
-
             var verificationLink =
                 $"https://paytrack-backend-1-i20d.onrender.com/api/auth/verify-email?token={Uri.EscapeDataString(token)}";
 
-            message.Body = new TextPart("html")
-            {
-                Text = $@"
-            <div style='
-                font-family: Arial, sans-serif;
-                max-width: 600px;
-                margin: auto;
-                padding: 20px;
-                color: #333;'>
+            var htmlContent = $@"
+                <div style='
+                    font-family: Arial, sans-serif;
+                    max-width: 600px;
+                    margin: auto;
+                    padding: 20px;
+                    color: #333;'>
 
-                <h2 style='color:#661F1F;'>
-                    Welcome to {companyName}!
-                </h2>
+                    <h2 style='color:#661F1F;'>
+                        Email Verification
+                    </h2>
 
-                <p>
-                    Hello <strong>{fullName}</strong>,
-                </p>
+                    <p>
+                        Click the button below to verify your
+                        PayTrack account.
+                    </p>
 
-                <p>
-                    You have been registered as an employee of
-                    <strong>{companyName}</strong> on PayTrack.
-                </p>
+                    <div style='margin:30px 0;'>
+                        <a href='{verificationLink}'
+                           style='
+                               display:inline-block;
+                               padding:10px 20px;
+                               background:#661F1F;
+                               color:#fff;
+                               text-decoration:none;
+                               border-radius:5px;'>
+                            Verify Email
+                        </a>
+                    </div>
 
-                <p>
-                    To activate your PayTrack account, please verify
-                    your email address by clicking the button below.
-                </p>
+                    <p>
+                        If you did not create an account,
+                        you can ignore this email.
+                    </p>
 
-                <div style='margin:30px 0;'>
-                    <a href='{verificationLink}'
-                       style='
-                           display:inline-block;
-                           padding:12px 24px;
-                           background:#661F1F;
-                           color:#fff;
-                           text-decoration:none;
-                           border-radius:5px;
-                           font-weight:bold;'>
-                        Verify Email
-                    </a>
-                </div>
+                    <br/>
 
-                <p>
-                    After verifying your email, you will be able to
-                    access your PayTrack employee account.
-                </p>
+                    <p>
+                        Regards,<br/>
+                        <strong>PayTrack Team</strong>
+                    </p>
 
-                <p>
-                    If you did not expect this account, please contact
-                    your company administrator.
-                </p>
+                </div>";
 
-                <br/>
-
-                <p>
-                    Regards,<br/>
-                    <strong>PayTrack Team</strong>
-                </p>
-
-            </div>"
-            };
-
-            await SendEmailAsync(message);
+            await SendEmailAsync(
+                email,
+                "Verify Your Email Address",
+                htmlContent);
         }
-        public async Task SendLoginOtpEmailAsync(string email, string fullName, string otp)
+
+        // EMPLOYEE VERIFICATION
+
+
+        public async Task SendEmployeeVerificationEmailAsync(
+            string email,
+            string fullName,
+            string companyName,
+            string token)
         {
-            var message = new MimeMessage();
+            var verificationLink =
+                $"https://paytrack-backend-1-i20d.onrender.com/api/auth/verify-email?token={Uri.EscapeDataString(token)}";
 
-            message.From.Add(new MailboxAddress(
-                "PayTrack System",
-                _configuration["EmailSettings:Email"]
-            ));
+            var htmlContent = $@"
+                <div style='
+                    font-family: Arial, sans-serif;
+                    max-width: 600px;
+                    margin: auto;
+                    padding: 20px;
+                    color: #333;'>
 
-            message.To.Add(MailboxAddress.Parse(email));
+                    <h2 style='color:#661F1F;'>
+                        Welcome to {companyName}!
+                    </h2>
 
-            message.Subject =
-                "Your PayTrack Login Verification Code";
+                    <p>
+                        Hello <strong>{fullName}</strong>,
+                    </p>
 
-            message.Body = new TextPart("html")
-            {
-                Text = $@"
+                    <p>
+                        You have been registered as an employee of
+                        <strong>{companyName}</strong> on PayTrack.
+                    </p>
+
+                    <p>
+                        To activate your PayTrack account, please verify
+                        your email address by clicking the button below.
+                    </p>
+
+                    <div style='margin:30px 0;'>
+                        <a href='{verificationLink}'
+                           style='
+                               display:inline-block;
+                               padding:12px 24px;
+                               background:#661F1F;
+                               color:#fff;
+                               text-decoration:none;
+                               border-radius:5px;
+                               font-weight:bold;'>
+                            Verify Email
+                        </a>
+                    </div>
+
+                    <p>
+                        After verifying your email, you will be able to
+                        access your PayTrack employee account.
+                    </p>
+
+                    <p>
+                        If you did not expect this account, please contact
+                        your company administrator.
+                    </p>
+
+                    <br/>
+
+                    <p>
+                        Regards,<br/>
+                        <strong>PayTrack Team</strong>
+                    </p>
+
+                </div>";
+
+            await SendEmailAsync(
+                email,
+                $"Welcome to {companyName} - Verify Your PayTrack Account",
+                htmlContent);
+        }
+
+
+        public async Task SendLoginOtpEmailAsync(
+            string email,
+            string fullName,
+            string otp)
+        {
+            var htmlContent = $@"
+                <div style='
+                    font-family: Arial, sans-serif;
+                    max-width: 600px;
+                    margin: auto;
+                    padding: 20px;
+                    color: #333;'>
+
+                    <h2 style='color:#661F1F;'>
+                        PayTrack Login Verification
+                    </h2>
+
+                    <p>
+                        Hello <strong>{fullName}</strong>,
+                    </p>
+
+                    <p>
+                        Your verification code is:
+                    </p>
+
                     <div style='
-                        font-family: Arial, sans-serif;
-                        max-width: 600px;
-                        margin: auto;
-                        padding: 20px;
-                        color: #333;'>
+                        font-size:32px;
+                        font-weight:bold;
+                        letter-spacing:8px;
+                        text-align:center;
+                        padding:20px;
+                        background:#f5f5f5;
+                        border-radius:8px;
+                        margin:20px 0;'>
+                        {otp}
+                    </div>
 
-                        <h2 style='color:#661F1F;'>
-                            PayTrack Login Verification
-                        </h2>
+                    <p>
+                        This code will expire in
+                        <strong>5 minutes</strong>.
+                    </p>
+
+                    <p>
+                        If you did not attempt to sign in,
+                        please ignore this email.
+                    </p>
+
+                    <br/>
+
+                    <p>
+                        Regards,<br/>
+                        <strong>PayTrack Team</strong>
+                    </p>
+
+                </div>";
+
+            await SendEmailAsync(
+                email,
+                "Your PayTrack Login Verification Code",
+                htmlContent);
+        }
+
+        // LEAVE APPROVED
+
+
+        public async Task SendLeaveApprovedEmailAsync(
+            string email,
+            string fullName,
+            DateTime startDate,
+            DateTime endDate,
+            string? remarks)
+        {
+            var remarksSection =
+                string.IsNullOrWhiteSpace(remarks)
+                    ? ""
+                    : $@"
+                        <p>
+                            <strong>Admin Remarks:</strong>
+                            {remarks}
+                        </p>";
+
+            var htmlContent = $@"
+                <div style='
+                    font-family: Arial, sans-serif;
+                    max-width: 600px;
+                    margin: auto;
+                    padding: 20px;
+                    color: #333;'>
+
+                    <h2 style='color:#661F1F;'>
+                        Leave Request Approved
+                    </h2>
+
+                    <p>
+                        Hello <strong>{fullName}</strong>,
+                    </p>
+
+                    <p>
+                        Your leave request has been
+                        <strong style='color:green;'>
+                            approved
+                        </strong>.
+                    </p>
+
+                    <div style='
+                        background:#f5f5f5;
+                        padding:15px;
+                        border-radius:8px;
+                        margin:20px 0;'>
 
                         <p>
-                            Hello <strong>{fullName}</strong>,
+                            <strong>Start Date:</strong>
+                            {startDate:MMMM dd, yyyy}
                         </p>
 
                         <p>
-                            Your verification code is:
+                            <strong>End Date:</strong>
+                            {endDate:MMMM dd, yyyy}
                         </p>
 
+                        {remarksSection}
+
+                    </div>
+
+                    <p>
+                        Please make sure to coordinate your leave
+                        accordingly.
+                    </p>
+
+                    <br/>
+
+                    <p>
+                        Regards,<br/>
+                        <strong>PayTrack Team</strong>
+                    </p>
+
+                </div>";
+
+            await SendEmailAsync(
+                email,
+                "Leave Request Approved",
+                htmlContent);
+        }
+
+        // LEAVE REJECTED
+
+
+        public async Task SendLeaveRejectedEmailAsync(
+            string email,
+            string fullName,
+            DateTime startDate,
+            DateTime endDate,
+            string remarks)
+        {
+            var htmlContent = $@"
+                <div style='
+                    font-family: Arial, sans-serif;
+                    max-width: 600px;
+                    margin: auto;
+                    padding: 20px;
+                    color: #333;'>
+
+                    <h2 style='color:#661F1F;'>
+                        Leave Request Rejected
+                    </h2>
+
+                    <p>
+                        Hello <strong>{fullName}</strong>,
+                    </p>
+
+                    <p>
+                        Unfortunately, your leave request has been
+                        <strong style='color:#dc3545;'>
+                            rejected
+                        </strong>.
+                    </p>
+
+                    <div style='
+                        background:#f5f5f5;
+                        padding:15px;
+                        border-radius:8px;
+                        margin:20px 0;'>
+
+                        <p>
+                            <strong>Start Date:</strong>
+                            {startDate:MMMM dd, yyyy}
+                        </p>
+
+                        <p>
+                            <strong>End Date:</strong>
+                            {endDate:MMMM dd, yyyy}
+                        </p>
+
+                        <p>
+                            <strong>Reason:</strong>
+                            {remarks}
+                        </p>
+
+                    </div>
+
+                    <p>
+                        If you have questions regarding this decision,
+                        please contact your company administrator.
+                    </p>
+
+                    <br/>
+
+                    <p>
+                        Regards,<br/>
+                        <strong>PayTrack Team</strong>
+                    </p>
+
+                </div>";
+
+            await SendEmailAsync(
+                email,
+                "Leave Request Rejected",
+                htmlContent);
+        }
+
+
+        // TIME OUT REMINDER
+
+        public async Task SendTimeOutReminderEmailAsync(
+            string email,
+            string fullName,
+            TimeSpan scheduledEndTime,
+            TimeSpan? overtimeEndTime)
+        {
+            var effectiveEndTime =
+                overtimeEndTime ?? scheduledEndTime;
+
+            var endTimeText =
+                DateTime.Today
+                    .Add(effectiveEndTime)
+                    .ToString("h:mm tt");
+
+            var overtimeSection =
+                overtimeEndTime.HasValue
+                    ? $@"
                         <div style='
-                            font-size:32px;
-                            font-weight:bold;
-                            letter-spacing:8px;
-                            text-align:center;
-                            padding:20px;
-                            background:#f5f5f5;
+                            background:#fff3cd;
+                            padding:15px;
                             border-radius:8px;
                             margin:20px 0;'>
-                            {otp}
-                        </div>
 
-                        <p>
-                            This code will expire in
-                            <strong>5 minutes</strong>.
-                        </p>
+                            <p>
+                                <strong>Overtime:</strong>
+                                You have approved overtime scheduled until
+                                <strong>{endTimeText}</strong>.
+                            </p>
 
-                        <p>
-                            If you did not attempt to sign in,
-                            please ignore this email.
-                        </p>
-
-                        <br/>
-
-                        <p>
-                            Regards,<br/>
-                            <strong>PayTrack Team</strong>
-                        </p>
-
-                    </div>"
-            };
-
-            await SendEmailAsync(message);
-        }
-
-        public async Task SendLeaveApprovedEmailAsync(string email, string fullName, DateTime startDate, DateTime endDate, string? remarks)
-        {
-            var message = new MimeMessage();
-
-            message.From.Add(new MailboxAddress(
-                "PayTrack System",
-                _configuration["EmailSettings:Email"]));
-
-            message.To.Add(MailboxAddress.Parse(email));
-
-            message.Subject = "Leave Request Approved";
-
-            var remarksSection = string.IsNullOrWhiteSpace(remarks)
-                ? ""
-                : $@"
-            <p>
-                <strong>Admin Remarks:</strong>
-                {remarks}
-            </p>";
-
-            message.Body = new TextPart("html")
-            {
-                Text = $@"
-            <div style='
-                font-family: Arial, sans-serif;
-                max-width: 600px;
-                margin: auto;
-                padding: 20px;
-                color: #333;'>
-
-                <h2 style='color:#661F1F;'>
-                    Leave Request Approved
-                </h2>
-
-                <p>
-                    Hello <strong>{fullName}</strong>,
-                </p>
-
-                <p>
-                    Your leave request has been
-                    <strong style='color:green;'>
-                        approved
-                    </strong>.
-                </p>
-
-                <div style='
-                    background:#f5f5f5;
-                    padding:15px;
-                    border-radius:8px;
-                    margin:20px 0;'>
-
-                    <p>
-                        <strong>Start Date:</strong>
-                        {startDate:MMMM dd, yyyy}
-                    </p>
-
-                    <p>
-                        <strong>End Date:</strong>
-                        {endDate:MMMM dd, yyyy}
-                    </p>
-
-                    {remarksSection}
-
-                </div>
-
-                <p>
-                    Please make sure to coordinate your leave
-                    accordingly.
-                </p>
-
-                <br/>
-
-                <p>
-                    Regards,<br/>
-                    <strong>PayTrack Team</strong>
-                </p>
-
-            </div>"
-            };
-
-            await SendEmailAsync(message);
-        }
-
-        public async Task SendLeaveRejectedEmailAsync(string email, string fullName, DateTime startDate, DateTime endDate, string remarks)
-        {
-            var message = new MimeMessage();
-
-            message.From.Add(new MailboxAddress(
-                "PayTrack System",
-                _configuration["EmailSettings:Email"]
-            ));
-
-            message.To.Add(MailboxAddress.Parse(email));
-
-            message.Subject = "Leave Request Rejected";
-
-            message.Body = new TextPart("html")
-            {
-                Text = $@"
-                    <div style='
-                        font-family: Arial, sans-serif;
-                        max-width: 600px;
-                        margin: auto;
-                        padding: 20px;
-                        color: #333;'>
-
-                        <h2 style='color:#661F1F;'>
-                            Leave Request Rejected
-                        </h2>
-
-                        <p>
-                            Hello <strong>{fullName}</strong>,
-                        </p>
-
-                        <p>
-                            Unfortunately, your leave request has been
-                            <strong style='color:#dc3545;'>
-                                rejected
-                            </strong>.
-                        </p>
-
+                        </div>"
+                    : $@"
                         <div style='
                             background:#f5f5f5;
                             padding:15px;
@@ -359,211 +419,170 @@ namespace PayTrack.Infrastructure.Services
                             margin:20px 0;'>
 
                             <p>
-                                <strong>Start Date:</strong>
-                                {startDate:MMMM dd, yyyy}
+                                <strong>Scheduled End Time:</strong>
+                                {endTimeText}
                             </p>
 
-                            <p>
-                                <strong>End Date:</strong>
-                                {endDate:MMMM dd, yyyy}
-                            </p>
+                        </div>";
 
-                            <p>
-                                <strong>Reason:</strong>
-                                {remarks}
-                            </p>
+            var htmlContent = $@"
+                <div style='
+                    font-family: Arial, sans-serif;
+                    max-width: 600px;
+                    margin: auto;
+                    padding: 20px;
+                    color: #333;'>
 
-                        </div>
+                    <h2 style='color:#661F1F;'>
+                        Time Out Reminder
+                    </h2>
 
-                        <p>
-                            If you have questions regarding this decision,
-                            please contact your company administrator.
-                        </p>
+                    <p>
+                        Hello <strong>{fullName}</strong>,
+                    </p>
 
-                        <br/>
+                    <p>
+                        This is a friendly reminder that you have not yet
+                        recorded your <strong>Time Out</strong> for today.
+                    </p>
 
-                        <p>
-                            Regards,<br/>
-                            <strong>PayTrack Team</strong>
-                        </p>
+                    {overtimeSection}
 
-                    </div>"
-            };
+                    <p>
+                        Please remember to time out when you have finished
+                        your work for today so your attendance and working
+                        hours can be recorded accurately.
+                    </p>
 
-            await SendEmailAsync(message);
+                    <p>
+                        If you have already timed out, please disregard
+                        this email.
+                    </p>
+
+                    <br/>
+
+                    <p>
+                        Regards,<br/>
+                        <strong>PayTrack Team</strong>
+                    </p>
+
+                </div>";
+
+            await SendEmailAsync(
+                email,
+                "Reminder: Please Time Out",
+                htmlContent);
         }
 
-        // COMMON SMTP METHOD
+        // COMMON BREVO API METHOD
 
-        // COMMON SMTP METHOD
 
-        private async Task SendEmailAsync(MimeMessage message)
+        private async Task SendEmailAsync(
+            string recipientEmail,
+            string subject,
+            string htmlContent)
         {
-            using var smtp = new SmtpClient();
+            var apiKey =
+                _configuration["Brevo:ApiKey"];
+
+            var senderEmail =
+                _configuration["Brevo:SenderEmail"];
+
+            var senderName =
+                _configuration["Brevo:SenderName"];
+
+            if (string.IsNullOrWhiteSpace(apiKey))
+            {
+                throw new Exception(
+                    "Brevo:ApiKey is missing.");
+            }
+
+            if (string.IsNullOrWhiteSpace(senderEmail))
+            {
+                throw new Exception(
+                    "Brevo:SenderEmail is missing.");
+            }
+
+            if (string.IsNullOrWhiteSpace(senderName))
+            {
+                senderName = "PayTrack System";
+            }
+
+            var requestBody = new
+            {
+                sender = new
+                {
+                    email = senderEmail,
+                    name = senderName
+                },
+
+                to = new[]
+                {
+                    new
+                    {
+                        email = recipientEmail
+                    }
+                },
+
+                subject = subject,
+
+                htmlContent = htmlContent
+            };
+
+            var json =
+                JsonSerializer.Serialize(requestBody);
+
+            using var request =
+                new HttpRequestMessage(
+                    HttpMethod.Post,
+                    "https://api.brevo.com/v3/smtp/email");
+
+            request.Headers.Add(
+                "api-key",
+                apiKey);
+
+            request.Content =
+                new StringContent(
+                    json,
+                    Encoding.UTF8,
+                    "application/json");
+
+            _logger.LogInformation(
+                "Sending email through Brevo to {Email}",
+                recipientEmail);
 
             try
             {
-                var host = _configuration["EmailSettings:Host"];
-                var portValue = _configuration["EmailSettings:Port"];
-                var email = _configuration["EmailSettings:Email"];
-                var password = _configuration["EmailSettings:Password"];
+                var response =
+                    await _httpClient.SendAsync(request);
 
-                Console.WriteLine("========== EMAIL DEBUG ==========");
-                Console.WriteLine($"SMTP Host: {host}");
-                Console.WriteLine($"SMTP Port: {portValue}");
-                Console.WriteLine($"SMTP Email: {email}");
-                Console.WriteLine(
-                    $"SMTP Password Configured: {!string.IsNullOrWhiteSpace(password)}"
-                );
+                var responseContent =
+                    await response.Content.ReadAsStringAsync();
 
-                if (string.IsNullOrWhiteSpace(host))
-                    throw new Exception("EmailSettings:Host is missing.");
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError(
+                        "Brevo email failed. Status: {StatusCode}. Response: {Response}",
+                        response.StatusCode,
+                        responseContent);
 
-                if (!int.TryParse(portValue, out var port))
-                    throw new Exception("EmailSettings:Port is missing or invalid.");
+                    throw new Exception(
+                        $"Brevo email failed: {responseContent}");
+                }
 
-                if (string.IsNullOrWhiteSpace(email))
-                    throw new Exception("EmailSettings:Email is missing.");
-
-                if (string.IsNullOrWhiteSpace(password))
-                    throw new Exception("EmailSettings:Password is missing.");
-
-                Console.WriteLine("Connecting to Gmail SMTP...");
-
-                await smtp.ConnectAsync(
-                host,
-                port,
-                 MailKit.Security.SecureSocketOptions.SslOnConnect
-                );
-
-                Console.WriteLine("SMTP connection successful.");
-
-                Console.WriteLine("Authenticating with Gmail...");
-
-                await smtp.AuthenticateAsync(
-                    email,
-                    password
-                );
-
-                Console.WriteLine("SMTP authentication successful.");
-
-                Console.WriteLine("Sending email...");
-
-                await smtp.SendAsync(message);
-
-                Console.WriteLine("Email sent successfully.");
-
-                await smtp.DisconnectAsync(true);
-
-                Console.WriteLine("SMTP disconnected.");
-                Console.WriteLine("=================================");
+                _logger.LogInformation(
+                    "Email successfully sent through Brevo to {Email}",
+                    recipientEmail);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("========== EMAIL ERROR ==========");
-                Console.WriteLine(ex.ToString());
-                Console.WriteLine("=================================");
+                _logger.LogError(
+                    ex,
+                    "Error sending email through Brevo to {Email}",
+                    recipientEmail);
 
                 throw;
             }
-        }
-
-        public async Task SendTimeOutReminderEmailAsync(string email, string fullName, TimeSpan scheduledEndTime, TimeSpan? overtimeEndTime)
-        {
-            var message = new MimeMessage();
-
-            message.From.Add(new MailboxAddress(
-                "PayTrack System",
-                _configuration["EmailSettings:Email"]
-            ));
-
-            message.To.Add(MailboxAddress.Parse(email));
-
-            message.Subject = "Reminder: Please Time Out";
-
-            var effectiveEndTime =
-                overtimeEndTime ?? scheduledEndTime;
-
-            var endTimeText = DateTime.Today
-                .Add(effectiveEndTime)
-                .ToString("h:mm tt");
-
-            var overtimeSection = overtimeEndTime.HasValue
-                ? $@"
-            <div style='
-                background:#fff3cd;
-                padding:15px;
-                border-radius:8px;
-                margin:20px 0;'>
-
-                <p>
-                    <strong>Overtime:</strong>
-                    You have approved overtime scheduled until
-                    <strong>{endTimeText}</strong>.
-                </p>
-
-            </div>"
-                : $@"
-            <div style='
-                background:#f5f5f5;
-                padding:15px;
-                border-radius:8px;
-                margin:20px 0;'>
-
-                <p>
-                    <strong>Scheduled End Time:</strong>
-                    {endTimeText}
-                </p>
-
-            </div>";
-
-            message.Body = new TextPart("html")
-            {
-                Text = $@"
-            <div style='
-                font-family: Arial, sans-serif;
-                max-width: 600px;
-                margin: auto;
-                padding: 20px;
-                color: #333;'>
-
-                <h2 style='color:#661F1F;'>
-                    Time Out Reminder
-                </h2>
-
-                <p>
-                    Hello <strong>{fullName}</strong>,
-                </p>
-
-                <p>
-                    This is a friendly reminder that you have not yet
-                    recorded your <strong>Time Out</strong> for today.
-                </p>
-
-                {overtimeSection}
-
-                <p>
-                    Please remember to time out when you have finished
-                    your work for today so your attendance and working
-                    hours can be recorded accurately.
-                </p>
-
-                <p>
-                    If you have already timed out, please disregard
-                    this email.
-                </p>
-
-                <br/>
-
-                <p>
-                    Regards,<br/>
-                    <strong>PayTrack Team</strong>
-                </p>
-
-            </div>"
-            };
-
-            await SendEmailAsync(message);
         }
     }
 }

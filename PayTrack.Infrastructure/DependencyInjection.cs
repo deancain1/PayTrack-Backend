@@ -12,7 +12,7 @@ namespace PayTrack.Infrastructure
         public static IServiceCollection AddInfrastructure(this IServiceCollection services)
         {
             services.AddScoped<ITokenService, TokenService>();
-            services.AddScoped<IEmailService, EmailService>();
+            services.AddHttpClient<IEmailService, EmailService>();
             services.AddScoped<IEmployeesRepository, EmployeesRepository>();
             services.AddScoped<IDepartmentRepository, DepartmentRepository>();
             services.AddScoped<ICurrentUserService, CurrentUserService>();
