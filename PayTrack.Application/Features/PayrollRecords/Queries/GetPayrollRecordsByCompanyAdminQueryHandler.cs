@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Application.Features.PayrollRecords.Queries
 {
-    public class GetPayrollRecordsByCompanyAdminQueryHandler : IRequestHandler<GetPayrollRecordsByCompanyAdminQuery, PagedResult<PayrollRecordDTO>>
+    public class GetPayrollRecordsByCompanyAdminQueryHandler: IRequestHandler<GetPayrollRecordsByCompanyAdminQuery, PagedResult<PayrollRecordDTO>>
     {
         private readonly IPayrollRecordRepository _payrollRecordRepository;
         private readonly ICurrentUserService _currentUserService;
@@ -18,19 +18,17 @@ namespace PayTrack.Application.Features.PayrollRecords.Queries
         private const int DefaultPageSize = 7;
         private const int MaxPageSize = 20;
 
-
         public GetPayrollRecordsByCompanyAdminQueryHandler(
             IPayrollRecordRepository payrollRecordRepository,
             ICurrentUserService currentUserService)
         {
             _payrollRecordRepository = payrollRecordRepository;
+            _payrollRecordRepository = payrollRecordRepository;
             _currentUserService = currentUserService;
         }
 
-
         public async Task<PagedResult<PayrollRecordDTO>> Handle(GetPayrollRecordsByCompanyAdminQuery request, CancellationToken cancellationToken)
         {
-
             var query =
                 _payrollRecordRepository
                     .GetPayrollRecordByCompanyAdminsync(
@@ -38,17 +36,15 @@ namespace PayTrack.Application.Features.PayrollRecords.Queries
 
             // MONTH / YEAR FILTER
 
-
             var month =
                 request.Month.HasValue
                     ? request.Month.Value
-                    : DateTime.Now.Month;
+                    : DateTime.UtcNow.Month;
 
             var year =
                 request.Year.HasValue
                     ? request.Year.Value
-                    : DateTime.Now.Year;
-
+                    : DateTime.UtcNow.Year;
 
             if (month < 1 || month > 12)
             {
@@ -56,25 +52,26 @@ namespace PayTrack.Application.Features.PayrollRecords.Queries
                     "Month must be between 1 and 12.");
             }
 
-
             if (year < 1)
             {
                 throw new ArgumentException(
                     "Invalid year.");
             }
-            // START OF SELECTED MONTH
 
-            var startDate =
-                new DateTime(
-                    year,
-                    month,
-                    1);
+          
+
+            var startDate = new DateTime(
+                year,
+                month,
+                1,
+                0,
+                0,
+                0,
+                DateTimeKind.Utc);
 
             // START OF NEXT MONTH
 
-            var endDate =
-                startDate.AddMonths(1);
-
+            var endDate = startDate.AddMonths(1);
 
             // FILTER PAYROLL RECORDS BY MONTH / YEAR
 
@@ -84,11 +81,11 @@ namespace PayTrack.Application.Features.PayrollRecords.Queries
                 x.Attendance.TimeIn.Value < endDate
             );
 
+            // SEARCH FILTER
 
             if (!string.IsNullOrWhiteSpace(request.Search))
             {
-                var term =
-                    request.Search.Trim();
+                var term = request.Search.Trim();
 
                 query = query.Where(s =>
                     EF.Functions.Like(
@@ -100,9 +97,13 @@ namespace PayTrack.Application.Features.PayrollRecords.Queries
                         $"%{term}%"));
             }
 
+            // TOTAL COUNT
+
             var totalCount =
                 await query.CountAsync(
                     cancellationToken);
+
+            // PAGE SIZE
 
             int pageSize =
                 request.PageSize.HasValue
@@ -111,18 +112,21 @@ namespace PayTrack.Application.Features.PayrollRecords.Queries
                         MaxPageSize)
                     : DefaultPageSize;
 
-
-            // Prevent invalid page size
+            // PREVENT INVALID PAGE SIZE
 
             if (pageSize <= 0)
             {
                 pageSize = DefaultPageSize;
             }
 
+            // PAGE NUMBER
+
             int pageNumber =
                 request.PageNumber <= 0
                     ? 1
                     : request.PageNumber;
+
+            // GET PAGED RECORDS
 
             var items =
                 await query
@@ -138,36 +142,45 @@ namespace PayTrack.Application.Features.PayrollRecords.Queries
 
                     .Take(pageSize)
 
-                    .Select(p =>
-                        new PayrollRecordDTO(
-                            p.Id,
-                            p.EmployeeId,
-                            p.Employee
-                                .ApplicationUser
-                                .FullName,
-                            p.Employee
-                                .EmployeeNumber,
-                            p.Employee.Department != null
-                                ? p.Employee
-                                    .Department
-                                    .DepartmentName
-                                : null,
-                            p.Attendance.TimeIn,
-                            p.Attendance.TimeOut,
-                            p.Attendance.HoursWorked,
-                            p.AmountEarned
-                        )
+                    .Select(
+                        p =>
+                            new PayrollRecordDTO(
+                                p.Id,
+                                p.EmployeeId,
+
+                                p.Employee
+                                    .ApplicationUser
+                                    .FullName,
+
+                                p.Employee
+                                    .EmployeeNumber,
+
+                                p.Employee.Department != null
+                                    ? p.Employee
+                                        .Department
+                                        .DepartmentName
+                                    : null,
+
+                                p.Attendance.TimeIn,
+
+                                p.Attendance.TimeOut,
+
+                                p.Attendance.HoursWorked,
+
+                                p.AmountEarned
+                            )
                     )
 
                     .ToListAsync(
                         cancellationToken);
 
+            // RETURN PAGED RESULT
+
             return new PagedResult<PayrollRecordDTO>(
                 items,
                 totalCount,
                 pageNumber,
-                pageSize
-            );
+                pageSize);
         }
     }
 }
