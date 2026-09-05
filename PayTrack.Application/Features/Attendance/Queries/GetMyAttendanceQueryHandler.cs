@@ -30,14 +30,8 @@ namespace PayTrack.Application.Features.Attendance.Queries
             _employeesRepository = employeesRepository;
         }
 
-        public async Task<PagedResult<AttendanceDTO>> Handle(
-            GetMyAttendanceQuery request,
-            CancellationToken cancellationToken)
+        public async Task<PagedResult<AttendanceDTO>> Handle(GetMyAttendanceQuery request,CancellationToken cancellationToken)
         {
-            // ============================================================
-            // GET CURRENT EMPLOYEE
-            // ============================================================
-
             var employee =
                 await _employeesRepository
                     .GetCurrentEmployeeByApplicationUserIdAsync(
@@ -49,35 +43,19 @@ namespace PayTrack.Application.Features.Attendance.Queries
                     "Employee record not found");
             }
 
-
-            // ============================================================
-            // GET ATTENDANCE QUERY
-            // ============================================================
-
             var query =
                 _attendanceRepository
                     .GetAttendancesByEmployeeId(employee.Id);
 
-
-            // ============================================================
-            // MONTH / YEAR FILTER
-            // ============================================================
-
-            // If month/year are not supplied,
-            // use the current month and year.
-
             var month =
                 request.Month.HasValue
                     ? request.Month.Value
-                    : DateTime.Now.Month;
+                    : DateTime.UtcNow.Month;
 
             var year =
                 request.Year.HasValue
                     ? request.Year.Value
-                    : DateTime.Now.Year;
-
-
-            // Validate month
+                    : DateTime.UtcNow.Year;
 
             if (month < 1 || month > 12)
             {
@@ -85,32 +63,23 @@ namespace PayTrack.Application.Features.Attendance.Queries
                     "Month must be between 1 and 12.");
             }
 
-
-            // Validate year
-
             if (year < 1)
             {
                 throw new ArgumentException(
                     "Invalid year.");
             }
 
+            // Create UTC dates for PostgreSQL timestamp with time zone
+            var startDate = new DateTime(
+                year,
+                month,
+                1,
+                0,
+                0,
+                0,
+                DateTimeKind.Utc);
 
-            // Start of selected month
-
-            var startDate =
-                new DateTime(
-                    year,
-                    month,
-                    1);
-
-
-            // Start of next month
-
-            var endDate =
-                startDate.AddMonths(1);
-
-
-            // Filter attendance by selected month
+            var endDate = startDate.AddMonths(1);
 
             query = query.Where(x =>
                 (
@@ -127,15 +96,9 @@ namespace PayTrack.Application.Features.Attendance.Queries
                 )
             );
 
-
-            // ============================================================
-            // SEARCH
-            // ============================================================
-
             if (!string.IsNullOrWhiteSpace(request.Search))
             {
-                var term =
-                    request.Search.Trim();
+                var term = request.Search.Trim();
 
                 query = query.Where(x =>
                     EF.Functions.Like(
@@ -145,19 +108,8 @@ namespace PayTrack.Application.Features.Attendance.Queries
                 );
             }
 
-
-            // ============================================================
-            // TOTAL COUNT
-            // ============================================================
-
             var totalCount =
-                await query.CountAsync(
-                    cancellationToken);
-
-
-            // ============================================================
-            // PAGE SIZE
-            // ============================================================
+                await query.CountAsync(cancellationToken);
 
             int pageSize =
                 request.PageSize.HasValue
@@ -166,43 +118,28 @@ namespace PayTrack.Application.Features.Attendance.Queries
                         MaxPageSize)
                     : DefaultPageSize;
 
-
-            // Prevent invalid page size
-
             if (pageSize <= 0)
             {
                 pageSize = DefaultPageSize;
             }
-
-
-            // ============================================================
-            // PAGE NUMBER
-            // ============================================================
 
             int pageNumber =
                 request.PageNumber <= 0
                     ? 1
                     : request.PageNumber;
 
-
-            // ============================================================
-            // PAGINATION + PROJECTION
-            // ============================================================
-
             var items =
                 await query
                     .OrderByDescending(x => x.TimeIn)
                     .ThenByDescending(x => x.TimeOut)
-
                     .Skip(
                         (pageNumber - 1) *
                         pageSize)
-
                     .Take(pageSize)
-
                     .Select(x =>
                         new AttendanceDTO(
                             x.Id,
+
                             x.TimeIn.HasValue
                                 ? x.TimeIn.Value.Date
                                 : x.TimeOut.HasValue
@@ -214,21 +151,22 @@ namespace PayTrack.Application.Features.Attendance.Queries
                                     x.Employee.ApplicationUser.ProfilePicture
                                 )}"
                                 : null,
+
                             x.Employee.ApplicationUser.FullName,
+
                             x.Employee.Department != null
                                 ? x.Employee.Department.DepartmentName
                                 : null,
+
                             x.Employee.EmployeeNumber,
+
                             x.TimeIn,
                             x.TimeOut,
 
                             x.Status.ToString()
                         )
                     )
-
-                    .ToListAsync(
-                        cancellationToken);
-
+                    .ToListAsync(cancellationToken);
 
             return new PagedResult<AttendanceDTO>(
                 items,
