@@ -188,17 +188,53 @@ namespace PayTrack.Api.Controllers
                 $"{frontendUrl}/auth"
             );
         }
-    
+
 
         [HttpGet("verify-email")]
-        public async Task<IActionResult> VerifyEmail(
-           string token)
+        public async Task<IActionResult> VerifyEmail([FromQuery] string token)
         {
-            var result = await _mediator.Send(
-                new VerifyEmailCommand(token)
-            );
+            try
+            {
+                var result = await _mediator.Send(
+                    new VerifyEmailCommand(token));
 
-            return Ok(result);
+                if (result.StartsWith(
+                        "EMPLOYEE_PASSWORD_SETUP|"))
+                {
+                    var parts = result.Split('|', 3);
+
+                    var userId = parts[1];
+                    var passwordToken = parts[2];
+
+                    var frontendUrl =
+                        _configuration["Frontend:Url"];
+
+                    if (string.IsNullOrWhiteSpace(frontendUrl))
+                    {
+                        return BadRequest(
+                            "Frontend URL is not configured.");
+                    }
+
+                    var redirectUrl =
+                        $"{frontendUrl}/auth/set-password" +
+                        $"?userId={Uri.EscapeDataString(userId)}" +
+                        $"&token={passwordToken}";
+
+                    return Redirect(redirectUrl);
+                }
+
+                return Ok(new
+                {
+                    message = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
         }
         [HttpPost("register-employee")]
         public async Task<ActionResult<AuthResponseDTO>> RegisterEmployee([FromBody] RegisterEmployeeCommand command)
@@ -220,6 +256,26 @@ namespace PayTrack.Api.Controllers
             }
         }
 
+        [HttpPost("set-employee-password")]
+        public async Task<IActionResult> SetEmployeePassword([FromBody] SetEmployeePasswordCommand command)
+        {
+            try
+            {
+                var result = await _mediator.Send(command);
+
+                return Ok(new
+                {
+                    message = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
+        }
         [HttpPost("enable-2fa")]
         public async Task<IActionResult> EnableTwoFactor()
         {

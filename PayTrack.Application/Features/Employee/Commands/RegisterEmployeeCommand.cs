@@ -12,10 +12,9 @@ namespace PayTrack.Application.Features.Employee.Commands
      string FullName,
      string Email,
      string? PhoneNumber,
-     string Password,
      Guid DepartmentId,
      string? ProfilePicture,
      DateTime DateHired,
-         string Role
+     string Role
  ) : IRequest<RegisterEmployeeResponseDTO>;
 }

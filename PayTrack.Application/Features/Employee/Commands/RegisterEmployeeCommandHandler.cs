@@ -36,7 +36,7 @@ namespace PayTrack.Application.Features.Employee.Commands
         {
             byte[]? profileBytes = null;
 
-            // Convert profile picture
+           
             if (!string.IsNullOrWhiteSpace(request.ProfilePicture))
             {
                 var base64 = request.ProfilePicture.Contains(',')
@@ -88,10 +88,8 @@ namespace PayTrack.Application.Features.Employee.Commands
                 EmailVerificationToken = verificationToken
             };
 
-            // Create Identity user
-            var result = await _userManager.CreateAsync(
-                user,
-                request.Password);
+          
+            var result = await _userManager.CreateAsync(user);
 
             if (!result.Succeeded)
             {
@@ -101,14 +99,14 @@ namespace PayTrack.Application.Features.Employee.Commands
                         result.Errors.Select(x => x.Description)));
             }
 
-            // Create role if it doesn't exist
+           
             if (!await _roleManager.RoleExistsAsync(employeeRole))
             {
                 await _roleManager.CreateAsync(
                     new IdentityRole(employeeRole));
             }
 
-            // Assign Employee role
+          
             var roleResult = await _userManager.AddToRoleAsync(
                 user,
                 employeeRole);
