@@ -145,7 +145,7 @@ namespace PayTrack.Application.Features.LeaveRequests.Commands
 
                 Status = LeaveStatus.Pending,
 
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.UtcNow
             };
 
             await _leaveRequestRepository.AddAsync(

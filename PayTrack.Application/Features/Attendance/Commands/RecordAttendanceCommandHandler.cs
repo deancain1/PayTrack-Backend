@@ -203,7 +203,7 @@ namespace PayTrack.Application.Features.Attendance.Commands
                 }
 
                 var timeOut =
-                    DateTime.Now;
+                    DateTime.UtcNow;
 
                 if (timeOut <
                     attendance.TimeIn.Value)
