@@ -2,11 +2,6 @@
 using PayTrack.Application.Interfaces.Repositories;
 using PayTrack.Application.Interfaces.Services;
 using PayTrack.Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PayTrack.Application.Features.Overtime.Commands
 {
@@ -26,8 +21,7 @@ namespace PayTrack.Application.Features.Overtime.Commands
 
         public async Task Handle(RejectOvertimeCommand request, CancellationToken cancellationToken)
         {
-            var currentUserId =
-                _currentUserService.UserId;
+            var currentUserId = _currentUserService.UserId;
 
             if (string.IsNullOrWhiteSpace(currentUserId))
             {
@@ -45,8 +39,7 @@ namespace PayTrack.Application.Features.Overtime.Commands
                     "Overtime request not found.");
             }
 
-            if (overtime.Source !=
-                OvertimeSource.Employee)
+            if (overtime.Source != OvertimeSource.Employee)
             {
                 throw new InvalidOperationException(
                     "This overtime request was created by the Company Admin.");
@@ -59,8 +52,8 @@ namespace PayTrack.Application.Features.Overtime.Commands
                     "This overtime request is not awaiting admin approval.");
             }
 
-            if (overtime.Employee.CompanyAdminId !=
-                currentUserId)
+            // Make sure the admin owns the employee
+            if (overtime.Employee.CompanyAdminId != currentUserId)
             {
                 throw new UnauthorizedAccessException(
                     "You are not authorized to reject this overtime request.");

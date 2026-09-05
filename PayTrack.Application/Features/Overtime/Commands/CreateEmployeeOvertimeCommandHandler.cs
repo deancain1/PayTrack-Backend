@@ -3,16 +3,11 @@ using PayTrack.Application.Interfaces.Repositories;
 using PayTrack.Application.Interfaces.Services;
 using PayTrack.Domain.Entities;
 using PayTrack.Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PayTrack.Application.Features.Overtime.Commands
 {
     public class CreateEmployeeOvertimeCommandHandler
-       : IRequestHandler<CreateEmployeeOvertimeCommand, Guid>
+        : IRequestHandler<CreateEmployeeOvertimeCommand, Guid>
     {
         private readonly IOvertimeRepository _overtimeRepository;
         private readonly IEmployeesRepository _employeesRepository;
@@ -36,14 +31,19 @@ namespace PayTrack.Application.Features.Overtime.Commands
                     "Overtime end time must be later than start time.");
             }
 
-            if (request.Date.Date < DateTime.UtcNow.Date)
+           
+            var overtimeDate = DateTime.SpecifyKind(
+                request.Date.Date,
+                DateTimeKind.Utc);
+
+           
+            if (overtimeDate.Date < DateTime.UtcNow.Date)
             {
                 throw new InvalidOperationException(
                     "Overtime cannot be requested for a past date.");
             }
 
-            var userId =
-                _currentUserService.UserId;
+            var userId = _currentUserService.UserId;
 
             if (string.IsNullOrWhiteSpace(userId))
             {
@@ -53,8 +53,7 @@ namespace PayTrack.Application.Features.Overtime.Commands
 
             var employee =
                 await _employeesRepository
-                    .GetCurrentEmployeeByApplicationUserIdAsync(
-                        userId);
+                    .GetCurrentEmployeeByApplicationUserIdAsync(userId);
 
             if (employee == null)
             {
@@ -62,10 +61,11 @@ namespace PayTrack.Application.Features.Overtime.Commands
                     "Employee not found.");
             }
 
+            // Check for overlapping overtime
             var hasOverlap =
                 await _overtimeRepository.HasOverlapAsync(
                     employee.Id,
-                    request.Date,
+                    overtimeDate,
                     request.StartTime,
                     request.EndTime,
                     null);
@@ -94,7 +94,7 @@ namespace PayTrack.Application.Features.Overtime.Commands
 
                 EmployeeId = employee.Id,
 
-                Date = request.Date.Date,
+                Date = overtimeDate,
 
                 StartTime = request.StartTime,
 
@@ -112,11 +112,7 @@ namespace PayTrack.Application.Features.Overtime.Commands
 
                 Source = OvertimeSource.Employee,
 
-                /*
-                 * Employee created the request,
-                 * so the employee has already accepted
-                 * his/her own request.
-                 */
+             
                 EmployeeResponse =
                     OvertimeEmployeeResponse.Accepted,
 
@@ -129,7 +125,6 @@ namespace PayTrack.Application.Features.Overtime.Commands
             };
 
             await _overtimeRepository.AddAsync(overtime);
-
 
             return overtime.Id;
         }

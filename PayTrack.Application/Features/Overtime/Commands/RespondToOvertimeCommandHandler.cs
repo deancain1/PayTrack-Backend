@@ -2,16 +2,11 @@
 using PayTrack.Application.Interfaces.Repositories;
 using PayTrack.Application.Interfaces.Services;
 using PayTrack.Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PayTrack.Application.Features.Overtime.Commands
 {
     public class RespondToOvertimeCommandHandler
-       : IRequestHandler<RespondToOvertimeCommand>
+        : IRequestHandler<RespondToOvertimeCommand>
     {
         private readonly IOvertimeRepository _overtimeRepository;
         private readonly IEmployeesRepository _employeesRepository;
@@ -29,8 +24,7 @@ namespace PayTrack.Application.Features.Overtime.Commands
 
         public async Task Handle(RespondToOvertimeCommand request, CancellationToken cancellationToken)
         {
-            var userId =
-                _currentUserService.UserId;
+            var userId = _currentUserService.UserId;
 
             if (string.IsNullOrWhiteSpace(userId))
             {
@@ -66,10 +60,7 @@ namespace PayTrack.Application.Features.Overtime.Commands
                     "Employee not found.");
             }
 
-            /*
-             * Make sure the current employee is the
-             * employee who received the OT request.
-             */
+          
             if (overtime.EmployeeId != employee.Id)
             {
                 throw new UnauthorizedAccessException(
@@ -93,13 +84,13 @@ namespace PayTrack.Application.Features.Overtime.Commands
                     OvertimeStatus.Rejected;
             }
 
-            overtime.EmployeeRemarks =
-                request.Remarks;
+            overtime.EmployeeRemarks = request.Remarks;
 
-            overtime.RespondedAt =
-                DateTime.UtcNow;
+            
+            overtime.RespondedAt = DateTime.UtcNow;
 
             _overtimeRepository.Update(overtime);
+
             await _overtimeRepository.SaveChangesAsync();
         }
     }
