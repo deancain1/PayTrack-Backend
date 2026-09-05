@@ -15,14 +15,15 @@ namespace PayTrack.Domain.Entities
 
         public ScheduleType ScheduleType { get; set; }
 
-        public TimeSpan StartTime { get; set; }
+        public TimeSpan? StartTime { get; set; }
+        public TimeSpan? EndTime { get; set; }
+        public TimeSpan? EarliestStartTime { get; set; }
 
-        public TimeSpan EndTime { get; set; }
-
+        public TimeSpan? LatestStartTime { get; set; }
         public int RequiredHours { get; set; }
 
         public int GracePeriodMinutes { get; set; }
-        public TimeSpan AbsentCutoffTime { get; set; }
+        public TimeSpan? AbsentCutoffTime { get; set; }
         public WorkingDay WorkingDays { get; set; }
         public string CompanyAdminId { get; set; } = string.Empty;
 
