@@ -44,15 +44,23 @@ namespace PayTrack.Infrastructure.Repository
 
         public async Task<decimal> GetTotalAdvancesAsync(string employeeApplicationUserId, DateTime startDate, DateTime endDate)
         {
+            startDate = DateTime.SpecifyKind(
+                startDate.Date,
+                DateTimeKind.Utc);
+
+            endDate = DateTime.SpecifyKind(
+                endDate.Date.AddDays(1),
+                DateTimeKind.Utc);
+
             return await _context.SalaryAdvances
                 .Where(x =>
                     x.ApplicationUserId == employeeApplicationUserId &&
                     x.Status == SalaryAdvanceStatus.Approved &&
                     x.RequestDate >= startDate &&
-                    x.RequestDate <= endDate)
+                    x.RequestDate < endDate)
                 .SumAsync(x => x.Amount);
         }
-     
+
         public IQueryable<SalaryAdvances> GetSalaryAdvancesbyEmployee(string employeeApplicationUserId)
         {
             return _context.SalaryAdvances
