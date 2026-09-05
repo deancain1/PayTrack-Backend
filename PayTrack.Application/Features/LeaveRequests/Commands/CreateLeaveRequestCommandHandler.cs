@@ -23,20 +23,26 @@ namespace PayTrack.Application.Features.LeaveRequests.Commands
             _employeesRepository = employeesRepository;
             _currentUserService = currentUserService;
         }
-        public async Task<LeaveRequestDTO> Handle(CreateLeaveRequestCommand request, CancellationToken cancellationToken)
+
+        public async Task<LeaveRequestDTO> Handle(
+            CreateLeaveRequestCommand request,
+            CancellationToken cancellationToken)
         {
+            // Validate date range
             if (request.StartDate.Date > request.EndDate.Date)
             {
                 throw new ArgumentException(
                     "Start date cannot be later than end date.");
             }
 
+            // Validate reason
             if (string.IsNullOrWhiteSpace(request.Reason))
             {
                 throw new ArgumentException(
                     "Leave reason is required.");
             }
 
+            // Validate leave type
             if (!Enum.TryParse<LeaveType>(
                     request.LeaveType,
                     true,
@@ -46,6 +52,7 @@ namespace PayTrack.Application.Features.LeaveRequests.Commands
                     "Invalid leave type.");
             }
 
+            // Get current user
             var userId = _currentUserService.UserId;
 
             if (string.IsNullOrEmpty(userId))
@@ -54,10 +61,10 @@ namespace PayTrack.Application.Features.LeaveRequests.Commands
                     "User is not authenticated.");
             }
 
+            // Get employee
             var employee =
                 await _employeesRepository
-                    .GetCurrentEmployeeByApplicationUserIdAsync(
-                        userId);
+                    .GetCurrentEmployeeByApplicationUserIdAsync(userId);
 
             if (employee == null)
             {
@@ -65,9 +72,16 @@ namespace PayTrack.Application.Features.LeaveRequests.Commands
                     "Employee record not found.");
             }
 
-            var startDate = request.StartDate.Date;
-            var endDate = request.EndDate.Date;
+            // Treat leave dates as UTC calendar dates
+            var startDate = DateTime.SpecifyKind(
+                request.StartDate.Date,
+                DateTimeKind.Utc);
 
+            var endDate = DateTime.SpecifyKind(
+                request.EndDate.Date,
+                DateTimeKind.Utc);
+
+            // Check overlapping leave
             var hasOverlap =
                 await _leaveRequestRepository
                     .HasOverlappingLeaveAsync(
@@ -81,11 +95,11 @@ namespace PayTrack.Application.Features.LeaveRequests.Commands
                     "You already have a pending or approved leave within the selected dates.");
             }
 
+            // Calculate total leave days
             var totalDays =
                 (endDate - startDate).Days + 1;
 
-            // SAVE ATTACHMENT
-
+            // Save attachment
             string? attachmentUrl = null;
 
             if (request.Attachment != null &&
@@ -95,8 +109,7 @@ namespace PayTrack.Application.Features.LeaveRequests.Commands
                     Directory.GetCurrentDirectory(),
                     "wwwroot",
                     "uploads",
-                    "leaves"
-                );
+                    "leaves");
 
                 Directory.CreateDirectory(uploadsFolder);
 
@@ -112,7 +125,7 @@ namespace PayTrack.Application.Features.LeaveRequests.Commands
                         uploadsFolder,
                         fileName);
 
-                using var stream =
+                await using var stream =
                     new FileStream(
                         filePath,
                         FileMode.Create);
@@ -125,6 +138,7 @@ namespace PayTrack.Application.Features.LeaveRequests.Commands
                     $"/uploads/leaves/{fileName}";
             }
 
+            // Create leave request
             var leaveRequest = new LeaveRequest
             {
                 Id = Guid.NewGuid(),
@@ -148,11 +162,12 @@ namespace PayTrack.Application.Features.LeaveRequests.Commands
                 CreatedAt = DateTime.UtcNow
             };
 
+            // Save leave request
             await _leaveRequestRepository.AddAsync(
                 leaveRequest);
 
             var employeeName =
-                $"{employee.ApplicationUser.FullName}";
+                employee.ApplicationUser.FullName;
 
             return new LeaveRequestDTO(
                 leaveRequest.Id,
