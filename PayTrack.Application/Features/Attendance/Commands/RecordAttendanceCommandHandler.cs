@@ -106,7 +106,7 @@ namespace PayTrack.Application.Features.Attendance.Commands
             if (attendance == null)
             {
                 var now =
-                    DateTime.Now;
+                    DateTime.UtcNow;
 
                 var scheduledStart =
                     now.Date +
