@@ -2,22 +2,19 @@
 using PayTrack.Application.DTOs;
 using PayTrack.Domain.Enums;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PayTrack.Application.Features.WorkSchedule.Commands
 {
-
     public record CreateWorkScheduleCommand(
         string ScheduleName,
         int ScheduleType,
-        TimeSpan StartTime,
-        TimeSpan EndTime,
+        TimeSpan? StartTime,
+        TimeSpan? EndTime,
+        TimeSpan? EarliestStartTime,
+        TimeSpan? LatestStartTime,
         int RequiredHours,
         int GracePeriodMinutes,
-        TimeSpan AbsentCutoffTime,
+        TimeSpan? AbsentCutoffTime,
         WorkingDay WorkingDays
     ) : IRequest<WorkSchedulesDTO>;
 }

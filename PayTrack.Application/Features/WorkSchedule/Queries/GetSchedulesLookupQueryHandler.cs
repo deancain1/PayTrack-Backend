@@ -30,6 +30,8 @@ namespace PayTrack.Application.Features.WorkSchedule.Queries
                (int)x.ScheduleType,
                x.StartTime,
                x.EndTime,
+               x.EarliestStartTime,
+               x.LatestStartTime,
                x.RequiredHours,
                x.GracePeriodMinutes,
                x.AbsentCutoffTime,

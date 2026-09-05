@@ -2,15 +2,10 @@
 using PayTrack.Domain.Entities;
 using PayTrack.Domain.Enums;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PayTrack.Infrastructure.Services
 {
-    public class AttendancePolicyService
-     : IAttendancePolicyService
+    public class AttendancePolicyService : IAttendancePolicyService
     {
         public string DetermineStatus(WorkSchedules schedule, DateTime timeIn)
         {
@@ -18,10 +13,15 @@ namespace PayTrack.Infrastructure.Services
             {
                 case ScheduleType.Fixed:
 
-                    var latestFixed =
-                        schedule.StartTime.Add(
-                            TimeSpan.FromMinutes(
-                                schedule.GracePeriodMinutes));
+                    if (!schedule.StartTime.HasValue)
+                    {
+                        throw new InvalidOperationException(
+                            "Fixed schedule must have a start time.");
+                    }
+
+                    var latestFixed = schedule.StartTime.Value.Add(
+                        TimeSpan.FromMinutes(
+                            schedule.GracePeriodMinutes));
 
                     return timeIn.TimeOfDay > latestFixed
                         ? "Late"
@@ -33,38 +33,57 @@ namespace PayTrack.Infrastructure.Services
 
                 case ScheduleType.Hybrid:
 
-                    var latestHybrid =
-                        schedule.StartTime.Add(
-                            TimeSpan.FromMinutes(
-                                schedule.GracePeriodMinutes));
+                    if (!schedule.StartTime.HasValue)
+                    {
+                        throw new InvalidOperationException(
+                            "Hybrid schedule must have a start time.");
+                    }
+
+                    var latestHybrid = schedule.StartTime.Value.Add(
+                        TimeSpan.FromMinutes(
+                            schedule.GracePeriodMinutes));
 
                     return timeIn.TimeOfDay > latestHybrid
                         ? "Late"
                         : "Present";
 
                 default:
+
                     return "Present";
             }
         }
 
-        public DateTime CalculateExpectedTimeOut(WorkSchedules schedule, DateTime timeIn)
+        public DateTime CalculateExpectedTimeOut(
+            WorkSchedules schedule,
+            DateTime timeIn)
         {
             return schedule.ScheduleType switch
             {
                 ScheduleType.Fixed =>
-                    timeIn.Date + schedule.EndTime,
+                    CalculateFixedTimeOut(schedule, timeIn),
 
                 ScheduleType.Flexible =>
-                    timeIn.AddHours(
-                        schedule.RequiredHours),
+                    timeIn.AddHours(schedule.RequiredHours),
 
                 ScheduleType.Hybrid =>
-                    timeIn.AddHours(
-                        schedule.RequiredHours),
+                    timeIn.AddHours(schedule.RequiredHours),
 
                 _ =>
-                    timeIn.Date + schedule.EndTime
+                    CalculateFixedTimeOut(schedule, timeIn)
             };
+        }
+
+        private DateTime CalculateFixedTimeOut(
+            WorkSchedules schedule,
+            DateTime timeIn)
+        {
+            if (!schedule.EndTime.HasValue)
+            {
+                throw new InvalidOperationException(
+                    "Fixed schedule must have an end time.");
+            }
+
+            return timeIn.Date + schedule.EndTime.Value;
         }
     }
 }

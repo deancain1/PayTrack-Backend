@@ -381,92 +381,94 @@ namespace PayTrack.Infrastructure.Services
 
         // TIME OUT REMINDER
 
-        public async Task SendTimeOutReminderEmailAsync(
-            string email,
-            string fullName,
-            TimeSpan scheduledEndTime,
-            TimeSpan? overtimeEndTime)
+        public async Task SendTimeOutReminderEmailAsync(string email, string fullName, TimeSpan? scheduledEndTime, TimeSpan? overtimeEndTime)
         {
             var effectiveEndTime =
                 overtimeEndTime ?? scheduledEndTime;
 
+            if (!effectiveEndTime.HasValue)
+            {
+                throw new ArgumentException(
+                    "Either scheduled end time or overtime end time must be provided.");
+            }
+
             var endTimeText =
                 DateTime.Today
-                    .Add(effectiveEndTime)
+                    .Add(effectiveEndTime.Value)
                     .ToString("h:mm tt");
 
             var overtimeSection =
                 overtimeEndTime.HasValue
                     ? $@"
-                        <div style='
-                            background:#fff3cd;
-                            padding:15px;
-                            border-radius:8px;
-                            margin:20px 0;'>
-
-                            <p>
-                                <strong>Overtime:</strong>
-                                You have approved overtime scheduled until
-                                <strong>{endTimeText}</strong>.
-                            </p>
-
-                        </div>"
-                    : $@"
-                        <div style='
-                            background:#f5f5f5;
-                            padding:15px;
-                            border-radius:8px;
-                            margin:20px 0;'>
-
-                            <p>
-                                <strong>Scheduled End Time:</strong>
-                                {endTimeText}
-                            </p>
-
-                        </div>";
-
-            var htmlContent = $@"
                 <div style='
-                    font-family: Arial, sans-serif;
-                    max-width: 600px;
-                    margin: auto;
-                    padding: 20px;
-                    color: #333;'>
-
-                    <h2 style='color:#661F1F;'>
-                        Time Out Reminder
-                    </h2>
+                    background:#fff3cd;
+                    padding:15px;
+                    border-radius:8px;
+                    margin:20px 0;'>
 
                     <p>
-                        Hello <strong>{fullName}</strong>,
+                        <strong>Overtime:</strong>
+                        You have approved overtime scheduled until
+                        <strong>{endTimeText}</strong>.
                     </p>
 
-                    <p>
-                        This is a friendly reminder that you have not yet
-                        recorded your <strong>Time Out</strong> for today.
-                    </p>
-
-                    {overtimeSection}
-
-                    <p>
-                        Please remember to time out when you have finished
-                        your work for today so your attendance and working
-                        hours can be recorded accurately.
-                    </p>
+                </div>"
+                    : $@"
+                <div style='
+                    background:#f5f5f5;
+                    padding:15px;
+                    border-radius:8px;
+                    margin:20px 0;'>
 
                     <p>
-                        If you have already timed out, please disregard
-                        this email.
-                    </p>
-
-                    <br/>
-
-                    <p>
-                        Regards,<br/>
-                        <strong>PayTrack Team</strong>
+                        <strong>Scheduled End Time:</strong>
+                        {endTimeText}
                     </p>
 
                 </div>";
+
+            var htmlContent = $@"
+        <div style='
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            color: #333;'>
+
+            <h2 style='color:#661F1F;'>
+                Time Out Reminder
+            </h2>
+
+            <p>
+                Hello <strong>{fullName}</strong>,
+            </p>
+
+            <p>
+                This is a friendly reminder that you have not yet
+                recorded your <strong>Time Out</strong> for today.
+            </p>
+
+            {overtimeSection}
+
+            <p>
+                Please remember to time out when you have finished
+                your work for today so your attendance and working
+                hours can be recorded accurately.
+            </p>
+
+            <p>
+                If you have already timed out, please disregard
+                this email.
+            </p>
+
+            <br/>
+
+            <p>
+                Regards,<br/>
+                <strong>PayTrack Team</strong>
+            </p>
+
+        </div>";
 
             await SendEmailAsync(
                 email,
@@ -474,8 +476,7 @@ namespace PayTrack.Infrastructure.Services
                 htmlContent);
         }
 
-        // COMMON BREVO API METHOD
-
+        // Common Brevo API method
 
         private async Task SendEmailAsync(
             string recipientEmail,
@@ -508,6 +509,12 @@ namespace PayTrack.Infrastructure.Services
                 senderName = "PayTrack System";
             }
 
+            if (string.IsNullOrWhiteSpace(recipientEmail))
+            {
+                throw new ArgumentException(
+                    "Recipient email is required.");
+            }
+
             var requestBody = new
             {
                 sender = new
@@ -518,11 +525,11 @@ namespace PayTrack.Infrastructure.Services
 
                 to = new[]
                 {
-                    new
-                    {
-                        email = recipientEmail
-                    }
-                },
+            new
+            {
+                email = recipientEmail
+            }
+        },
 
                 subject = subject,
 
@@ -584,5 +591,6 @@ namespace PayTrack.Infrastructure.Services
                 throw;
             }
         }
+
     }
 }

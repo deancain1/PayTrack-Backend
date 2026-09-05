@@ -5,10 +5,6 @@ using PayTrack.Application.Interfaces.Repositories;
 using PayTrack.Application.Interfaces.Services;
 using PayTrack.Domain.Entities;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PayTrack.Infrastructure.Services
 {
@@ -20,7 +16,7 @@ namespace PayTrack.Infrastructure.Services
         // Employee gets the reminder 15 minutes after
         // their expected end time.
         private static readonly TimeSpan ReminderGracePeriod =
-            TimeSpan.FromMinutes(1);
+            TimeSpan.FromMinutes(15);
 
         public TimeOutReminderBackgroundService(
             IServiceScopeFactory scopeFactory,
@@ -121,21 +117,19 @@ namespace PayTrack.Infrastructure.Services
         }
 
         private async Task ProcessEmployeeAsync(
-     Employees employee,
-     DateTime today,
-     TimeSpan currentTime,
-     IAttendanceRepository attendanceRepository,
-     IOvertimeRepository overtimeRepository,
-     IEmailService emailService)
+            Employees employee,
+            DateTime today,
+            TimeSpan currentTime,
+            IAttendanceRepository attendanceRepository,
+            IOvertimeRepository overtimeRepository,
+            IEmailService emailService)
         {
             _logger.LogInformation(
                 "Checking Time Out reminder for employee {EmployeeId} at {CurrentTime}",
                 employee.Id,
                 currentTime);
 
-            // =====================================================
-            // GET TODAY'S ATTENDANCE
-            // =====================================================
+   
 
             var attendance =
                 await attendanceRepository.GetTodayAttendanceAsync(
@@ -157,9 +151,6 @@ namespace PayTrack.Infrastructure.Services
                 attendance.TimeOutReminderSentAt);
 
 
-            // =====================================================
-            // MUST HAVE TIME IN
-            // =====================================================
 
             if (attendance.TimeIn == null)
             {
@@ -171,9 +162,6 @@ namespace PayTrack.Infrastructure.Services
             }
 
 
-            // =====================================================
-            // ALREADY TIMED OUT
-            // =====================================================
 
             if (attendance.TimeOut != null)
             {
@@ -186,9 +174,6 @@ namespace PayTrack.Infrastructure.Services
             }
 
 
-            // =====================================================
-            // REMINDER ALREADY SENT
-            // =====================================================
 
             if (attendance.TimeOutReminderSentAt != null)
             {
@@ -200,10 +185,6 @@ namespace PayTrack.Infrastructure.Services
                 return;
             }
 
-
-            // =====================================================
-            // WORK SCHEDULE
-            // =====================================================
 
             var schedule = employee.WorkSchedule;
 
@@ -221,10 +202,6 @@ namespace PayTrack.Infrastructure.Services
                 employee.Id,
                 schedule.EndTime);
 
-
-            // =====================================================
-            // CHECK OVERTIME
-            // =====================================================
 
             var overtime =
                 await overtimeRepository.GetAcceptedOvertimeAsync(
@@ -247,34 +224,34 @@ namespace PayTrack.Infrastructure.Services
             }
 
 
-            // =====================================================
-            // DETERMINE END TIME
-            // =====================================================
-
+ 
             var effectiveEndTime =
                 overtime?.EndTime ?? schedule.EndTime;
 
+            if (!effectiveEndTime.HasValue)
+            {
+                _logger.LogWarning(
+                    "No effective end time found for employee {EmployeeId}.",
+                    employee.Id);
 
-            // =====================================================
-            // REMINDER TIME
-            // =====================================================
+                return;
+            }
+
+            var endTime = effectiveEndTime.Value;
+
 
             var reminderTime =
-                effectiveEndTime.Add(
-                    TimeSpan.FromMinutes(15));
+                endTime.Add(ReminderGracePeriod);
 
 
             _logger.LogInformation(
                 "Employee {EmployeeId}: CurrentTime={CurrentTime}, EffectiveEnd={EffectiveEnd}, ReminderTime={ReminderTime}",
                 employee.Id,
                 currentTime,
-                effectiveEndTime,
+                endTime,
                 reminderTime);
 
 
-            // =====================================================
-            // NOT YET TIME
-            // =====================================================
 
             if (currentTime < reminderTime)
             {
@@ -285,10 +262,6 @@ namespace PayTrack.Infrastructure.Services
                 return;
             }
 
-
-            // =====================================================
-            // APPLICATION USER
-            // =====================================================
 
             var user = employee.ApplicationUser;
 
@@ -302,8 +275,7 @@ namespace PayTrack.Infrastructure.Services
             }
 
 
-            // =====================================================
-            // EMAIL
+        
             // =====================================================
 
             if (string.IsNullOrWhiteSpace(user.Email))
@@ -316,9 +288,7 @@ namespace PayTrack.Infrastructure.Services
             }
 
 
-            // =====================================================
-            // SEND EMAIL
-            // =====================================================
+       
 
             _logger.LogInformation(
                 "Sending Time Out reminder to {Email} for employee {EmployeeId}.",
@@ -332,12 +302,10 @@ namespace PayTrack.Infrastructure.Services
                 overtime?.EndTime);
 
 
-            // =====================================================
-            // MARK AS SENT
-            // =====================================================
+    
 
             attendance.TimeOutReminderSentAt =
-                DateTime.Now;
+                DateTime.UtcNow;
 
             await attendanceRepository.UpdateAsync(
                 attendance);

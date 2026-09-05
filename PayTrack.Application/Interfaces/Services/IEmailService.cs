@@ -38,7 +38,7 @@ namespace PayTrack.Application.Interfaces.Services
         Task SendTimeOutReminderEmailAsync(
             string email,
             string fullName,
-            TimeSpan scheduledEndTime,
+            TimeSpan? scheduledEndTime,
             TimeSpan? overtimeEndTime);
     }
 }

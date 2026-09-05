@@ -1171,31 +1171,41 @@ namespace PayTrack.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<TimeSpan>("AbsentCutoffTime")
-                        .HasColumnType("interval");
+                    b.Property<TimeSpan?>("AbsentCutoffTime")
+                        .HasColumnType("time without time zone");
 
                     b.Property<string>("CompanyAdminId")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<TimeSpan>("EndTime")
-                        .HasColumnType("interval");
+                    b.Property<TimeSpan?>("EarliestStartTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<TimeSpan?>("EndTime")
+                        .HasColumnType("time without time zone");
 
                     b.Property<int>("GracePeriodMinutes")
-                        .HasColumnType("integer");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(15);
+
+                    b.Property<TimeSpan?>("LatestStartTime")
+                        .HasColumnType("time without time zone");
 
                     b.Property<int>("RequiredHours")
+                        .HasPrecision(5, 2)
                         .HasColumnType("integer");
 
                     b.Property<string>("ScheduleName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<int>("ScheduleType")
                         .HasColumnType("integer");
 
-                    b.Property<TimeSpan>("StartTime")
-                        .HasColumnType("interval");
+                    b.Property<TimeSpan?>("StartTime")
+                        .HasColumnType("time without time zone");
 
                     b.Property<int>("WorkingDays")
                         .HasColumnType("integer");
@@ -1204,7 +1214,9 @@ namespace PayTrack.Infrastructure.Migrations
 
                     b.HasIndex("CompanyAdminId");
 
-                    b.ToTable("WorkSchedules");
+                    b.HasIndex("ScheduleName");
+
+                    b.ToTable("WorkSchedules", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

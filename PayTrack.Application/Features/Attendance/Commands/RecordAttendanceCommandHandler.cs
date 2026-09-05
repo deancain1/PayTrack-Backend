@@ -46,7 +46,9 @@ namespace PayTrack.Application.Features.Attendance.Commands
             _mediator = mediator;
         }
 
-        public async Task<Guid> Handle(RecordAttendanceCommand request, CancellationToken cancellationToken)
+        public async Task<Guid> Handle(
+            RecordAttendanceCommand request,
+            CancellationToken cancellationToken)
         {
             var employee =
                 await _employeesRepository
@@ -79,14 +81,21 @@ namespace PayTrack.Application.Features.Attendance.Commands
                     .GetTodayAttendanceAsync(
                         employee.Id);
 
+            // Time In
             if (attendance == null)
             {
                 var now =
                     DateTime.UtcNow;
 
+                if (!schedule.StartTime.HasValue)
+                {
+                    throw new InvalidOperationException(
+                        "Work schedule start time is not configured.");
+                }
+
                 var scheduledStart =
                     now.Date +
-                    schedule.StartTime;
+                    schedule.StartTime.Value;
 
                 var latestAllowed =
                     scheduledStart.AddMinutes(
@@ -179,6 +188,7 @@ namespace PayTrack.Application.Features.Attendance.Commands
                 return attendance.Id;
             }
 
+            // Time Out
             if (attendance.TimeOut == null)
             {
                 if (!attendance.TimeIn.HasValue)
@@ -342,6 +352,7 @@ namespace PayTrack.Application.Features.Attendance.Commands
                 await _payrollRecordRepository
                     .AddAsync(payroll);
 
+                // Complete overtime if employee reached the overtime period
                 var overtime =
                     await _overtimeRepository
                         .GetActiveOvertimeForEmployeeAsync(
@@ -350,13 +361,12 @@ namespace PayTrack.Application.Features.Attendance.Commands
 
                 if (overtime != null)
                 {
+                    // Overtime.StartTime is TimeSpan, not TimeSpan?
                     var overtimeStart =
                         overtime.Date.Date +
                         overtime.StartTime;
 
-                    // Only trigger completion if employee
-                    // actually reached the OT period.
-                    if (timeOut > overtimeStart)
+                    if (timeOut >= overtimeStart)
                     {
                         await _mediator.Send(
                             new CompleteOvertimeCommand(
