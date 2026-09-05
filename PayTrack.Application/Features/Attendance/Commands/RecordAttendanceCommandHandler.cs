@@ -34,42 +34,20 @@ namespace PayTrack.Application.Features.Attendance.Commands
             IOvertimeRepository overtimeRepository,
             IMediator mediator)
         {
-            _employeesRepository =
-                employeesRepository;
-
-            _attendanceRepository =
-                attendanceRepository;
-
-            _photoStorageService =
-                photoStorageService;
-
-            _salaryRepository =
-                salaryRepository;
-
-            _payrollRecordRepository =
-                payrollRecordRepository;
-
-            _payrollService =
-                payrollService;
-
-            _attendancePolicyService =
-                attendancePolicyService;
-
-            _attendancePolicyRepository =
-                attendancePolicyRepository;
-
-            _overtimeRepository =
-                overtimeRepository;
-
-            _mediator =
-                mediator;
+            _employeesRepository = employeesRepository;
+            _attendanceRepository = attendanceRepository;
+            _photoStorageService = photoStorageService;
+            _salaryRepository = salaryRepository;
+            _payrollRecordRepository = payrollRecordRepository;
+            _payrollService = payrollService;
+            _attendancePolicyService = attendancePolicyService;
+            _attendancePolicyRepository = attendancePolicyRepository;
+            _overtimeRepository = overtimeRepository;
+            _mediator = mediator;
         }
 
-        public async Task<Guid> Handle(
-            RecordAttendanceCommand request,
-            CancellationToken cancellationToken)
+        public async Task<Guid> Handle(RecordAttendanceCommand request, CancellationToken cancellationToken)
         {
-
             var employee =
                 await _employeesRepository
                     .GetByIdAndNumberAsync(
@@ -82,7 +60,6 @@ namespace PayTrack.Application.Features.Attendance.Commands
                     "Employee not found.");
             }
 
-
             var schedule =
                 employee.WorkSchedule;
 
@@ -92,7 +69,6 @@ namespace PayTrack.Application.Features.Attendance.Commands
                     "Employee work schedule is not assigned.");
             }
 
-         
             var photoPath =
                 await _photoStorageService
                     .SaveAttendancePhotoAsync(
@@ -138,7 +114,6 @@ namespace PayTrack.Application.Features.Attendance.Commands
                             schedule,
                             now);
 
-
                 attendance =
                     new Attendances
                     {
@@ -179,20 +154,30 @@ namespace PayTrack.Application.Features.Attendance.Commands
                 await _attendanceRepository
                     .AddAsync(attendance);
 
+                // Convert UTC time to Philippine time only for display
+                var philippinesTimeZone =
+                    TimeZoneInfo.FindSystemTimeZoneById(
+                        "Asia/Manila");
+
+                var timeIn =
+                    TimeZoneInfo.ConvertTimeFromUtc(
+                        DateTime.SpecifyKind(
+                            attendance.TimeIn.Value,
+                            DateTimeKind.Utc),
+                        philippinesTimeZone);
 
                 await _mediator.Publish(
                     new CompanyAdminNotificationCreatedEvent(
                         Guid.NewGuid(),
                         employee.CompanyAdminId,
                         CompanyAdminNotificationType.TimeIn,
-                        $"{employee.ApplicationUser.FullName} has timed in at {attendance.TimeIn:hh:mm tt}.",
+                        $"{employee.ApplicationUser.FullName} has timed in at {timeIn:hh:mm tt}.",
                         DateTime.UtcNow
                     ),
                     cancellationToken);
 
                 return attendance.Id;
             }
-  
 
             if (attendance.TimeOut == null)
             {
@@ -211,8 +196,6 @@ namespace PayTrack.Application.Features.Attendance.Commands
                     throw new InvalidOperationException(
                         "Time Out cannot be earlier than Time In.");
                 }
-
-
 
                 attendance.TimeOut =
                     timeOut;
@@ -239,12 +222,9 @@ namespace PayTrack.Application.Features.Attendance.Commands
                         regularHours,
                         2);
 
-
                 await _attendanceRepository
                     .UpdateAsync(
                         attendance);
-
-               
 
                 var salary =
                     employee.Salary;
@@ -255,13 +235,11 @@ namespace PayTrack.Application.Features.Attendance.Commands
                         "Employee salary not configured.");
                 }
 
-          
                 var earned =
                     _payrollService.Calculate(
                         salary,
                         attendance,
                         schedule);
-
 
                 var policy =
                     employee.UseCompanyLatePolicy
@@ -279,8 +257,6 @@ namespace PayTrack.Application.Features.Attendance.Commands
                     throw new InvalidOperationException(
                         "Attendance policy not found.");
                 }
-
-      
 
                 decimal deduction = 0;
 
@@ -324,7 +300,6 @@ namespace PayTrack.Application.Features.Attendance.Commands
                     }
                 }
 
-               
                 var finalSalary =
                     earned -
                     deduction;
@@ -338,8 +313,6 @@ namespace PayTrack.Application.Features.Attendance.Commands
                     Math.Round(
                         finalSalary,
                         2);
-
-              
 
                 var payroll =
                     new PayrollRecord
@@ -369,14 +342,12 @@ namespace PayTrack.Application.Features.Attendance.Commands
                 await _payrollRecordRepository
                     .AddAsync(payroll);
 
-                
                 var overtime =
                     await _overtimeRepository
                         .GetActiveOvertimeForEmployeeAsync(
                             employee.Id,
                             attendance.Date);
 
-               
                 if (overtime != null)
                 {
                     var overtimeStart =
@@ -385,7 +356,6 @@ namespace PayTrack.Application.Features.Attendance.Commands
 
                     // Only trigger completion if employee
                     // actually reached the OT period.
-
                     if (timeOut > overtimeStart)
                     {
                         await _mediator.Send(
@@ -396,25 +366,30 @@ namespace PayTrack.Application.Features.Attendance.Commands
                     }
                 }
 
-              
+                // Convert UTC time to Philippine time only for display
+                var philippinesTimeZone =
+                    TimeZoneInfo.FindSystemTimeZoneById(
+                        "Asia/Manila");
+
+                var philippinesTimeOut =
+                    TimeZoneInfo.ConvertTimeFromUtc(
+                        DateTime.SpecifyKind(
+                            attendance.TimeOut.Value,
+                            DateTimeKind.Utc),
+                        philippinesTimeZone);
 
                 await _mediator.Publish(
                     new CompanyAdminNotificationCreatedEvent(
                         Guid.NewGuid(),
-
                         employee.CompanyAdminId,
-
                         CompanyAdminNotificationType.TimeOut,
-
-                        $"{employee.ApplicationUser.FullName} has timed out at {attendance.TimeOut:hh:mm tt}.",
-
+                        $"{employee.ApplicationUser.FullName} has timed out at {philippinesTimeOut:hh:mm tt}.",
                         DateTime.UtcNow
                     ),
                     cancellationToken);
 
                 return attendance.Id;
             }
-
 
             throw new InvalidOperationException(
                 "Employee already timed in and timed out today.");
