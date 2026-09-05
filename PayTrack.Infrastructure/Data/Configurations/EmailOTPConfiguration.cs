@@ -28,7 +28,7 @@ namespace PayTrack.Infrastructure.Data.Configurations
 
             builder.Property(x => x.ExpiresAt)
                 .IsRequired()
-                .HasColumnType("timestamp without time zone");
+                .HasColumnType("timestamp with time zone");
 
 
             builder.Property(x => x.IsUsed)
@@ -42,7 +42,7 @@ namespace PayTrack.Infrastructure.Data.Configurations
 
             builder.Property(x => x.CreatedAt)
                 .IsRequired()
-                .HasColumnType("timestamp without time zone");
+                .HasColumnType("timestamp with time zone");
 
             builder.HasOne(x => x.ApplicationUser)
                 .WithMany(x => x.EmailOtps)

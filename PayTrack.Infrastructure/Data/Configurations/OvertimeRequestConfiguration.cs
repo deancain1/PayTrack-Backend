@@ -26,7 +26,7 @@ namespace PayTrack.Infrastructure.Data.Configurations
           
             builder.Property(x => x.Date)
                 .IsRequired()
-                .HasColumnType("timestamp without time zone");
+                .HasColumnType("timestamp with time zone");
 
            
             builder.Property(x => x.StartTime)
@@ -94,17 +94,17 @@ namespace PayTrack.Infrastructure.Data.Configurations
 
             builder.Property(x => x.CreatedAt)
                 .IsRequired()
-                .HasColumnType("timestamp without time zone");
+                .HasColumnType("timestamp with time zone");
 
 
             builder.Property(x => x.RespondedAt)
                 .IsRequired(false)
-                .HasColumnType("timestamp without time zone");
+                .HasColumnType("timestamp with time zone");
 
 
             builder.Property(x => x.CompletedAt)
                 .IsRequired(false)
-                .HasColumnType("timestamp without time zone");
+                .HasColumnType("timestamp with time zone");
 
 
             builder.Property(x => x.PayrollRecordId)

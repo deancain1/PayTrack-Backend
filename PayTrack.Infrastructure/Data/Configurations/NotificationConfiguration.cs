@@ -27,7 +27,8 @@ namespace PayTrack.Infrastructure.Data.Configurations
                 .HasDefaultValue(false);
 
             builder.Property(x => x.CreatedAt)
-                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
+              .HasColumnType("timestamp with time zone")
+              .HasDefaultValueSql("CURRENT_TIMESTAMP");
         }
     }
 }

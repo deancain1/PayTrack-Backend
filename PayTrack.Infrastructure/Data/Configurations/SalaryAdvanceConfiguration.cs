@@ -37,7 +37,7 @@ namespace PayTrack.Infrastructure.Data.Configurations
 
             builder.Property(sa => sa.RequestDate)
                 .IsRequired()
-                .HasColumnType("timestamp without time zone");
+                .HasColumnType("timestamp with time zone");
 
             
             builder.Property(sa => sa.IsDeducted)
