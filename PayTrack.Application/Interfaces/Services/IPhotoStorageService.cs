@@ -9,5 +9,6 @@ namespace PayTrack.Application.Interfaces.Services
     public interface IPhotoStorageService
     {
         Task<string> SaveAttendancePhotoAsync(string photoBase64);
+        Task<byte[]?> GetAttendancePhotoAsync(string relativePath);
     }
 }
