@@ -63,27 +63,25 @@ namespace PayTrack.Infrastructure.Services
                     break;
 
                 case PayrollPolicy.FullDay:
-
-                    if (completedShift)
+                    if (regularHours >= schedule.RequiredHours)
                         earned = salary.Rate;
-
                     break;
 
-                case PayrollPolicy.HalfDay:
+                //case PayrollPolicy.HalfDay:
 
-                    if (completedShift)
-                    {
-                        earned = salary.Rate;
-                    }
-                    else if (
-                        regularHours >=
-                        schedule.RequiredHours / 2m)
-                    {
-                        earned =
-                            salary.Rate / 2m;
-                    }
+                //    if (completedShift)
+                //    {
+                //        earned = salary.Rate;
+                //    }
+                //    else if (
+                //        regularHours >=
+                //        schedule.RequiredHours / 2m)
+                //    {
+                //        earned =
+                //            salary.Rate / 2m;
+                //    }
 
-                    break;
+                //    break;
 
                 default:
 
