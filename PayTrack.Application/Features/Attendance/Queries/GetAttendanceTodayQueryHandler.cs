@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Application.Features.Attendance.Queries
 {
-    public class GetAttendanceTodayQueryHandler : IRequestHandler<GetAttendanceTodayQuery, List<AttendanceDTO>>
+    public class GetAttendanceTodayQueryHandler : IRequestHandler<GetAttendanceTodayQuery, List<AttendanceTodayDTO>>
     {
         private readonly IAttendanceRepository _attendanceRepository;
         private readonly ICurrentUserService _currentUserService;
@@ -21,7 +21,7 @@ namespace PayTrack.Application.Features.Attendance.Queries
             _currentUserService = currentUserService;
         }
 
-        public async Task<List<AttendanceDTO>> Handle(GetAttendanceTodayQuery request, CancellationToken cancellationToken)
+        public async Task<List<AttendanceTodayDTO>> Handle(GetAttendanceTodayQuery request, CancellationToken cancellationToken)
         {
             var companyAdminId = _currentUserService.UserId;
 
@@ -29,7 +29,7 @@ namespace PayTrack.Application.Features.Attendance.Queries
             .GetTodayAttendancesAsync(companyAdminId);
           
 
-            return result.Select(a => new AttendanceDTO(
+            return result.Select(a => new AttendanceTodayDTO(
                 a.Id,
                 a.Date,
                 a.Employee.ApplicationUser.ProfilePicture != null

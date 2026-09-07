@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace PayTrack.Application.Features.Attendance.Queries
 {
     public class GetMyAttendanceQueryHandler
-        : IRequestHandler<GetMyAttendanceQuery, PagedResult<AttendanceDTO>>
+        : IRequestHandler<GetMyAttendanceQuery, PagedResult<MyAttendanceDTO>>
     {
         private readonly IAttendanceRepository _attendanceRepository;
         private readonly ICurrentUserService _currentUserService;
@@ -30,7 +30,7 @@ namespace PayTrack.Application.Features.Attendance.Queries
             _employeesRepository = employeesRepository;
         }
 
-        public async Task<PagedResult<AttendanceDTO>> Handle(GetMyAttendanceQuery request,CancellationToken cancellationToken)
+        public async Task<PagedResult<MyAttendanceDTO>> Handle(GetMyAttendanceQuery request,CancellationToken cancellationToken)
         {
             var employee =
                 await _employeesRepository
@@ -137,7 +137,7 @@ namespace PayTrack.Application.Features.Attendance.Queries
                         pageSize)
                     .Take(pageSize)
                     .Select(x =>
-                        new AttendanceDTO(
+                        new MyAttendanceDTO(
                             x.Id,
 
                             x.TimeIn.HasValue
@@ -168,7 +168,7 @@ namespace PayTrack.Application.Features.Attendance.Queries
                     )
                     .ToListAsync(cancellationToken);
 
-            return new PagedResult<AttendanceDTO>(
+            return new PagedResult<MyAttendanceDTO>(
                 items,
                 totalCount,
                 pageNumber,

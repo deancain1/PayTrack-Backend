@@ -9,6 +9,6 @@ using System.Threading.Tasks;
 namespace PayTrack.Application.Features.Attendance.Queries
 {
     public record  GetMyAttendanceQuery(int PageNumber = 1, int? PageSize = null, string? Search = null, int? Month = null,
-    int? Year = null ) : IRequest<PagedResult<AttendanceDTO>>;
+    int? Year = null ) : IRequest<PagedResult<MyAttendanceDTO>>;
     
 }

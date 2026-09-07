@@ -8,5 +8,5 @@ using System.Threading.Tasks;
 
 namespace PayTrack.Application.Features.Attendance.Queries
 {
-    public record GetAttendanceTodayQuery : IRequest<List<AttendanceDTO>>;
+    public record GetAttendanceTodayQuery : IRequest<List<AttendanceTodayDTO>>;
 }
