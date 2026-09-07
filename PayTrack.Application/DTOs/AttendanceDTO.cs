@@ -11,12 +11,14 @@ namespace PayTrack.Application.DTOs
         Guid Id,
         DateTime date,
         string? ProfilePictureBase64,
-        string fullName,
-        string? department,
-        string employeeNumber,
-        DateTime? timeIn,
-        DateTime? timeOut,
-        string status
+        string FullName,
+        string? Department,
+        string EmployeeNumber,
+        DateTime? TimeIn,
+        DateTime? TimeOut,
+        string status,
+        string? TimeInPhoto,
+        string? TimeOutPhoto
 
     );
 }
