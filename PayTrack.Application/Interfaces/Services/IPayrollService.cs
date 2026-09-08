@@ -9,7 +9,11 @@ namespace PayTrack.Application.Interfaces.Services
 {
     public interface IPayrollService
     {
-        decimal Calculate(EmployeeSalary salary, Attendances attendance, WorkSchedules schedule);
+        decimal Calculate(
+            EmployeeSalary salary,
+            Attendances attendance,
+            WorkSchedules schedule,
+            AttendancePolicy? attendancePolicy = null);
         Task<decimal> CalculateCurrentEarningsAsync(Guid employeeId, DateTime startDate, DateTime endDate);
         decimal CalculateHourlyRate(
          EmployeeSalary salary,
