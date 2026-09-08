@@ -28,12 +28,12 @@ namespace PayTrack.Infrastructure.Data.Configurations
            
             builder.Property(x => x.PeriodStart)
                 .IsRequired()
-                .HasColumnType("timestamp without time zone");
+                .HasColumnType("timestamp with time zone");
 
            
             builder.Property(x => x.PeriodEnd)
                 .IsRequired()
-                .HasColumnType("timestamp without time zone");
+                .HasColumnType("timestamp with time zone");
 
            
             builder.Property(x => x.MonthlyRateSnapshot)
