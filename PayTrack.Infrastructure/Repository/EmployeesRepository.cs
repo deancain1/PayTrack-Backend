@@ -57,6 +57,13 @@ namespace PayTrack.Infrastructure.Repository
                     e.EmployeeNumber == employeeNumber);
         }
 
+        public async Task<Employees?> GetByIdWithInformationAsync(Guid employeeId)
+        {
+            return await _context.Employees
+                .Include(e => e.ApplicationUser)
+                .Include(e => e.Department)
+                .FirstOrDefaultAsync(e => e.Id == employeeId);
+        }
         public async Task<List<Employees>> GetByIdsAsync(List<Guid> ids)
         {
             return await _context.Employees

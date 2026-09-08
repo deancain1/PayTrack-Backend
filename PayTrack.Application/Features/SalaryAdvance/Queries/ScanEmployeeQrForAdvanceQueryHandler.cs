@@ -23,27 +23,31 @@ namespace PayTrack.Application.Features.SalaryAdvance.Queries
 
         }
 
-        public async  Task<ScanEmployeeForAdvanceDTO> Handle(ScanEmployeeQrForAdvanceQuery request, CancellationToken cancellationToken)
+        public async Task<ScanEmployeeForAdvanceDTO> Handle(ScanEmployeeQrForAdvanceQuery request, CancellationToken cancellationToken)
         {
-            var employee =
-           await _employeesRepository.GetByIdAsync(request.EmployeeId);
+            var employee = await _employeesRepository.GetByIdWithInformationAsync(request.EmployeeId);
 
             if (employee is null)
                 throw new Exception("Employee not found.");
 
+            var now = DateTime.UtcNow;
+
             var startDate = new DateTime(
-                DateTime.Today.Year,
-                DateTime.Today.Month,
-                1);
+                now.Year,
+                now.Month,
+                1,
+                0,
+                0,
+                0,
+                DateTimeKind.Utc);
 
-            var endDate = DateTime.Today;
+            var endDate = now;
 
-           
             decimal currentEarnings =
-             await _payrollRecordRepository.GetTotalEarningsAsync(
-                 employee.Id,
-                 startDate,
-                 endDate);
+                await _payrollRecordRepository.GetTotalEarningsAsync(
+                    employee.Id,
+                    startDate,
+                    endDate);
 
             decimal alreadyAdvanced =
                 await _salaryAdvanceRepository.GetTotalAdvancesAsync(
@@ -51,13 +55,12 @@ namespace PayTrack.Application.Features.SalaryAdvance.Queries
                     startDate,
                     endDate);
 
-            decimal availableAdvance =
-                currentEarnings - alreadyAdvanced;
+            decimal availableAdvance = currentEarnings - alreadyAdvanced;
 
             if (availableAdvance < 0)
                 availableAdvance = 0;
 
-            return new ScanEmployeeForAdvanceDTO( 
+            return new ScanEmployeeForAdvanceDTO(
                 employee.Id,
                 employee.ApplicationUserId,
                 employee.EmployeeNumber,
@@ -66,7 +69,6 @@ namespace PayTrack.Application.Features.SalaryAdvance.Queries
                 currentEarnings,
                 alreadyAdvanced,
                 availableAdvance
-                
             );
         }
     }
