@@ -32,6 +32,8 @@ namespace PayTrack.Infrastructure.Repository
             return _context.Attendances
                 .Include(a => a.Employee)
                     .ThenInclude(e => e.ApplicationUser)
+                 .Include(a => a.Employee)
+                      .ThenInclude(e => e.Department)
                 .Where(a => a.Employee.CompanyAdminId == companyAdminId)
                 .OrderByDescending(a => a.TimeIn);
         }

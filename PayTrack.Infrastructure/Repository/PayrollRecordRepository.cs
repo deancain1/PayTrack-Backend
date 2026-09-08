@@ -51,6 +51,8 @@ namespace PayTrack.Infrastructure.Repository
         {
             return _context.PayrollRecords
                 .Include(e => e.ApplicationUser)
+                .Include(e => e.Employee)
+                    .ThenInclude(e => e.Department)
                 .Where(e => e.Employee.CompanyAdminId == companyAdminId)
                 .AsQueryable();
         }
