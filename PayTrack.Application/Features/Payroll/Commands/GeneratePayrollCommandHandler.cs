@@ -61,21 +61,23 @@ namespace PayTrack.Application.Features.Payroll.Commands
             _publisher = publisher;
         }
 
-        public async Task<GeneratePayrollResult> Handle(GeneratePayrollCommand request,
-            CancellationToken cancellationToken)
+        public async Task<GeneratePayrollResult> Handle(GeneratePayrollCommand request, CancellationToken cancellationToken)
         {
-           
-
             if (request.PeriodStart.Date > request.PeriodEnd.Date)
             {
                 throw new InvalidOperationException(
                     "Payroll start date cannot be later than payroll end date.");
             }
 
-            var periodStart = request.PeriodStart.Date;
-            var periodEnd = request.PeriodEnd.Date;
+            // Convert payroll period dates to UTC
+            var periodStart = DateTime.SpecifyKind(
+                request.PeriodStart.Date,
+                DateTimeKind.Utc);
 
-     
+            var periodEnd = DateTime.SpecifyKind(
+                request.PeriodEnd.Date,
+                DateTimeKind.Utc);
+
             var hasSkippedAttendance =
                 await _payrollRecordRepository
                     .HasUnpaidAttendanceBeforePeriodAsync(
@@ -93,41 +95,26 @@ namespace PayTrack.Application.Features.Payroll.Commands
                         periodStart,
                         periodEnd);
 
-       
             if (existingBatch != null)
             {
                 existingBatch.IsActive = false;
 
-                _payrollBatchRepository.Update(
-                    existingBatch);
+                _payrollBatchRepository.Update(existingBatch);
 
                 await _payrollBatchRepository
                     .SaveChangesAsync();
             }
 
-
-
             var batch = new PayrollBatch
             {
                 Id = Guid.NewGuid(),
-
-                PeriodStart =
-                    periodStart,
-
-                PeriodEnd =
-                    periodEnd,
-
-                IsActive =
-                    true,
-
-                CreatedAt =
-                    DateTime.UtcNow
+                PeriodStart = periodStart,
+                PeriodEnd = periodEnd,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
             };
 
-            await _payrollBatchRepository
-                .AddAsync(batch);
-
-         
+            await _payrollBatchRepository.AddAsync(batch);
 
             List<Employees> employees;
 
@@ -136,8 +123,7 @@ namespace PayTrack.Application.Features.Payroll.Commands
             {
                 employees =
                     await _employeesRepository
-                        .GetByIdsAsync(
-                            request.EmployeeIds);
+                        .GetByIdsAsync(request.EmployeeIds);
             }
             else
             {
@@ -145,8 +131,6 @@ namespace PayTrack.Application.Features.Payroll.Commands
                     await _employeesRepository
                         .GetAllAsync();
             }
-
-       
 
             var companyAdminId =
                 _currentUserService.UserId;
@@ -159,8 +143,7 @@ namespace PayTrack.Application.Features.Payroll.Commands
 
             var payrollSetting =
                 await _companyPayrollSettingRepository
-                    .GetByCompanyAdminIdAsync(
-                        companyAdminId);
+                    .GetByCompanyAdminIdAsync(companyAdminId);
 
             if (payrollSetting == null)
             {
@@ -171,8 +154,6 @@ namespace PayTrack.Application.Features.Payroll.Commands
             var payrollFrequency =
                 payrollSetting.Frequency;
 
-        
-
             var employeeResults =
                 new List<EmployeePayrollDTO>();
 
@@ -180,12 +161,9 @@ namespace PayTrack.Application.Features.Payroll.Commands
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-         
-
                 var employeeSalary =
                     await _salaryRepository
-                        .GetByEmployeeIdAsync(
-                            employee.Id);
+                        .GetByEmployeeIdAsync(employee.Id);
 
                 if (employeeSalary == null)
                 {
@@ -193,7 +171,8 @@ namespace PayTrack.Application.Features.Payroll.Commands
                         $"No salary assigned to {employee.ApplicationUser.FullName}");
                 }
 
-                var schedule = employee.WorkSchedule;
+                var schedule =
+                    employee.WorkSchedule;
 
                 if (schedule == null)
                 {
@@ -204,7 +183,6 @@ namespace PayTrack.Application.Features.Payroll.Commands
                 var monthlyRate =
                     employeeSalary.MonthlyRate;
 
-
                 var regularAmount =
                     await _payrollRecordRepository
                         .GetTotalEarningsAsync(
@@ -212,21 +190,17 @@ namespace PayTrack.Application.Features.Payroll.Commands
                             periodStart,
                             periodEnd);
 
-                regularAmount = Math.Round(
-                    regularAmount,
-                    2);
+                regularAmount =
+                    Math.Round(regularAmount, 2);
 
 
-                // ============================================================
-                // PAID LEAVE
-                // ============================================================
 
                 var paidLeaves =
-                   await _leaveRequestRepository
-                       .GetApprovedPaidLeaveAsync(
-                           employee.Id,
-                           periodStart,
-                           periodEnd);
+                    await _leaveRequestRepository
+                        .GetApprovedPaidLeaveAsync(
+                            employee.Id,
+                            periodStart,
+                            periodEnd);
 
                 var paidLeaveDays = 0;
 
@@ -249,16 +223,6 @@ namespace PayTrack.Application.Features.Payroll.Commands
                     }
                 }
 
-                // Calculate paid leave using the employee's
-                // salary policy and work schedule.
-                //
-                // Example:
-                // Hourly Rate = 500
-                // Required Hours = 8
-                // Daily Rate = 500 * 8 = 4,000
-                //
-                // 2 paid leave days = 4,000 * 2 = 8,000
-
                 var paidLeaveAmount =
                     _payrollService.CalculatePaidLeave(
                         employeeSalary,
@@ -266,10 +230,7 @@ namespace PayTrack.Application.Features.Payroll.Commands
                         paidLeaveDays);
 
                 paidLeaveAmount =
-                    Math.Round(
-                        paidLeaveAmount,
-                        2);
-                // OVERTIME
+                    Math.Round(paidLeaveAmount, 2);
 
                 var completedOvertimes =
                     await _overtimeRepository
@@ -283,11 +244,7 @@ namespace PayTrack.Application.Features.Payroll.Commands
                         x => x.OvertimePay);
 
                 overtimeAmount =
-                    Math.Round(
-                        overtimeAmount,
-                        2);
-
-
+                    Math.Round(overtimeAmount, 2);
 
 
                 var totalAmount =
@@ -297,14 +254,12 @@ namespace PayTrack.Application.Features.Payroll.Commands
                         overtimeAmount,
                         2);
 
-
-
                 if (totalAmount <= 0)
                 {
                     continue;
                 }
 
-               
+
 
                 var salaryAdvanceDeduction =
                     await _salaryAdvanceRepository
@@ -315,6 +270,7 @@ namespace PayTrack.Application.Features.Payroll.Commands
                     Math.Round(
                         salaryAdvanceDeduction,
                         2);
+
 
 
                 var philHealthDeduction =
@@ -328,7 +284,8 @@ namespace PayTrack.Application.Features.Payroll.Commands
                         philHealthDeduction,
                         2);
 
-            
+
+
                 var pagIbigDeduction =
                     await _pagIbigService
                         .ComputeEmployeeContributionAsync(
@@ -341,6 +298,7 @@ namespace PayTrack.Application.Features.Payroll.Commands
                         2);
 
 
+
                 var sssDeduction =
                     await _sssService
                         .ComputeEmployeeContributionAsync(
@@ -351,6 +309,8 @@ namespace PayTrack.Application.Features.Payroll.Commands
                     Math.Round(
                         sssDeduction,
                         2);
+
+
 
                 var netAmount =
                     totalAmount
@@ -365,67 +325,63 @@ namespace PayTrack.Application.Features.Payroll.Commands
                 }
 
                 netAmount =
-                    Math.Round(
-                        netAmount,
-                        2);
+                    Math.Round(netAmount, 2);
 
-            
-                var payroll =
-                    new Payrolls
-                    {
-                        Id =
-                            Guid.NewGuid(),
 
-                        EmployeeId =
-                            employee.Id,
+                var payroll = new Payrolls
+                {
+                    Id = Guid.NewGuid(),
 
-                        PayrollBatchId =
-                            batch.Id,
+                    EmployeeId =
+                        employee.Id,
 
-                        PeriodStart =
-                            periodStart,
+                    PayrollBatchId =
+                        batch.Id,
 
-                        PeriodEnd =
-                            periodEnd,
+                    PeriodStart =
+                        periodStart,
 
-                        RegularAmount = 
+                    PeriodEnd =
+                        periodEnd,
+
+                    RegularAmount =
                         regularAmount,
 
-                        OvertimeAmount =
+                    OvertimeAmount =
                         overtimeAmount,
 
-                        PaidLeaveAmount = 
+                    PaidLeaveAmount =
                         paidLeaveAmount,
 
-                        TotalAmount =
-                            totalAmount,
+                    TotalAmount =
+                        totalAmount,
 
-                        SalaryAdvanceDeduction =
-                            salaryAdvanceDeduction,
+                    SalaryAdvanceDeduction =
+                        salaryAdvanceDeduction,
 
-                        PhilHealthDeduction =
-                            philHealthDeduction,
+                    PhilHealthDeduction =
+                        philHealthDeduction,
 
-                        PagIbigDeduction =
-                            pagIbigDeduction,
+                    PagIbigDeduction =
+                        pagIbigDeduction,
 
-                        SSSDeduction =
-                            sssDeduction,
+                    SSSDeduction =
+                        sssDeduction,
 
-                        NetAmount =
-                            netAmount,
+                    NetAmount =
+                        netAmount,
 
-                        Status =
-                            PayrollStatus.Pending,
+                    Status =
+                        PayrollStatus.Pending,
 
-                        CreatedAt =
-                            DateTime.UtcNow
-                    };
+                    CreatedAt =
+                        DateTime.UtcNow
+                };
 
                 await _payrollRepository
                     .AddAsync(payroll);
 
-           
+
 
                 var dailyRecords =
                     await _payrollRecordRepository
@@ -443,9 +399,8 @@ namespace PayTrack.Application.Features.Payroll.Commands
                         .Update(record);
                 }
 
-                // This prevents the same OT from being included
-                // in another payroll generation.
-               
+
+
                 foreach (var overtime in completedOvertimes)
                 {
                     overtime.PayrollId =
@@ -455,7 +410,7 @@ namespace PayTrack.Application.Features.Payroll.Commands
                         .Update(overtime);
                 }
 
-             
+
                 employeeResults.Add(
                     new EmployeePayrollDTO(
                         EmployeeId:
@@ -471,7 +426,7 @@ namespace PayTrack.Application.Features.Payroll.Commands
                             overtimeAmount,
 
                         PaidLeaveAmount:
-                           paidLeaveAmount,
+                            paidLeaveAmount,
 
                         TotalAmount:
                             totalAmount,
@@ -493,7 +448,6 @@ namespace PayTrack.Application.Features.Payroll.Commands
                     ));
             }
 
-         
 
             if (!employeeResults.Any())
             {
@@ -509,9 +463,9 @@ namespace PayTrack.Application.Features.Payroll.Commands
                     "No employees have payable earnings for this payroll period.");
             }
 
-
             await _payrollBatchRepository
                 .SaveChangesAsync();
+
 
 
             foreach (var employee in employees)
@@ -539,6 +493,7 @@ namespace PayTrack.Application.Features.Payroll.Commands
                     ),
                     cancellationToken);
             }
+
 
 
             return new GeneratePayrollResult(

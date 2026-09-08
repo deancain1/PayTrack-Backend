@@ -70,6 +70,10 @@ namespace PayTrack.Infrastructure.Repository
 
         public async Task<bool> HasUnpaidAttendanceBeforePeriodAsync(DateTime periodStart)
         {
+            periodStart = periodStart.Kind == DateTimeKind.Utc
+                ? periodStart
+                : periodStart.ToUniversalTime();
+
             return await _context.PayrollRecords
                 .Include(r => r.Attendance)
                 .Where(r => r.Attendance.Date < periodStart)
