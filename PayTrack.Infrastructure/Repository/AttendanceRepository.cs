@@ -221,5 +221,16 @@ namespace PayTrack.Infrastructure.Repository
                     x.TimeIn != null &&
                     x.TimeOut == null);
         }
+        public async Task<decimal> GetHoursWorkedForEmployeePeriodAsync(Guid employeeId, DateTime startDate, DateTime endDate)
+        {
+            return await _context.Attendances
+                .AsNoTracking()
+                .Where(a =>
+                    a.EmployeeId == employeeId &&
+                    a.Date >= startDate &&
+                    a.Date < endDate)
+                .SumAsync(
+                    a => a.HoursWorked);
+        }
     }
 }

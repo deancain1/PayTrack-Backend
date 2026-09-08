@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PayTrack.Application.DTOs;
@@ -93,6 +94,14 @@ namespace PayTrack.Api.Controllers
             return Ok(result);
         }
 
+        [HttpGet("my/weekly-progress")]
+        public async Task<IActionResult> GetMyWeeklyProgress()
+        {
+            var result = await _mediator.Send(
+                new GetMyWeeklyProgressQuery());
+
+            return Ok(result);
+        }
         //[HttpGet("missing-timein-reminders")]
         //public async Task<IActionResult> GetMissingTimeInReminder()
         //{

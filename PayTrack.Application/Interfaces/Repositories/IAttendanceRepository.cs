@@ -27,6 +27,7 @@ namespace PayTrack.Application.Interfaces.Repositories
         Task<List<Attendances>> GetByEmployeeAndDateRangeAsync(Guid employeeId, DateTime startDate, DateTime endDate);
 
         Task<int> GetActiveTrackedAsync(string companyAdminId);
+        Task<decimal> GetHoursWorkedForEmployeePeriodAsync(Guid employeeId, DateTime startDate, DateTime endDate);
 
     }
 
