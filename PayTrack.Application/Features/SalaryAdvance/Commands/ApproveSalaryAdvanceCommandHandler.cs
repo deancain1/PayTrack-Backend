@@ -22,7 +22,7 @@ namespace PayTrack.Application.Features.SalaryAdvance.Commands
 
         public async Task<bool> Handle(ApproveSalaryAdvanceCommand request, CancellationToken cancellationToken)
         {
-            // 1. Get the salary advance request
+           
             var salaryAdvance = await _salaryAdvanceRepository.GetByIdAsync(request.Id);
 
             if (salaryAdvance == null)
@@ -30,7 +30,7 @@ namespace PayTrack.Application.Features.SalaryAdvance.Commands
                 throw new Exception("Salary advance request not found.");
             }
 
-            // 2. Only pending requests can be approved
+         
             if (salaryAdvance.Status != SalaryAdvanceStatus.Pending)
             {
                 throw new Exception("Only pending requests can be approved.");
@@ -47,7 +47,7 @@ namespace PayTrack.Application.Features.SalaryAdvance.Commands
                     "This salary advance cannot be approved because payroll has already been generated for this period.");
             }
 
-            // 4. Approve the request
+           
             salaryAdvance.Status = SalaryAdvanceStatus.Approved;
 
              _salaryAdvanceRepository.Update(salaryAdvance);

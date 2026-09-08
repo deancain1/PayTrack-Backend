@@ -37,6 +37,10 @@ namespace PayTrack.Infrastructure.Repository
 
         public async Task<bool> HasGeneratedPayrollForDateAsync(Guid employeeId, DateTime requestDate)
         {
+            requestDate = DateTime.SpecifyKind(
+                requestDate,
+                DateTimeKind.Unspecified);
+
             return await _context.Payrolls.AnyAsync(p =>
                 p.EmployeeId == employeeId &&
                 requestDate >= p.PeriodStart &&
