@@ -14,7 +14,6 @@ namespace PayTrack.Application.Features.Attendance.Commands
         private readonly IEmployeesRepository _employeesRepository;
         private readonly IAttendanceRepository _attendanceRepository;
         private readonly IPhotoStorageService _photoStorageService;
-        private readonly ISalaryRepository _salaryRepository;
         private readonly IPayrollRecordRepository _payrollRecordRepository;
         private readonly IPayrollService _payrollService;
         private readonly IAttendancePolicyService _attendancePolicyService;
@@ -26,7 +25,6 @@ namespace PayTrack.Application.Features.Attendance.Commands
             IEmployeesRepository employeesRepository,
             IAttendanceRepository attendanceRepository,
             IPhotoStorageService photoStorageService,
-            ISalaryRepository salaryRepository,
             IPayrollRecordRepository payrollRecordRepository,
             IPayrollService payrollService,
             IAttendancePolicyService attendancePolicyService,
@@ -37,7 +35,6 @@ namespace PayTrack.Application.Features.Attendance.Commands
             _employeesRepository = employeesRepository;
             _attendanceRepository = attendanceRepository;
             _photoStorageService = photoStorageService;
-            _salaryRepository = salaryRepository;
             _payrollRecordRepository = payrollRecordRepository;
             _payrollService = payrollService;
             _attendancePolicyService = attendancePolicyService;
@@ -70,34 +67,32 @@ namespace PayTrack.Application.Features.Attendance.Commands
                     "Employee work schedule is not assigned.");
             }
 
-            var photoPath =
-                await _photoStorageService
-                    .SaveAttendancePhotoAsync(
-                        request.PhotoBase64);
+            if (string.IsNullOrWhiteSpace(request.PhotoBase64))
+            {
+                throw new InvalidOperationException(
+                    "Attendance photo is required.");
+            }
+
+            var philippinesTimeZone =
+                TimeZoneInfo.FindSystemTimeZoneById(
+                    "Asia/Manila");
 
             var attendance =
                 await _attendanceRepository
                     .GetTodayAttendanceAsync(
                         employee.Id);
 
-            // Philippine timezone
-            var philippinesTimeZone =
-                TimeZoneInfo.FindSystemTimeZoneById(
-                    "Asia/Manila");
+            var nowUtc =
+                DateTime.UtcNow;
+
+            var nowPhilippines =
+                TimeZoneInfo.ConvertTimeFromUtc(
+                    nowUtc,
+                    philippinesTimeZone);
 
             // Time In
             if (attendance == null)
             {
-                var nowUtc =
-                    DateTime.UtcNow;
-
-                var nowPhilippines =
-                    TimeZoneInfo.ConvertTimeFromUtc(
-                        DateTime.SpecifyKind(
-                            nowUtc,
-                            DateTimeKind.Utc),
-                        philippinesTimeZone);
-
                 if (!schedule.StartTime.HasValue)
                 {
                     throw new InvalidOperationException(
@@ -112,11 +107,11 @@ namespace PayTrack.Application.Features.Attendance.Commands
                         TimeSpan.FromMinutes(
                             schedule.GracePeriodMinutes));
 
-                bool isLate =
+                var isLate =
                     nowPhilippines.TimeOfDay >
                     latestAllowed;
 
-                decimal lateMinutes = 0;
+                decimal lateMinutes = 0m;
 
                 if (isLate)
                 {
@@ -134,6 +129,11 @@ namespace PayTrack.Application.Features.Attendance.Commands
                             schedule,
                             nowPhilippines);
 
+                var photoPath =
+                    await _photoStorageService
+                        .SaveAttendancePhotoAsync(
+                            request.PhotoBase64);
+
                 attendance =
                     new Attendances
                     {
@@ -143,9 +143,15 @@ namespace PayTrack.Application.Features.Attendance.Commands
                         EmployeeId =
                             employee.Id,
 
+                        // Date is stored as UTC.
+                        // The Philippine date is already
+                        // used when determining today's attendance.
                         Date =
-                            nowPhilippines.Date,
+                            DateTime.SpecifyKind(
+                                nowPhilippines.Date,
+                                DateTimeKind.Utc),
 
+                        // Timestamp is always UTC.
                         TimeIn =
                             nowUtc,
 
@@ -159,7 +165,7 @@ namespace PayTrack.Application.Features.Attendance.Commands
                             null,
 
                         HoursWorked =
-                            0,
+                            0m,
 
                         IsLate =
                             isLate,
@@ -172,7 +178,8 @@ namespace PayTrack.Application.Features.Attendance.Commands
                     };
 
                 await _attendanceRepository
-                    .AddAsync(attendance);
+                    .AddAsync(
+                        attendance);
 
                 await _mediator.Publish(
                     new CompanyAdminNotificationCreatedEvent(
@@ -180,15 +187,14 @@ namespace PayTrack.Application.Features.Attendance.Commands
                         employee.CompanyAdminId,
                         CompanyAdminNotificationType.TimeIn,
                         $"{employee.ApplicationUser.FullName} has timed in at {nowPhilippines:hh:mm tt}.",
-                        DateTime.UtcNow
-                    ),
+                        nowUtc),
                     cancellationToken);
 
                 return attendance.Id;
             }
 
             // Time Out
-            if (attendance.TimeOut == null)
+            if (!attendance.TimeOut.HasValue)
             {
                 if (!attendance.TimeIn.HasValue)
                 {
@@ -196,24 +202,29 @@ namespace PayTrack.Application.Features.Attendance.Commands
                         "Employee has no recorded Time In.");
                 }
 
-                var timeOut =
+                var timeOutUtc =
                     DateTime.UtcNow;
 
-                if (timeOut <
+                if (timeOutUtc <
                     attendance.TimeIn.Value)
                 {
                     throw new InvalidOperationException(
                         "Time Out cannot be earlier than Time In.");
                 }
 
+                var photoPath =
+                    await _photoStorageService
+                        .SaveAttendancePhotoAsync(
+                            request.PhotoBase64);
+
                 attendance.TimeOut =
-                    timeOut;
+                    timeOutUtc;
 
                 attendance.TimeOutPhoto =
                     photoPath;
 
                 var duration =
-                    timeOut -
+                    timeOutUtc -
                     attendance.TimeIn.Value;
 
                 var elapsedHours =
@@ -228,7 +239,9 @@ namespace PayTrack.Application.Features.Attendance.Commands
 
                 attendance.HoursWorked =
                     Math.Round(
-                        regularHours,
+                        Math.Max(
+                            0m,
+                            regularHours),
                         2);
 
                 await _attendanceRepository
@@ -261,63 +274,20 @@ namespace PayTrack.Application.Features.Attendance.Commands
                         "Attendance policy not found.");
                 }
 
-                var earned =
+                // PayrollService handles the salary
+                // calculation and late deduction.
+                var finalSalary =
                     _payrollService.Calculate(
                         salary,
                         attendance,
                         schedule,
                         policy);
 
-                var deduction = 0m;
-
-                if (
-                    policy.EnableLateDeduction &&
-                    attendance.IsLate)
-                {
-                    switch (policy.LateDeductionType)
-                    {
-                        case LateDeductionType.None:
-
-                            deduction = 0m;
-
-                            break;
-
-                        case LateDeductionType.FixedAmount:
-
-                            deduction =
-                                policy.DeductionValue;
-
-                            break;
-
-                        case LateDeductionType.Percentage:
-
-                            deduction =
-                                earned *
-                                (
-                                    policy.DeductionValue /
-                                    100m
-                                );
-
-                            break;
-
-                        case LateDeductionType.PerMinute:
-
-                            deduction =
-                                attendance.LateMinutes *
-                                policy.DeductionValue;
-
-                            break;
-                    }
-                }
-
-                var finalSalary =
-                    Math.Max(
-                        0m,
-                        earned - deduction);
-
                 finalSalary =
                     Math.Round(
-                        finalSalary,
+                        Math.Max(
+                            0m,
+                            finalSalary),
                         2);
 
                 var payroll =
@@ -346,7 +316,8 @@ namespace PayTrack.Application.Features.Attendance.Commands
                     };
 
                 await _payrollRecordRepository
-                    .AddAsync(payroll);
+                    .AddAsync(
+                        payroll);
 
                 // Complete overtime
                 var overtime =
@@ -357,25 +328,29 @@ namespace PayTrack.Application.Features.Attendance.Commands
 
                 if (overtime != null)
                 {
-                    var overtimeStart =
+                    var timeOutPhilippines =
+                        TimeZoneInfo.ConvertTimeFromUtc(
+                            timeOutUtc,
+                            philippinesTimeZone);
+
+                    var overtimeStartPhilippines =
                         overtime.Date.Date +
                         overtime.StartTime;
 
-                    if (timeOut >= overtimeStart)
+                    if (timeOutPhilippines >=
+                        overtimeStartPhilippines)
                     {
                         await _mediator.Send(
                             new CompleteOvertimeCommand(
                                 overtime.Id,
-                                timeOut),
+                                timeOutUtc),
                             cancellationToken);
                     }
                 }
 
                 var philippinesTimeOut =
                     TimeZoneInfo.ConvertTimeFromUtc(
-                        DateTime.SpecifyKind(
-                            attendance.TimeOut.Value,
-                            DateTimeKind.Utc),
+                        attendance.TimeOut.Value,
                         philippinesTimeZone);
 
                 await _mediator.Publish(
@@ -384,8 +359,7 @@ namespace PayTrack.Application.Features.Attendance.Commands
                         employee.CompanyAdminId,
                         CompanyAdminNotificationType.TimeOut,
                         $"{employee.ApplicationUser.FullName} has timed out at {philippinesTimeOut:hh:mm tt}.",
-                        DateTime.UtcNow
-                    ),
+                        DateTime.UtcNow),
                     cancellationToken);
 
                 return attendance.Id;
