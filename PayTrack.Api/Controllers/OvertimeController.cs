@@ -114,28 +114,6 @@ namespace PayTrack.Api.Controllers
                     : "Overtime request rejected successfully."
             });
         }
-
-
-
-        //[HttpPost("{id}/cancel")]
-        //[Authorize]
-        //public async Task<IActionResult> Cancel(
-        //    Guid id,
-        //    [FromBody] CancelOvertimeCommand command)
-        //{
-        //    if (id != command.OvertimeId)
-        //    {
-        //        return BadRequest(
-        //            "Overtime ID does not match.");
-        //    }
-
-        //    await _mediator.Send(command);
-
-        //    return Ok(new
-        //    {
-        //        message = "Overtime request cancelled successfully."
-        //    });
-        //}
     }
 }
 
