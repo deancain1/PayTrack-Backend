@@ -1,64 +1,44 @@
 ﻿using MediatR;
 using PayTrack.Application.DTOs;
 using PayTrack.Application.Interfaces.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using PayTrack.Application.Interfaces.Services;
 
 namespace PayTrack.Application.Features.SalaryAdvance.Queries
 {
-    public class ScanEmployeeQrForAdvanceQueryHandler : IRequestHandler<ScanEmployeeQrForAdvanceQuery, ScanEmployeeForAdvanceDTO>
+    public class ScanEmployeeQrForAdvanceQueryHandler
+        : IRequestHandler<
+            ScanEmployeeQrForAdvanceQuery,
+            ScanEmployeeForAdvanceDTO>
     {
         private readonly IEmployeesRepository _employeesRepository;
-        private readonly ISalaryAdvanceRepository _salaryAdvanceRepository;
-        private readonly IPayrollRecordRepository _payrollRecordRepository;
+        private readonly ISalaryAdvanceEligibilityService
+            _salaryAdvanceEligibilityService;
 
-        public ScanEmployeeQrForAdvanceQueryHandler(IEmployeesRepository employeesRepository, ISalaryAdvanceRepository salaryAdvanceRepository, IPayrollRecordRepository payrollRecordRepository)
+        public ScanEmployeeQrForAdvanceQueryHandler(
+            IEmployeesRepository employeesRepository,
+            ISalaryAdvanceEligibilityService salaryAdvanceEligibilityService)
         {
             _employeesRepository = employeesRepository;
-            _salaryAdvanceRepository = salaryAdvanceRepository;
-            _payrollRecordRepository = payrollRecordRepository;
-
+            _salaryAdvanceEligibilityService =
+                salaryAdvanceEligibilityService;
         }
 
-        public async Task<ScanEmployeeForAdvanceDTO> Handle(ScanEmployeeQrForAdvanceQuery request, CancellationToken cancellationToken)
+        public async Task<ScanEmployeeForAdvanceDTO> Handle(
+            ScanEmployeeQrForAdvanceQuery request,
+            CancellationToken cancellationToken)
         {
-            var employee = await _employeesRepository.GetByIdWithInformationAsync(request.EmployeeId);
+            var employee =
+                await _employeesRepository
+                    .GetByIdWithInformationAsync(request.EmployeeId);
 
             if (employee is null)
+            {
                 throw new Exception("Employee not found.");
+            }
 
-            var now = DateTime.UtcNow;
-
-            var startDate = new DateTime(
-                now.Year,
-                now.Month,
-                1,
-                0,
-                0,
-                0,
-                DateTimeKind.Utc);
-
-            var endDate = now;
-
-            decimal currentEarnings =
-                await _payrollRecordRepository.GetTotalEarningsAsync(
-                    employee.Id,
-                    startDate,
-                    endDate);
-
-            decimal alreadyAdvanced =
-                await _salaryAdvanceRepository.GetTotalAdvancesAsync(
-                    employee.ApplicationUserId,
-                    startDate,
-                    endDate);
-
-            decimal availableAdvance = currentEarnings - alreadyAdvanced;
-
-            if (availableAdvance < 0)
-                availableAdvance = 0;
+            var eligibility =
+                await _salaryAdvanceEligibilityService
+                    .GetEligibilityAsync(employee.Id);
 
             return new ScanEmployeeForAdvanceDTO(
                 employee.Id,
@@ -66,9 +46,9 @@ namespace PayTrack.Application.Features.SalaryAdvance.Queries
                 employee.EmployeeNumber,
                 employee.ApplicationUser.FullName,
                 employee.Department?.DepartmentName ?? string.Empty,
-                currentEarnings,
-                alreadyAdvanced,
-                availableAdvance
+                eligibility.GrossEarnings,
+                eligibility.ExistingSalaryAdvances,
+                eligibility.AvailableSalaryAdvance
             );
         }
     }
