@@ -94,7 +94,7 @@ namespace PayTrack.Api.Controllers
             return Ok(result);
         }
 
-        [HttpGet("my/weekly-progress")]
+        [HttpGet("my-weekly-progress")]
         public async Task<IActionResult> GetMyWeeklyProgress()
         {
             var result = await _mediator.Send(
