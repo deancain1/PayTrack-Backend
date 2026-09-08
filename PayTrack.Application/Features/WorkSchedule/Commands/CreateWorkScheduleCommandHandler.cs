@@ -25,35 +25,30 @@ namespace PayTrack.Application.Features.WorkSchedule.Commands
             CreateWorkScheduleCommand request,
             CancellationToken cancellationToken)
         {
-            // Validate current user
             if (string.IsNullOrWhiteSpace(_currentUser.UserId))
             {
                 throw new UnauthorizedAccessException(
                     "User not authenticated.");
             }
 
-            // Validate schedule name
             if (string.IsNullOrWhiteSpace(request.ScheduleName))
             {
                 throw new ArgumentException(
                     "Schedule name is required.");
             }
 
-            // Validate required hours
             if (request.RequiredHours <= 0)
             {
                 throw new ArgumentException(
                     "Required hours must be greater than zero.");
             }
 
-            // Validate grace period
             if (request.GracePeriodMinutes < 0)
             {
                 throw new ArgumentException(
                     "Grace period cannot be negative.");
             }
 
-            // Validate schedule type
             if (!Enum.IsDefined(
                 typeof(ScheduleType),
                 request.ScheduleType))
@@ -65,7 +60,6 @@ namespace PayTrack.Application.Features.WorkSchedule.Commands
             var scheduleType =
                 (ScheduleType)request.ScheduleType;
 
-            // Validate Fixed schedule
             if (scheduleType == ScheduleType.Fixed)
             {
                 if (!request.StartTime.HasValue)
@@ -80,14 +74,14 @@ namespace PayTrack.Application.Features.WorkSchedule.Commands
                         "End time is required for a fixed schedule.");
                 }
 
-                if (request.EndTime.Value <= request.StartTime.Value)
+                if (request.EndTime.Value ==
+                    request.StartTime.Value)
                 {
                     throw new ArgumentException(
-                        "End time must be later than start time.");
+                        "End time cannot be the same as start time.");
                 }
             }
 
-            // Validate Hybrid schedule
             if (scheduleType == ScheduleType.Hybrid)
             {
                 if (!request.StartTime.HasValue)
@@ -102,14 +96,14 @@ namespace PayTrack.Application.Features.WorkSchedule.Commands
                         "End time is required for a hybrid schedule.");
                 }
 
-                if (request.EndTime.Value <= request.StartTime.Value)
+                if (request.EndTime.Value ==
+                    request.StartTime.Value)
                 {
                     throw new ArgumentException(
-                        "End time must be later than start time.");
+                        "End time cannot be the same as start time.");
                 }
             }
 
-            // Validate Flexible schedule
             if (scheduleType == ScheduleType.Flexible)
             {
                 if (!request.EarliestStartTime.HasValue)
@@ -132,7 +126,6 @@ namespace PayTrack.Application.Features.WorkSchedule.Commands
                 }
             }
 
-            // Validate earliest and latest start time
             if (
                 request.EarliestStartTime.HasValue &&
                 request.LatestStartTime.HasValue
@@ -148,7 +141,6 @@ namespace PayTrack.Application.Features.WorkSchedule.Commands
                 }
             }
 
-            // Validate start time against allowed range
             if (
                 request.StartTime.HasValue &&
                 request.EarliestStartTime.HasValue
@@ -179,23 +171,45 @@ namespace PayTrack.Application.Features.WorkSchedule.Commands
                 }
             }
 
-            // Validate absent cutoff time
             if (
                 request.AbsentCutoffTime.HasValue &&
-                request.StartTime.HasValue
+                request.StartTime.HasValue &&
+                request.EndTime.HasValue
             )
             {
-                if (
-                    request.AbsentCutoffTime.Value <
-                    request.StartTime.Value
-                )
+                var startTime =
+                    request.StartTime.Value;
+
+                var endTime =
+                    request.EndTime.Value;
+
+                var cutoffTime =
+                    request.AbsentCutoffTime.Value;
+
+                if (endTime > startTime)
                 {
-                    throw new ArgumentException(
-                        "Absent cutoff time cannot be earlier than start time.");
+                    if (
+                        cutoffTime < startTime ||
+                        cutoffTime > endTime
+                    )
+                    {
+                        throw new ArgumentException(
+                            "Absent cutoff time must be between start time and end time.");
+                    }
+                }
+                else
+                {
+                    if (
+                        cutoffTime > startTime &&
+                        cutoffTime < endTime
+                    )
+                    {
+                        throw new ArgumentException(
+                            "Absent cutoff time must fall within the overnight schedule.");
+                    }
                 }
             }
 
-            // Create work schedule
             var schedule = new WorkSchedules
             {
                 Id = Guid.NewGuid(),
@@ -230,16 +244,13 @@ namespace PayTrack.Application.Features.WorkSchedule.Commands
                 WorkingDays =
                     request.WorkingDays,
 
-              
                 CompanyAdminId =
                     _currentUser.UserId
             };
 
-            // Save schedule
             await _workScheduleRepository.AddAsync(
                 schedule);
 
-            // Return DTO
             return new WorkSchedulesDTO(
                 schedule.Id,
                 schedule.ScheduleName,
