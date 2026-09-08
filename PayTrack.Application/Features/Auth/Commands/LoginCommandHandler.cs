@@ -63,7 +63,7 @@ namespace PayTrack.Application.Features.Auth.Commands
                 );
             }
 
-          
+
             if (!user.IsEmailVerified)
             {
                 throw new UnauthorizedAccessException(
@@ -71,7 +71,7 @@ namespace PayTrack.Application.Features.Auth.Commands
                 );
             }
 
-          
+
             if (user.TwoFactorEnabled)
             {
 
