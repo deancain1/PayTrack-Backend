@@ -14,11 +14,14 @@ namespace PayTrack.Infrastructure.Repository
 
         public async Task<decimal> GetTotalEarningsAsync(Guid employeeId, DateTime periodStart, DateTime periodEnd)
         {
+            periodStart = DateTime.SpecifyKind(periodStart.Date, DateTimeKind.Utc);
+            periodEnd = DateTime.SpecifyKind(periodEnd.Date.AddDays(1), DateTimeKind.Utc);
+
             return await _context.PayrollRecords
                 .Where(x =>
                     x.EmployeeId == employeeId &&
-                    x.CreatedAt.Date >= periodStart.Date &&
-                    x.CreatedAt.Date <= periodEnd.Date)
+                    x.CreatedAt >= periodStart &&
+                    x.CreatedAt < periodEnd)
                 .SumAsync(x => x.AmountEarned);
         }
 
