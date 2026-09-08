@@ -12,6 +12,7 @@ namespace PayTrack.Application.Features.SalaryAdvance.Commands
     {
         private readonly IEmployeesRepository _employeesRepository;
         private readonly ISalaryAdvanceRepository _salaryAdvanceRepository;
+        private readonly IPayrollRepository _payrollRepository;
         private readonly ICurrentUserService _currentUserService;
         private readonly IMediator _mediator;
         private readonly ISalaryAdvanceEligibilityService
@@ -20,12 +21,14 @@ namespace PayTrack.Application.Features.SalaryAdvance.Commands
         public CreateSalaryAdvanceRequestCommandHandler(
             IEmployeesRepository employeesRepository,
             ISalaryAdvanceRepository salaryAdvanceRepository,
+            IPayrollRepository payrollRepository,
             ICurrentUserService currentUserService,
             IMediator mediator,
             ISalaryAdvanceEligibilityService salaryAdvanceEligibilityService)
         {
             _employeesRepository = employeesRepository;
             _salaryAdvanceRepository = salaryAdvanceRepository;
+            _payrollRepository = payrollRepository;
             _currentUserService = currentUserService;
             _mediator = mediator;
             _salaryAdvanceEligibilityService =
@@ -34,21 +37,35 @@ namespace PayTrack.Application.Features.SalaryAdvance.Commands
 
         public async Task<Guid> Handle(CreateSalaryAdvanceRequestCommand request, CancellationToken cancellationToken)
         {
-            // 1. GET CURRENT EMPLOYEE
+           
 
-            var applicationUserId =
-                _currentUserService.UserId;
+            var applicationUserId = _currentUserService.UserId;
 
             var employee =
                 await _employeesRepository
-                    .GetCurrentEmployeeByApplicationUserIdAsync(applicationUserId);
+                    .GetCurrentEmployeeByApplicationUserIdAsync(
+                        applicationUserId);
 
             if (employee == null)
             {
                 throw new Exception("Employee not found.");
             }
 
-            // 2. CHECK PENDING SALARY ADVANCE
+
+
+            var payrollExists =
+                await _payrollRepository.HasGeneratedPayrollForDateAsync(
+                    employee.Id,
+                    DateTime.UtcNow);
+
+            if (payrollExists)
+            {
+                throw new Exception(
+                    "You cannot request a salary advance because payroll has already been generated for this period.");
+            }
+
+
+          
 
             var hasPending =
                 await _salaryAdvanceRepository
@@ -61,14 +78,10 @@ namespace PayTrack.Application.Features.SalaryAdvance.Commands
             }
 
 
-            // 3. CHECK SALARY ADVANCE ELIGIBILITY
-
+          
             var eligibility =
                 await _salaryAdvanceEligibilityService
                     .GetEligibilityAsync(employee.Id);
-
-
-            // 4. CHECK IF EMPLOYEE CAN REQUEST
 
             if (!eligibility.CanRequest)
             {
@@ -78,8 +91,7 @@ namespace PayTrack.Application.Features.SalaryAdvance.Commands
             }
 
 
-            // 5. CHECK REQUESTED AMOUNT
-
+   
             if (request.Amount <= 0)
             {
                 throw new Exception(
@@ -95,7 +107,7 @@ namespace PayTrack.Application.Features.SalaryAdvance.Commands
             }
 
 
-            // 6. CREATE SALARY ADVANCE
+          
 
             var salaryAdvance = new SalaryAdvances
             {
@@ -124,7 +136,8 @@ namespace PayTrack.Application.Features.SalaryAdvance.Commands
             await _salaryAdvanceRepository
                 .AddAsync(salaryAdvance);
 
-            // 7. SEND NOTIFICATION
+
+        
 
             await _mediator.Publish(
                 new CompanyAdminNotificationCreatedEvent(
@@ -140,6 +153,7 @@ namespace PayTrack.Application.Features.SalaryAdvance.Commands
                     DateTime.UtcNow
                 ),
                 cancellationToken);
+
 
             return salaryAdvance.Id;
         }
