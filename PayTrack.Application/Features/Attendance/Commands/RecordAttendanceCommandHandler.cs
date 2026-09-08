@@ -62,8 +62,7 @@ namespace PayTrack.Application.Features.Attendance.Commands
                     "Employee not found.");
             }
 
-            var schedule =
-                employee.WorkSchedule;
+            var schedule = employee.WorkSchedule;
 
             if (schedule == null)
             {
@@ -81,11 +80,23 @@ namespace PayTrack.Application.Features.Attendance.Commands
                     .GetTodayAttendanceAsync(
                         employee.Id);
 
+            // Philippine timezone
+            var philippinesTimeZone =
+                TimeZoneInfo.FindSystemTimeZoneById(
+                    "Asia/Manila");
+
             // Time In
             if (attendance == null)
             {
-                var now =
+                var nowUtc =
                     DateTime.UtcNow;
+
+                var nowPhilippines =
+                    TimeZoneInfo.ConvertTimeFromUtc(
+                        DateTime.SpecifyKind(
+                            nowUtc,
+                            DateTimeKind.Utc),
+                        philippinesTimeZone);
 
                 if (!schedule.StartTime.HasValue)
                 {
@@ -94,26 +105,26 @@ namespace PayTrack.Application.Features.Attendance.Commands
                 }
 
                 var scheduledStart =
-                    now.Date +
                     schedule.StartTime.Value;
 
                 var latestAllowed =
-                    scheduledStart.AddMinutes(
-                        schedule.GracePeriodMinutes);
+                    scheduledStart.Add(
+                        TimeSpan.FromMinutes(
+                            schedule.GracePeriodMinutes));
 
-                bool isLate = false;
+                bool isLate =
+                    nowPhilippines.TimeOfDay >
+                    latestAllowed;
 
                 decimal lateMinutes = 0;
 
-                if (now > latestAllowed)
+                if (isLate)
                 {
-                    isLate = true;
-
                     lateMinutes =
                         Math.Ceiling(
                             (decimal)(
-                                now -
-                                latestAllowed
+                                nowPhilippines.TimeOfDay -
+                                scheduledStart
                             ).TotalMinutes);
                 }
 
@@ -121,7 +132,7 @@ namespace PayTrack.Application.Features.Attendance.Commands
                     _attendancePolicyService
                         .DetermineStatus(
                             schedule,
-                            now);
+                            nowPhilippines);
 
                 attendance =
                     new Attendances
@@ -133,10 +144,10 @@ namespace PayTrack.Application.Features.Attendance.Commands
                             employee.Id,
 
                         Date =
-                            now.Date,
+                            nowPhilippines.Date,
 
                         TimeIn =
-                            now,
+                            nowUtc,
 
                         TimeInPhoto =
                             photoPath,
@@ -163,24 +174,12 @@ namespace PayTrack.Application.Features.Attendance.Commands
                 await _attendanceRepository
                     .AddAsync(attendance);
 
-                // Convert UTC time to Philippine time only for display
-                var philippinesTimeZone =
-                    TimeZoneInfo.FindSystemTimeZoneById(
-                        "Asia/Manila");
-
-                var timeIn =
-                    TimeZoneInfo.ConvertTimeFromUtc(
-                        DateTime.SpecifyKind(
-                            attendance.TimeIn.Value,
-                            DateTimeKind.Utc),
-                        philippinesTimeZone);
-
                 await _mediator.Publish(
                     new CompanyAdminNotificationCreatedEvent(
                         Guid.NewGuid(),
                         employee.CompanyAdminId,
                         CompanyAdminNotificationType.TimeIn,
-                        $"{employee.ApplicationUser.FullName} has timed in at {timeIn:hh:mm tt}.",
+                        $"{employee.ApplicationUser.FullName} has timed in at {nowPhilippines:hh:mm tt}.",
                         DateTime.UtcNow
                     ),
                     cancellationToken);
@@ -245,12 +244,6 @@ namespace PayTrack.Application.Features.Attendance.Commands
                         "Employee salary not configured.");
                 }
 
-                var earned =
-                    _payrollService.Calculate(
-                        salary,
-                        attendance,
-                        schedule);
-
                 var policy =
                     employee.UseCompanyLatePolicy
                         ? await _attendancePolicyRepository
@@ -268,7 +261,14 @@ namespace PayTrack.Application.Features.Attendance.Commands
                         "Attendance policy not found.");
                 }
 
-                decimal deduction = 0;
+                var earned =
+                    _payrollService.Calculate(
+                        salary,
+                        attendance,
+                        schedule,
+                        policy);
+
+                var deduction = 0m;
 
                 if (
                     policy.EnableLateDeduction &&
@@ -278,7 +278,7 @@ namespace PayTrack.Application.Features.Attendance.Commands
                     {
                         case LateDeductionType.None:
 
-                            deduction = 0;
+                            deduction = 0m;
 
                             break;
 
@@ -311,13 +311,9 @@ namespace PayTrack.Application.Features.Attendance.Commands
                 }
 
                 var finalSalary =
-                    earned -
-                    deduction;
-
-                if (finalSalary < 0)
-                {
-                    finalSalary = 0;
-                }
+                    Math.Max(
+                        0m,
+                        earned - deduction);
 
                 finalSalary =
                     Math.Round(
@@ -352,7 +348,7 @@ namespace PayTrack.Application.Features.Attendance.Commands
                 await _payrollRecordRepository
                     .AddAsync(payroll);
 
-                // Complete overtime if employee reached the overtime period
+                // Complete overtime
                 var overtime =
                     await _overtimeRepository
                         .GetActiveOvertimeForEmployeeAsync(
@@ -361,7 +357,6 @@ namespace PayTrack.Application.Features.Attendance.Commands
 
                 if (overtime != null)
                 {
-                    // Overtime.StartTime is TimeSpan, not TimeSpan?
                     var overtimeStart =
                         overtime.Date.Date +
                         overtime.StartTime;
@@ -375,11 +370,6 @@ namespace PayTrack.Application.Features.Attendance.Commands
                             cancellationToken);
                     }
                 }
-
-                // Convert UTC time to Philippine time only for display
-                var philippinesTimeZone =
-                    TimeZoneInfo.FindSystemTimeZoneById(
-                        "Asia/Manila");
 
                 var philippinesTimeOut =
                     TimeZoneInfo.ConvertTimeFromUtc(
