@@ -10,8 +10,7 @@ namespace PayTrack.Domain.Enums
     {
         FullDay =1 ,
         ProRated = 2,
-        HalfDay = 3,
-        Hourly = 4,
+        Hourly = 3,
       
     }
 }

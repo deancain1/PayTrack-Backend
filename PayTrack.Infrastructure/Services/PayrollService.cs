@@ -157,22 +157,6 @@ namespace PayTrack.Infrastructure.Services
 
                     break;
 
-                case PayrollPolicy.HalfDay:
-
-                    if (completedShift)
-                    {
-                        earned =
-                            salary.Rate;
-                    }
-                    else if (
-                        regularHours >=
-                        schedule.RequiredHours / 2m)
-                    {
-                        earned =
-                            salary.Rate / 2m;
-                    }
-
-                    break;
 
                 default:
 
@@ -346,14 +330,6 @@ namespace PayTrack.Infrastructure.Services
 
                     break;
 
-                case PayrollPolicy.HalfDay:
-
-                    hourlyRate =
-                        salary.Rate /
-                        schedule.RequiredHours;
-
-                    break;
-
                 default:
 
                     throw new InvalidOperationException(
@@ -456,12 +432,6 @@ namespace PayTrack.Infrastructure.Services
                     Math.Round(
                         salary.Rate,
                         2),
-
-                PayrollPolicy.HalfDay =>
-                    Math.Round(
-                        salary.Rate / 2m,
-                        2),
-
                 _ =>
                     0m
             };

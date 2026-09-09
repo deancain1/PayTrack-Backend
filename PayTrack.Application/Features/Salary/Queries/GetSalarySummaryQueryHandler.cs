@@ -30,10 +30,6 @@ namespace PayTrack.Application.Features.Salary.Queries
                 .Where(x => x.Policy == PayrollPolicy.FullDay)
                 .ToList();
 
-            var halfDay = salaries
-                .Where(x => x.Policy == PayrollPolicy.HalfDay)
-                .ToList();
-
             var hourly = salaries
                 .Where(x => x.Policy == PayrollPolicy.Hourly)
                 .ToList();
@@ -45,9 +41,6 @@ namespace PayTrack.Application.Features.Salary.Queries
             return new SalarySummaryDTO(
                 FullDayCount: fullDay.Count,
                 FullDayTotal: fullDay.Sum(x => x.Rate),
-
-                HalfDayCount: halfDay.Count,
-                HalfDayTotal: halfDay.Sum(x => x.Rate),
 
                 HourlyCount: hourly.Count,
                 HourlyTotal: hourly.Sum(x => x.Rate),

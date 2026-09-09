@@ -10,9 +10,6 @@ namespace PayTrack.Application.DTOs
     int FullDayCount,
     decimal FullDayTotal,
 
-    int HalfDayCount,
-    decimal HalfDayTotal,
-
     int HourlyCount,
     decimal HourlyTotal,
 
