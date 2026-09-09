@@ -40,5 +40,6 @@ namespace PayTrack.Application.Interfaces.Services
             string fullName,
             TimeSpan? scheduledEndTime,
             TimeSpan? overtimeEndTime);
+        Task SendOtpAsync(string email, string otp);
     }
 }

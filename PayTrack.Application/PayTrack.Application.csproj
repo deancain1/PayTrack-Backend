@@ -19,8 +19,4 @@
     <ProjectReference Include="..\PayTrack.Domain\PayTrack.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Interfaces\" />
-  </ItemGroup>
-
 </Project>

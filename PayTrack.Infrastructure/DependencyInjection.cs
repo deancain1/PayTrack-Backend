@@ -39,7 +39,7 @@ namespace PayTrack.Infrastructure
             services.AddScoped<ILeaveRequestRepository, LeaveRequestRepository>();
             services.AddScoped<ICompanyDetailsRepository, CompanyDetailsRepository>();
             services.AddScoped<IOvertimeRepository, OvertimeRepository>();
-
+            services.AddScoped<IPasswordResetRepository, PasswordResetRepository>();
             //notifications
             services.AddScoped<ICompanyAdminNotificationService, CompanyAdminNotificationService>();
             services.AddScoped<ICompanyAdminNotificationRepository, CompanyAdminNotificationRepository>();

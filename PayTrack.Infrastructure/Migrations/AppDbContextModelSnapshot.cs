@@ -854,6 +854,40 @@ namespace PayTrack.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("PayTrack.Domain.Entities.PasswordResetOTP", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("OtpCode")
+                        .IsRequired()
+                        .HasMaxLength(6)
+                        .HasColumnType("character varying(6)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PasswordResetOTPs", (string)null);
+                });
+
             modelBuilder.Entity("PayTrack.Domain.Entities.PayrollBatch", b =>
                 {
                     b.Property<Guid>("Id")
@@ -984,10 +1018,10 @@ namespace PayTrack.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("PeriodEnd")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("PeriodStart")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("PhilHealthDeduction")
                         .HasPrecision(18, 2)
@@ -1416,6 +1450,17 @@ namespace PayTrack.Infrastructure.Migrations
                     b.Navigation("Payroll");
 
                     b.Navigation("PayrollRecord");
+                });
+
+            modelBuilder.Entity("PayTrack.Domain.Entities.PasswordResetOTP", b =>
+                {
+                    b.HasOne("PayTrack.Domain.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("PayTrack.Domain.Entities.PayrollRecord", b =>

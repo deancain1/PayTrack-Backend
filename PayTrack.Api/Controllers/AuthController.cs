@@ -317,5 +317,36 @@ namespace PayTrack.Api.Controllers
 
             return NoContent();
         }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordCommand command)
+        {
+            await _mediator.Send(command);
+
+            return Ok(new
+            {
+                message = "OTP sent successfully."
+            });
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordCommand command)
+        {
+            var result =
+                await _mediator.Send(command);
+
+            if (!result)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid or expired OTP."
+                });
+            }
+
+            return Ok(new
+            {
+                message = "Password reset successfully."
+            });
+        }
     }
 }

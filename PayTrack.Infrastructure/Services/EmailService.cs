@@ -22,6 +22,7 @@ namespace PayTrack.Infrastructure.Services
             _logger = logger;
         }
 
+        // EMAIL VERIFICATION
 
         public async Task SendVerificationEmailAsync(
             string email,
@@ -38,7 +39,7 @@ namespace PayTrack.Infrastructure.Services
                     padding: 20px;
                     color: #333;'>
 
-                    <h2 style='color:#661F1F;'>
+                    <h2 style='color:#062b52;'>
                         Email Verification
                     </h2>
 
@@ -52,7 +53,7 @@ namespace PayTrack.Infrastructure.Services
                            style='
                                display:inline-block;
                                padding:10px 20px;
-                               background:#661F1F;
+                               background:#062b52;
                                color:#fff;
                                text-decoration:none;
                                border-radius:5px;'>
@@ -82,7 +83,6 @@ namespace PayTrack.Infrastructure.Services
 
         // EMPLOYEE VERIFICATION
 
-
         public async Task SendEmployeeVerificationEmailAsync(
             string email,
             string fullName,
@@ -100,7 +100,7 @@ namespace PayTrack.Infrastructure.Services
                     padding: 20px;
                     color: #333;'>
 
-                    <h2 style='color:#661F1F;'>
+                    <h2 style='color:#062b52;'>
                         Welcome to {companyName}!
                     </h2>
 
@@ -123,7 +123,7 @@ namespace PayTrack.Infrastructure.Services
                            style='
                                display:inline-block;
                                padding:12px 24px;
-                               background:#661F1F;
+                               background:#062b52;
                                color:#fff;
                                text-decoration:none;
                                border-radius:5px;
@@ -157,6 +157,7 @@ namespace PayTrack.Infrastructure.Services
                 htmlContent);
         }
 
+        // LOGIN OTP
 
         public async Task SendLoginOtpEmailAsync(
             string email,
@@ -171,7 +172,7 @@ namespace PayTrack.Infrastructure.Services
                     padding: 20px;
                     color: #333;'>
 
-                    <h2 style='color:#661F1F;'>
+                    <h2 style='color:#062b52;'>
                         PayTrack Login Verification
                     </h2>
 
@@ -190,6 +191,7 @@ namespace PayTrack.Infrastructure.Services
                         text-align:center;
                         padding:20px;
                         background:#f5f5f5;
+                        color:#062b52;
                         border-radius:8px;
                         margin:20px 0;'>
                         {otp}
@@ -220,8 +222,72 @@ namespace PayTrack.Infrastructure.Services
                 htmlContent);
         }
 
-        // LEAVE APPROVED
+        // PASSWORD RESET OTP
 
+        public async Task SendOtpAsync(
+            string email,
+            string otp)
+        {
+            var htmlContent = $@"
+                <div style='
+                    font-family: Arial, sans-serif;
+                    max-width: 600px;
+                    margin: auto;
+                    padding: 20px;
+                    color: #333;'>
+
+                    <h2 style='color:#062b52;'>
+                        PayTrack Password Reset
+                    </h2>
+
+                    <p>
+                        We received a request to reset your
+                        PayTrack password.
+                    </p>
+
+                    <p>
+                        Your password reset verification code is:
+                    </p>
+
+                    <div style='
+                        font-size:32px;
+                        font-weight:bold;
+                        letter-spacing:8px;
+                        text-align:center;
+                        padding:20px;
+                        background:#f5f5f5;
+                        color:#062b52;
+                        border-radius:8px;
+                        margin:20px 0;'>
+                        {otp}
+                    </div>
+
+                    <p>
+                        This code will expire in
+                        <strong>5 minutes</strong>.
+                    </p>
+
+                    <p>
+                        If you did not request a password reset,
+                        please ignore this email.
+                    </p>
+
+                    <br/>
+
+                    <p>
+                        Regards,<br/>
+                        <strong>PayTrack Team</strong>
+                    </p>
+
+                </div>";
+
+            await SendEmailAsync(
+                email,
+                "Your PayTrack Password Reset Code",
+                htmlContent);
+        }
+
+        // LEAVE APPROVED
 
         public async Task SendLeaveApprovedEmailAsync(
             string email,
@@ -247,7 +313,7 @@ namespace PayTrack.Infrastructure.Services
                     padding: 20px;
                     color: #333;'>
 
-                    <h2 style='color:#661F1F;'>
+                    <h2 style='color:#062b52;'>
                         Leave Request Approved
                     </h2>
 
@@ -304,7 +370,6 @@ namespace PayTrack.Infrastructure.Services
 
         // LEAVE REJECTED
 
-
         public async Task SendLeaveRejectedEmailAsync(
             string email,
             string fullName,
@@ -320,7 +385,7 @@ namespace PayTrack.Infrastructure.Services
                     padding: 20px;
                     color: #333;'>
 
-                    <h2 style='color:#661F1F;'>
+                    <h2 style='color:#062b52;'>
                         Leave Request Rejected
                     </h2>
 
@@ -378,10 +443,13 @@ namespace PayTrack.Infrastructure.Services
                 htmlContent);
         }
 
-
         // TIME OUT REMINDER
 
-        public async Task SendTimeOutReminderEmailAsync(string email, string fullName, TimeSpan? scheduledEndTime, TimeSpan? overtimeEndTime)
+        public async Task SendTimeOutReminderEmailAsync(
+            string email,
+            string fullName,
+            TimeSpan? scheduledEndTime,
+            TimeSpan? overtimeEndTime)
         {
             var effectiveEndTime =
                 overtimeEndTime ?? scheduledEndTime;
@@ -428,47 +496,47 @@ namespace PayTrack.Infrastructure.Services
                 </div>";
 
             var htmlContent = $@"
-        <div style='
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: auto;
-            padding: 20px;
-            color: #333;'>
+                <div style='
+                    font-family: Arial, sans-serif;
+                    max-width: 600px;
+                    margin: auto;
+                    padding: 20px;
+                    color: #333;'>
 
-            <h2 style='color:#661F1F;'>
-                Time Out Reminder
-            </h2>
+                    <h2 style='color:#062b52;'>
+                        Time Out Reminder
+                    </h2>
 
-            <p>
-                Hello <strong>{fullName}</strong>,
-            </p>
+                    <p>
+                        Hello <strong>{fullName}</strong>,
+                    </p>
 
-            <p>
-                This is a friendly reminder that you have not yet
-                recorded your <strong>Time Out</strong> for today.
-            </p>
+                    <p>
+                        This is a friendly reminder that you have not yet
+                        recorded your <strong>Time Out</strong> for today.
+                    </p>
 
-            {overtimeSection}
+                    {overtimeSection}
 
-            <p>
-                Please remember to time out when you have finished
-                your work for today so your attendance and working
-                hours can be recorded accurately.
-            </p>
+                    <p>
+                        Please remember to time out when you have finished
+                        your work for today so your attendance and working
+                        hours can be recorded accurately.
+                    </p>
 
-            <p>
-                If you have already timed out, please disregard
-                this email.
-            </p>
+                    <p>
+                        If you have already timed out, please disregard
+                        this email.
+                    </p>
 
-            <br/>
+                    <br/>
 
-            <p>
-                Regards,<br/>
-                <strong>PayTrack Team</strong>
-            </p>
+                    <p>
+                        Regards,<br/>
+                        <strong>PayTrack Team</strong>
+                    </p>
 
-        </div>";
+                </div>";
 
             await SendEmailAsync(
                 email,
@@ -476,7 +544,7 @@ namespace PayTrack.Infrastructure.Services
                 htmlContent);
         }
 
-        // Common Brevo API method
+        // COMMON BREVO API METHOD
 
         private async Task SendEmailAsync(
             string recipientEmail,
@@ -525,11 +593,11 @@ namespace PayTrack.Infrastructure.Services
 
                 to = new[]
                 {
-            new
-            {
-                email = recipientEmail
-            }
-        },
+                    new
+                    {
+                        email = recipientEmail
+                    }
+                },
 
                 subject = subject,
 
@@ -591,6 +659,5 @@ namespace PayTrack.Infrastructure.Services
                 throw;
             }
         }
-
     }
 }
