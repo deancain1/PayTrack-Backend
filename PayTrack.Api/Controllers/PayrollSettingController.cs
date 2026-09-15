@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PayTrack.Application.Features.PayrollSettings.Commands;
@@ -8,9 +9,11 @@ namespace PayTrack.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "CompanyAdmin")]
     public class PayrollSettingController : ControllerBase
     {
         private readonly IMediator _mediator;
+
         public PayrollSettingController(IMediator mediator)
         {
             _mediator = mediator;
@@ -27,12 +30,10 @@ namespace PayTrack.Api.Controllers
         [HttpGet("payroll-setting")]
         public async Task<IActionResult> GetPayrollSetting()
         {
-            var result =
-                await _mediator.Send(
-                    new GetPayrollSettingQuery());
+            var result = await _mediator.Send(
+                new GetPayrollSettingQuery());
 
             return Ok(result);
         }
     }
-
 }

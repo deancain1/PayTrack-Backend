@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PayTrack.Application.Features.AttendancePolicies.Commands;
 using PayTrack.Application.Features.AttendancePolicies.Queries;
@@ -9,6 +10,7 @@ namespace PayTrack.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "CompanyAdmin")]
     public class AttendancePolicyController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -17,8 +19,6 @@ namespace PayTrack.API.Controllers
         {
             _mediator = mediator;
         }
-
-
 
         [HttpGet("attendance-policy-lookup")]
         public async Task<IActionResult> GetAttendancePolicyLookup()
@@ -29,10 +29,8 @@ namespace PayTrack.API.Controllers
             return Ok(result);
         }
 
-
         [HttpPost]
-        public async Task<IActionResult> Create(
-            [FromBody] CreateAttendancePolicyCommand command)
+        public async Task<IActionResult> Create([FromBody] CreateAttendancePolicyCommand command)
         {
             var id = await _mediator.Send(command);
 
@@ -52,6 +50,7 @@ namespace PayTrack.API.Controllers
         public async Task<IActionResult> AssignAttendancePolicyToEmployee(AssignAttendancePolicyCommand command)
         {
             await _mediator.Send(command);
+
             return NoContent();
         }
     }

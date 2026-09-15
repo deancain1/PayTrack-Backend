@@ -17,8 +17,10 @@ namespace PayTrack.Api.Controllers
         {
             _mediator = mediator;
         }
-        //Company Admin 
+
+        // Company Admin
         [HttpPost("admin")]
+        [Authorize(Roles = "CompanyAdmin")]
         public async Task<IActionResult> CreateByAdmin(
             [FromBody] CreateCompanyAdminOvertimeCommand command)
         {
@@ -31,15 +33,20 @@ namespace PayTrack.Api.Controllers
             });
         }
 
+        // Company Admin
         [HttpGet("admin")]
-        public async Task<IActionResult> GetAdminOvertime([FromQuery] GetOvertimeByCompanyAdminQuery query)
+        [Authorize(Roles = "CompanyAdmin")]
+        public async Task<IActionResult> GetAdminOvertime(
+            [FromQuery] GetOvertimeByCompanyAdminQuery query)
         {
             var result = await _mediator.Send(query);
 
             return Ok(result);
         }
 
+        // Company Admin
         [HttpPut("{id}/approve")]
+        [Authorize(Roles = "CompanyAdmin")]
         public async Task<IActionResult> Approve(Guid id)
         {
             await _mediator.Send(
@@ -51,10 +58,10 @@ namespace PayTrack.Api.Controllers
             });
         }
 
+        // Company Admin
         [HttpPut("{id}/reject")]
-        public async Task<IActionResult> Reject(
-            Guid id,
-            [FromBody] RejectOvertimeCommand command)
+        [Authorize(Roles = "CompanyAdmin")]
+        public async Task<IActionResult> Reject(Guid id, [FromBody] RejectOvertimeCommand command)
         {
             if (id != command.Id)
             {
@@ -70,12 +77,10 @@ namespace PayTrack.Api.Controllers
             });
         }
 
-
-        //Employee
-
+        // Employee
         [HttpPost("employee")]
-        public async Task<IActionResult> CreateByEmployee(
-            [FromBody] CreateEmployeeOvertimeCommand command)
+        [Authorize(Roles = "Employee")]
+        public async Task<IActionResult> CreateByEmployee([FromBody] CreateEmployeeOvertimeCommand command)
         {
             var overtimeId = await _mediator.Send(command);
 
@@ -86,7 +91,9 @@ namespace PayTrack.Api.Controllers
             });
         }
 
+        // Employee
         [HttpGet("employee")]
+        [Authorize(Roles = "Employee")]
         public async Task<IActionResult> GetEmployeeOvertime([FromQuery] GetOvertimeByEmployeeQuery query)
         {
             var result = await _mediator.Send(query);
@@ -94,10 +101,10 @@ namespace PayTrack.Api.Controllers
             return Ok(result);
         }
 
+        // Employee
         [HttpPost("{id}/respond")]
-        public async Task<IActionResult> Respond(
-            Guid id,
-            [FromBody] RespondToOvertimeCommand command)
+        [Authorize(Roles = "Employee")]
+        public async Task<IActionResult> Respond(Guid id, [FromBody] RespondToOvertimeCommand command)
         {
             if (id != command.Id)
             {
@@ -116,4 +123,3 @@ namespace PayTrack.Api.Controllers
         }
     }
 }
-

@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PayTrack.Application.DTOs;
@@ -12,13 +13,16 @@ namespace PayTrack.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "CompanyAdmin")]
     public class WorkScheduleController : ControllerBase
     {
         private readonly IMediator _mediator;
+
         public WorkScheduleController(IMediator mediator)
         {
             _mediator = mediator;
         }
+
         [HttpPost("work-schedule")]
         public async Task<IActionResult> Create(CreateWorkScheduleCommand command)
         {
@@ -35,7 +39,8 @@ namespace PayTrack.Api.Controllers
         }
 
         [HttpPut("assign-schedule")]
-        public async Task<IActionResult> AssignScheduleToEmployee(AssignWorkScheduleToEmployeeCommand command)
+        public async Task<IActionResult> AssignScheduleToEmployee(
+            AssignWorkScheduleToEmployeeCommand command)
         {
             await _mediator.Send(command);
             return NoContent();
@@ -49,8 +54,11 @@ namespace PayTrack.Api.Controllers
 
             return Ok(result);
         }
+
         [HttpPut("{id:guid}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateWorkScheduleCommand command)
+        public async Task<IActionResult> Update(
+            Guid id,
+            [FromBody] UpdateWorkScheduleCommand command)
         {
             if (id != command.Id)
             {
@@ -63,7 +71,8 @@ namespace PayTrack.Api.Controllers
         }
 
         [HttpDelete("bulk-delete")]
-        public async Task<IActionResult> BulkDelete([FromBody] DeleteWorkSchedulesCommand command)
+        public async Task<IActionResult> BulkDelete(
+            [FromBody] DeleteWorkSchedulesCommand command)
         {
             await _mediator.Send(command);
 
@@ -71,4 +80,3 @@ namespace PayTrack.Api.Controllers
         }
     }
 }
-

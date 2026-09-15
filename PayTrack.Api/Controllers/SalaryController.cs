@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PayTrack.Application.DTOs;
@@ -9,6 +10,7 @@ namespace PayTrack.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "CompanyAdmin")]
     public class SalaryController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -25,8 +27,12 @@ namespace PayTrack.Api.Controllers
 
             return Ok(salary);
         }
+
         [HttpGet]
-        public async Task<ActionResult<PagedResult<SalaryDTO>>> GetSalaries([FromQuery] string? search, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 7)
+        public async Task<ActionResult<PagedResult<SalaryDTO>>> GetSalaries(
+            [FromQuery] string? search,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 7)
         {
             var query = new GetEmployeeSalaryQuery
             {
@@ -41,7 +47,7 @@ namespace PayTrack.Api.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id,[FromBody] UpdateEmployeeSalaryCommand command)
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateEmployeeSalaryCommand command)
         {
             if (id != command.Id)
                 return BadRequest("Salary ID mismatch.");
@@ -53,6 +59,7 @@ namespace PayTrack.Api.Controllers
 
             return NoContent();
         }
+
         [HttpGet("summary")]
         public async Task<IActionResult> GetSummary()
         {
@@ -65,10 +72,12 @@ namespace PayTrack.Api.Controllers
         [HttpGet("daily-rate")]
         public async Task<IActionResult> GetDailyRate()
         {
-            var result = await _mediator.Send(new GetDailyRateQuery());
+            var result = await _mediator.Send(
+                new GetDailyRateQuery());
 
             return Ok(result);
         }
+
         [HttpDelete("bulk-delete")]
         public async Task<IActionResult> BulkDelete([FromBody] DeleteEmployeeSalariesCommand command)
         {
@@ -78,4 +87,3 @@ namespace PayTrack.Api.Controllers
         }
     }
 }
-

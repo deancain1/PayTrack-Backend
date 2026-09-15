@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PayTrack.Application.DTOs;
@@ -17,8 +18,13 @@ namespace PayTrack.Api.Controllers
             _mediator = mediator;
         }
 
+        // Employee
+        [Authorize(Roles = "Employee")]
         [HttpGet]
-        public async Task<ActionResult<PagedResult<PayrollRecordDTO>>> GetParollRecordByEmployeeAsync([FromQuery] string? search, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 7)
+        public async Task<ActionResult<PagedResult<PayrollRecordDTO>>> GetParollRecordByEmployeeAsync(
+            [FromQuery] string? search,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 7)
         {
             var query = new GetPayrollRecordsByCurrentEmployeeQuery
             {
@@ -30,25 +36,34 @@ namespace PayTrack.Api.Controllers
             var result = await _mediator.Send(query);
 
             return Ok(result);
-
-        }
-        [HttpGet("payroll-records-by-company-admin")]
-        public async Task<IActionResult> GetPayrollRecordByCompanyAdminAsync([FromQuery] GetPayrollRecordsByCompanyAdminQuery query)
-        {
-            var result = await _mediator.Send(query);
-            return Ok(result);
         }
 
+        [Authorize(Roles = "Employee")]
         [HttpGet("total-earnings")]
         public async Task<IActionResult> GetTotalEarnings()
         {
-            var result = await _mediator.Send(new GetEmployeeTotalEarningsQuery());
+            var result = await _mediator.Send(
+                new GetEmployeeTotalEarningsQuery());
 
             return Ok(result);
         }
 
+
+        [Authorize(Roles = "CompanyAdmin")]
+        [HttpGet("payroll-records-by-company-admin")]
+        public async Task<IActionResult> GetPayrollRecordByCompanyAdminAsync(
+            [FromQuery] GetPayrollRecordsByCompanyAdminQuery query)
+        {
+            var result = await _mediator.Send(query);
+
+            return Ok(result);
+        }
+       
+        [Authorize(Roles = "CompanyAdmin")]
         [HttpGet("payroll-record-summary")]
-        public async Task<IActionResult> GetPayrollRecordsSummary([FromQuery] int month, [FromQuery] int year)
+        public async Task<IActionResult> GetPayrollRecordsSummary(
+            [FromQuery] int month,
+            [FromQuery] int year)
         {
             var query = new GetPayrollRecordSummaryQuery(
                 month,

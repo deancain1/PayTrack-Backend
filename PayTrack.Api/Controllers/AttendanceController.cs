@@ -14,14 +14,16 @@ namespace PayTrack.Api.Controllers
     public class AttendanceController : ControllerBase
     {
         private readonly IMediator _mediator;
+
         public AttendanceController(IMediator mediator)
         {
             _mediator = mediator;
         }
 
+       
         [HttpPost("scan")]
-        public async Task<IActionResult> ScanAttendance(
-            [FromBody] RecordAttendanceCommand command)
+        [Authorize(Roles = "Employee")]
+        public async Task<IActionResult> ScanAttendance([FromBody] RecordAttendanceCommand command)
         {
             try
             {
@@ -42,18 +44,24 @@ namespace PayTrack.Api.Controllers
                     Success = false,
                     Message = ex.Message
                 });
-            } 
+            }
         }
 
+
         [HttpGet("my-attendance")]
+        [Authorize(Roles = "Employee")]
         public async Task<IActionResult> GetMyAttendance([FromQuery] GetMyAttendanceQuery query)
         {
             var result = await _mediator.Send(query);
             return Ok(result);
         }
 
+        
         [HttpGet("my-summary")]
-        public async Task<IActionResult> GetMyAttendanceSummary([FromQuery] int month, [FromQuery] int year)
+        [Authorize(Roles = "Employee")]
+        public async Task<IActionResult> GetMyAttendanceSummary(
+            [FromQuery] int month,
+            [FromQuery] int year)
         {
             var result = await _mediator.Send(
                 new GetMyAttendanceSummaryQuery(month, year));
@@ -61,23 +69,30 @@ namespace PayTrack.Api.Controllers
             return Ok(result);
         }
 
-
-
+       
         [HttpGet]
+        [Authorize(Roles = "CompanyAdmin")]
         public async Task<IActionResult> GetAttendance([FromQuery] GetAttendanceQuery query)
         {
             var result = await _mediator.Send(query);
             return Ok(result);
-
         }
+
+       
         [HttpGet("today")]
+        [Authorize(Roles = "CompanyAdmin")]
         public async Task<IActionResult> GetTodayAttendance(CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new GetAttendanceTodayQuery(), cancellationToken);
+            var result = await _mediator.Send(
+                new GetAttendanceTodayQuery(),
+                cancellationToken);
+
             return Ok(result);
         }
 
+      
         [HttpGet("attendance-stats")]
+        [Authorize(Roles = "CompanyAdmin")]
         public async Task<IActionResult> GetAttendnceStats()
         {
             var result = await _mediator.Send(
@@ -85,8 +100,13 @@ namespace PayTrack.Api.Controllers
 
             return Ok(result);
         }
+
+       
         [HttpGet("summary")]
-        public async Task<IActionResult> GetAttendanceSummary([FromQuery] int month,[FromQuery] int year)
+        [Authorize(Roles = "CompanyAdmin")]
+        public async Task<IActionResult> GetAttendanceSummary(
+            [FromQuery] int month,
+            [FromQuery] int year)
         {
             var result = await _mediator.Send(
                 new GetAttendanceSummaryQuery(month, year));
@@ -94,7 +114,9 @@ namespace PayTrack.Api.Controllers
             return Ok(result);
         }
 
+       
         [HttpGet("my-weekly-progress")]
+        [Authorize(Roles = "Employee")]
         public async Task<IActionResult> GetMyWeeklyProgress()
         {
             var result = await _mediator.Send(
@@ -102,6 +124,7 @@ namespace PayTrack.Api.Controllers
 
             return Ok(result);
         }
+
         //[HttpGet("missing-timein-reminders")]
         //public async Task<IActionResult> GetMissingTimeInReminder()
         //{

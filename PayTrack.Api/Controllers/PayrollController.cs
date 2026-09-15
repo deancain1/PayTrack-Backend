@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PayTrack.Application.DTOs;
@@ -12,27 +13,24 @@ namespace PayTrack.Api.Controllers
     public class PayrollController : ControllerBase
     {
         private readonly IMediator _mediator;
+
         public PayrollController(IMediator mediator)
         {
             _mediator = mediator;
         }
 
+       
+        [Authorize(Roles = "CompanyAdmin")]
         [HttpPost("generate")]
         public async Task<IActionResult> Generate([FromBody] GeneratePayrollCommand command)
         {
             var result = await _mediator.Send(command);
-            return Ok(result);
-        }
-
-        [HttpGet("my-summary")]
-        public async Task<IActionResult> GetMyPayrollSummary()
-        {
-            var result = await _mediator.Send(
-                new GetMyPayrollSummaryQuery());
 
             return Ok(result);
         }
 
+      
+        [Authorize(Roles = "CompanyAdmin")]
         [HttpGet("monthly-payroll-expenses")]
         public async Task<IActionResult> GetMonthlyPayrollExpenses(CancellationToken cancellationToken)
         {
@@ -42,13 +40,26 @@ namespace PayTrack.Api.Controllers
 
             return Ok(result);
         }
+
+        // Employee
+        [Authorize(Roles = "Employee")]
         [HttpGet("my-payrolls")]
-        public async Task<ActionResult<List<EmployeePayslipDTO>>> GetMyPayrolls(
-           CancellationToken cancellationToken)
+        public async Task<ActionResult<List<EmployeePayslipDTO>>> GetMyPayrolls(CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(
                 new GetMyPayrollsQuery(),
                 cancellationToken);
+
+            return Ok(result);
+        }
+
+       
+        [Authorize(Roles = "Employee")]
+        [HttpGet("my-summary")]
+        public async Task<IActionResult> GetMyPayrollSummary()
+        {
+            var result = await _mediator.Send(
+                new GetMyPayrollSummaryQuery());
 
             return Ok(result);
         }

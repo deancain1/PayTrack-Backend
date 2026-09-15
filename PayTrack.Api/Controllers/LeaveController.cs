@@ -21,6 +21,7 @@ namespace PayTrack.Api.Controllers
         }
 
         // Employee
+        [Authorize(Roles = "Employee")]
         [HttpPost("request")]
         public async Task<IActionResult> CreateRequest(
             [FromForm] CreateLeaveRequestCommand command)
@@ -30,8 +31,12 @@ namespace PayTrack.Api.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = "Employee")]
         [HttpGet("my-leaves")]
-        public async Task<ActionResult<PagedResult<PayrollRecordDTO>>> GetParollRecordByEmployeeAsync([FromQuery] string? search, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 7)
+        public async Task<ActionResult<PagedResult<PayrollRecordDTO>>> GetParollRecordByEmployeeAsync(
+            [FromQuery] string? search,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 7)
         {
             var query = new GetMyLeavesQuery
             {
@@ -43,30 +48,13 @@ namespace PayTrack.Api.Controllers
             var result = await _mediator.Send(query);
 
             return Ok(result);
-
         }
 
-        //[HttpPut("{id}/cancel")]
-        //public async Task<IActionResult> Cancel(
-        //    Guid id,
-        //    CancellationToken cancellationToken)
-        //{
-        //    var result = await _mediator.Send(
-        //        new CancelLeaveRequestCommand(id),
-        //        cancellationToken);
-
-        //    return Ok(new
-        //    {
-        //        message = "Leave request cancelled successfully.",
-        //        success = result
-        //    });
-        //}
 
         // CompanyAdmin
+        [Authorize(Roles = "CompanyAdmin")]
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(
-            Guid id,
-            CancellationToken cancellationToken)
+        public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(
                 new GetLeaveRequestByIdQuery(id),
@@ -75,8 +63,12 @@ namespace PayTrack.Api.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = "CompanyAdmin")]
         [HttpGet]
-        public async Task<IActionResult> GetLeaveRequests([FromQuery] string? search, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 7)
+        public async Task<IActionResult> GetLeaveRequests(
+            [FromQuery] string? search,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 7)
         {
             var result = await _mediator.Send(
                 new GetLeaveRequestsQuery(
@@ -88,6 +80,7 @@ namespace PayTrack.Api.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = "CompanyAdmin")]
         [HttpPut("{id}/approve")]
         public async Task<IActionResult> Approve(Guid id, [FromBody] ApproveLeaveRequestCommand command)
         {
@@ -104,6 +97,7 @@ namespace PayTrack.Api.Controllers
             });
         }
 
+        [Authorize(Roles = "CompanyAdmin")]
         [HttpPut("{id}/reject")]
         public async Task<IActionResult> Reject(Guid id, [FromBody] RejectLeaveRequestCommand command)
         {
@@ -120,6 +114,7 @@ namespace PayTrack.Api.Controllers
             });
         }
 
+        [Authorize(Roles = "CompanyAdmin")]
         [HttpGet("summary")]
         public async Task<IActionResult> GetLeaveRequestSummary()
         {

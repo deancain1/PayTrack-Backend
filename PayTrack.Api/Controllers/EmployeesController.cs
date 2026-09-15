@@ -1,10 +1,8 @@
 ﻿using MediatR;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PayTrack.Application.DTOs;
 using PayTrack.Application.Features.Employee.Commands;
 using PayTrack.Application.Features.Employee.Queries;
-
 
 namespace PayTrack.Api.Controllers
 {
@@ -13,11 +11,13 @@ namespace PayTrack.Api.Controllers
     public class EmployeesController : ControllerBase
     {
         private readonly IMediator _mediator;
+
         public EmployeesController(IMediator mediator)
         {
             _mediator = mediator;
         }
 
+        [Authorize(Roles = "CompanyAdmin")]
         [HttpPost("{id}/generate-qr")]
         public async Task<IActionResult> GenerateQr(Guid id)
         {
@@ -27,13 +27,16 @@ namespace PayTrack.Api.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = "CompanyAdmin")]
         [HttpGet]
         public async Task<IActionResult> GetEmployees([FromQuery] GetEmployeesQuery query)
         {
             var result = await _mediator.Send(query);
+
             return Ok(result);
         }
 
+        [Authorize(Roles = "CompanyAdmin")]
         [HttpGet("lookup")]
         public async Task<IActionResult> GetEmployeesLookup()
         {
@@ -42,6 +45,8 @@ namespace PayTrack.Api.Controllers
 
             return Ok(result);
         }
+
+        [Authorize(Roles = "CompanyAdmin")]
         [HttpGet("employee-summary")]
         public async Task<IActionResult> GetEmployeeSummary()
         {
@@ -51,17 +56,20 @@ namespace PayTrack.Api.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = "Employee")]
         [HttpGet("me")]
         public async Task<IActionResult> GetCurrentEmployee()
         {
-            var employee = await _mediator.Send(new GetCurrentEmployeeInformationQuery());
+            var employee = await _mediator.Send(
+                new GetCurrentEmployeeInformationQuery());
 
             return Ok(employee);
         }
+
+        [Authorize(Roles = "CompanyAdmin")]
         [HttpPut("{id:guid}")]
-        public async Task<IActionResult> UpdateEmployee( Guid id, [FromBody] UpdateEmployeeCommand command, CancellationToken cancellationToken)
+        public async Task<IActionResult> UpdateEmployee(Guid id, [FromBody] UpdateEmployeeCommand command, CancellationToken cancellationToken)
         {
-           
             if (id != command.Id)
             {
                 return BadRequest(new
@@ -69,7 +77,6 @@ namespace PayTrack.Api.Controllers
                     message = "Employee ID does not match the request."
                 });
             }
-
 
             try
             {
